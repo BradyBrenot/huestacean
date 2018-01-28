@@ -31,3 +31,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     huerunner.h
+
+DISTFILES += \
+    README.md \
+    LICENSE
