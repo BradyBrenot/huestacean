@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>images/hamburger.png</file>
+        <file>qml/home.qml</file>
+        <file>qml/bridges.qml</file>
+    </qresource>
+</RCC>
