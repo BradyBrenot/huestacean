@@ -4,14 +4,16 @@
 #include <QObject>
 #include <QNetworkAccessManager>
 
-class HueRunner : public QObject
+/* Hue API wrapper */
+class Hue : public QObject
 {
     Q_OBJECT
 
     Q_PROPERTY(QString message READ message WRITE setMessage NOTIFY messageChanged)
+    Q_PROPERTY(bool connected READ connected WRITE setConnected NOTIFY connectedChanged)
 
 public:
-    explicit HueRunner(QObject *parent = nullptr);
+    explicit Hue(QObject *parent = nullptr);
 
     void setMessage(const QString &inMessage) {
         m_message = inMessage;
@@ -22,11 +24,23 @@ public:
         return m_message;
     }
 
+    void setConnected(bool inConnected) {
+        m_connected = inConnected;
+        emit connectedChanged();
+    }
+    bool connected() const {
+        return m_connected;
+    }
+
     Q_INVOKABLE void connectToBridge();
     Q_INVOKABLE void resetConnection();
 
 signals:
+    void wantsLinkButton();
+
+    //Property notifies
     void messageChanged();
+    void connectedChanged();
 
 public slots:
 
@@ -35,6 +49,7 @@ private slots:
 
 private:
     QString m_message;
+    bool m_connected;
     QNetworkAccessManager m_qnam;
 };
 

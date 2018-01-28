@@ -4,25 +4,33 @@
 #include <QJsonArray>
 #include <QSettings>
 
-#include "huerunner.h"
+#include "hue.h"
 
 QString SETTING_USERNAME = "Bridge/Username";
 QString SETTING_CLIENTKEY = "Bridge/clientkey";
 
-HueRunner::HueRunner(QObject *parent) : QObject(parent)
+Hue::Hue(QObject *parent) : QObject(parent)
 {
     connect(&m_qnam, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(replied(QNetworkReply*)));
+
     setMessage("Not connected.");
+    setConnected(false);
 }
 
-void HueRunner::connectToBridge()
+void Hue::connectToBridge()
 {
+    setMessage("Connecting.");
+    setConnected(false);
+
     QSettings settings;
     if(settings.contains(SETTING_USERNAME) && settings.contains(SETTING_CLIENTKEY))
     {
         //Verify existing registration
-        QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/config").arg(settings.value("username").toString())));
+        //QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/config").arg(settings.value("username").toString())));
+        QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/config").arg(settings.value(SETTING_USERNAME).toString())));
+        qDebug() << qnr.url();
+        m_qnam.get(qnr);
     }
     else
     {
@@ -37,14 +45,15 @@ void HueRunner::connectToBridge()
         m_qnam.post(qnr, QJsonDocument(json).toJson());
     }
 }
-void HueRunner::resetConnection()
+void Hue::resetConnection()
 {
     QSettings settings;
     settings.remove(SETTING_USERNAME);
     settings.remove(SETTING_CLIENTKEY);
+    connectToBridge();
 }
 
-void HueRunner::replied(QNetworkReply *reply)
+void Hue::replied(QNetworkReply *reply)
 {
     reply->deleteLater();
 
@@ -74,19 +83,34 @@ void HueRunner::replied(QNetworkReply *reply)
             settings.setValue(SETTING_USERNAME, username);
             settings.setValue(SETTING_CLIENTKEY, clientkey);
 
-            setMessage("Connected to bridge!");
+            setMessage("Registered and connected to bridge!");
+
+            setConnected(true);
         }
         else
         {
             if(obj[QString("error")].toObject()[QString("type")].toInt() == 101)
             {
                 setMessage("Press the link button!");
+                emit wantsLinkButton();
             }
         }
     }
-    else if(reply->request().url().toString().endsWith("/api"))
+    else if(reply->request().url().toString().endsWith("/config"))
     {
+        QByteArray data = reply->readAll();
 
+        QJsonDocument replyJson = QJsonDocument::fromJson(data);
+        if(!replyJson.isObject() || !replyJson.object().contains("whitelist"))
+        {
+            qDebug() << "Connection failed" << replyJson.isObject() << replyJson.object().contains("whitelist");
+            resetConnection();
+        }
+        else
+        {
+            setMessage("Connected! Reused old connection!");
+            setConnected(true);
+        }
     }
     else
     {

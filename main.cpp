@@ -1,14 +1,14 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include "huerunner.h"
+#include "huestacean.h"
 
-static QObject *huerunner_singleton_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
+static QObject *huestacean_singleton_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
 
-    HueRunner *runner = new HueRunner();
-    return runner;
+    Huestacean *huestacean = new Huestacean();
+    return huestacean;
 }
 
 int main(int argc, char *argv[])
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    qmlRegisterSingletonType<HueRunner>("Huestacean.HueRunner", 1, 0, "HueRunner", huerunner_singleton_provider);
+    qmlRegisterSingletonType<Huestacean>("Huestacean", 1, 0, "Huestacean", huestacean_singleton_provider);
 
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
     if (engine.rootObjects().isEmpty())
