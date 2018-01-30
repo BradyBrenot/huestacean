@@ -2,6 +2,8 @@
 #define HUERUNNER_H
 
 #include <QObject>
+#include <QDebug>
+
 #include <QNetworkAccessManager>
 
 /* Hue API wrapper */
@@ -35,6 +37,10 @@ public:
     Q_INVOKABLE void connectToBridge();
     Q_INVOKABLE void resetConnection();
 
+    Q_INVOKABLE void testEntertainment();
+
+    void handleStreamingEnabled();
+
 signals:
     void wantsLinkButton();
 
@@ -43,6 +49,7 @@ signals:
     void connectedChanged();
 
 public slots:
+    void requestGroups();
 
 private slots:
     void replied(QNetworkReply *reply);
@@ -50,6 +57,7 @@ private slots:
 private:
     QString m_message;
     bool m_connected;
+
     QNetworkAccessManager m_qnam;
 };
 

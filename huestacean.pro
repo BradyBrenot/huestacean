@@ -36,4 +36,10 @@ HEADERS += \
 
 DISTFILES += \
     README.md \
-    LICENSE
+    LICENSE \
+    apache-2.0.txt \
+    lgpl-3.txt
+
+#todo: per-OS and/or env-based lib settings, if I decide to care
+LIBS += -LC:/mbedtls-mbedtls-2.6.1/visualc/VS2010/x64/Debug/ -lmbedTLS -lAdvapi32
+INCLUDEPATH += C:/mbedtls-mbedtls-2.6.1/include

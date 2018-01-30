@@ -1,7 +1,7 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.2
-import Huestacean.HueRunner 1.0
+import Huestacean 1.0
 
 Pane {
     id: home
@@ -12,7 +12,7 @@ Pane {
         height: 400
 
         Label {
-            text: HueRunner.message
+            text: Huestacean.hue.message
             anchors.margins: 20
             anchors.left: parent.left
             anchors.right: parent.right
@@ -24,7 +24,19 @@ Pane {
         Button {
             id: button
             text: qsTr("Connect!")
-            onClicked: HueRunner.connectToBridge()
+            onClicked: Huestacean.hue.connectToBridge()
+        }
+
+        Button {
+            id: entertain
+            text: qsTr("Entertain me!")
+            onClicked: Huestacean.hue.testEntertainment()
+        }
+
+        Button {
+            id: groups
+            text: qsTr("Show groups!")
+            onClicked: Huestacean.hue.requestGroups()
         }
     }
 }
