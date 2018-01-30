@@ -1,3 +1,11 @@
+#################
+#################
+# todo:
+# per-OS and/or env-based lib settings, if I decide to care
+# move to cmake?
+#################
+#################
+
 QT += quick
 QT += network
 CONFIG += c++11
@@ -38,8 +46,16 @@ DISTFILES += \
     README.md \
     LICENSE \
     apache-2.0.txt \
-    lgpl-3.txt
+    lgpl-3.txt \
+    license-screen_capture_lite.txt
 
-#todo: per-OS and/or env-based lib settings, if I decide to care
-LIBS += -LC:/mbedtls-mbedtls-2.6.1/visualc/VS2010/x64/Debug/ -lmbedTLS -lAdvapi32
+#Advapi32 for crypto requirements for mbedtls
+LIBS +=  -lAdvapi32
+
+#mbedtls
+LIBS += -LC:/mbedtls-mbedtls-2.6.1/visualc/VS2010/x64/Debug/ -lmbedTLS
 INCLUDEPATH += C:/mbedtls-mbedtls-2.6.1/include
+
+#screen capture lite
+LIBS += -LC:/hueproj/screen_capture_lite-14.0.7/lib -ldwmapi -lGdi32 -lUser32 -lscreen_capture_lite_d
+INCLUDEPATH += C:/hueproj/screen_capture_lite-14.0.7/include

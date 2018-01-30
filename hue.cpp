@@ -22,6 +22,7 @@
 #endif
 
 #include <string.h>
+#include <math.h>
 
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/debug.h"
@@ -37,7 +38,9 @@
 QString SETTING_USERNAME = "Bridge/Username";
 QString SETTING_CLIENTKEY = "Bridge/clientkey";
 
-Hue::Hue(QObject *parent) : QObject(parent)
+Hue::Hue(QObject *parent)
+    : QObject(parent),
+      m_eThread(nullptr)
 {
     connect(&m_qnam, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(replied(QNetworkReply*)));
@@ -186,8 +189,119 @@ void Hue::testEntertainment()
     m_qnam.put(qnr, QJsonDocument(body).toJson());
 }
 
-//simple dtls test using mbedtls
+
+//---------------------------------------------------------------------------------
+// Entertainment API
+
+//http://www.easyrgb.com/en/math.php
+void rgb_to_xyz(double& r, double& g, double& b, double& x, double& y, double& z)
+{
+    //sR, sG and sB (Standard RGB) input range = 0 ÷ 255
+    //X, Y and Z output refer to a D65/2° standard illuminant.
+
+    double var_R = ( r / 255.0 );
+    double var_G = ( g / 255.0 );
+    double var_B = ( b / 255.0 );
+
+    if ( var_R > 0.04045 ) var_R = std::pow(( ( var_R + 0.055 ) / 1.055 ), 2.4);
+    else                   var_R = var_R / 12.92;
+    if ( var_G > 0.04045 ) var_G = std::pow(( ( var_G + 0.055 ) / 1.055 ), 2.4);
+    else                   var_G = var_G / 12.92;
+    if ( var_B > 0.04045 ) var_B = std::pow(( ( var_B + 0.055 ) / 1.055 ), 2.4);
+    else                   var_B = var_B / 12.92;
+
+    var_R = var_R * 100.;
+    var_G = var_G * 100.;
+    var_B = var_B * 100.;
+
+    x = var_R * 0.4124 + var_G * 0.3576 + var_B * 0.1805;
+    y = var_R * 0.2126 + var_G * 0.7152 + var_B * 0.0722;
+    z = var_R * 0.0193 + var_G * 0.1192 + var_B * 0.9505;
+}
+
 void Hue::handleStreamingEnabled()
+{
+    if(m_eThread != nullptr) {
+        return;
+    }
+
+    m_eThread = new EntertainmentCommThread(this);
+    connect(m_eThread, &EntertainmentCommThread::finished, this, &Hue::entertainmentThreadFinished);
+    m_eThread->start();
+
+    framegrabber =  SL::Screen_Capture::CreateCaptureConfiguration([]() {
+        auto monitors =  SL::Screen_Capture::GetMonitors();
+        return monitors;
+      })->onNewFrame([&](const SL::Screen_Capture::Image& img, const SL::Screen_Capture::Monitor& monitor) {
+        Q_UNUSED(monitor);
+
+        double r = 0.;
+        double g = 0.;
+        double b = 0.;
+
+        float n = SL::Screen_Capture::Height(img) * SL::Screen_Capture::Width(img);
+
+        const unsigned char* src = SL::Screen_Capture::StartSrc(img);
+        for(int y = 0; y < SL::Screen_Capture::Height(img); ++y)
+        {
+            for(int x = 0; x < SL::Screen_Capture::Width(img); ++x)
+            {
+                b += (src[0]) / n;
+                g += (src[1]) / n;
+                r += (src[2]) / n;
+                src += img.Pixelstride;
+            }
+
+            src += SL::Screen_Capture::RowPadding(img);
+        }
+
+        static EntertainmentMessage msg;
+
+        msg.isXY = true;
+
+        double x,y,z;
+
+        //todo:
+        //ideally average would be of x/y/z values, not of rgb (do this earlier)
+        rgb_to_xyz(r, g, b, x, y, z);
+
+        msg.R = static_cast<uint16_t>((x / (x + y + z)) * 0xffff);
+        msg.G = static_cast<uint16_t>((y / (x + y + z)) * 0xffff);
+        msg.B = static_cast<uint16_t>(((r+g+b) / 3. / 255.) * 0xffff);
+        m_eThread->threadsafe_setMessage(msg);
+
+        qDebug() << msg.R << msg.G << msg.B;
+        qDebug() << r << g << b;
+
+      })->start_capturing();
+
+    framegrabber->setFrameChangeInterval(std::chrono::milliseconds(1));
+}
+
+void Hue::entertainmentThreadFinished()
+{
+    setMessage("Entertainment over");
+
+    framegrabber.reset();
+
+    m_eThread->deleteLater();
+    m_eThread = nullptr;
+}
+
+EntertainmentCommThread::EntertainmentCommThread(QObject *parent) : QThread(parent)
+{
+
+}
+
+void EntertainmentCommThread::threadsafe_setMessage(const EntertainmentMessage& message)
+{
+    m_messageMutex.lock();
+    m_message = message;
+    m_messageMutex.unlock();
+}
+
+//simple dtls test using mbedtls. Never ends!
+void EntertainmentCommThread::run()
 {
     /*
      *  Simple DTLS client demonstration program
@@ -342,8 +456,7 @@ void Hue::handleStreamingEnabled()
 send_request:
     while(true)
     {
-        static int i = 0;
-        i++;
+        m_messageMutex.lock();
 
         char MESSAGE[] = {
               'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
@@ -354,14 +467,19 @@ send_request:
 
               0x00, 0x00, //Reserved write 0’s
 
-              0x00, //color mode RGB
+              m_message.isXY ? 0x01 : 0x00,
 
               0x00, // Reserved, write 0’s
 
-              0x01, 0x00, 0x06, //light ID
+              0x001, 0x00, 0x06, //light ID
 
-              i, i >> 8, i >> 16, i, i >> 8, i >> 16
+              //color: 16 bpc
+              (m_message.R >> 8) & 0xff, m_message.R & 0xff,
+              (m_message.G >> 8) & 0xff, m_message.G & 0xff,
+              (m_message.B >> 8) & 0xff, m_message.B & 0xff
         };
+
+        m_messageMutex.unlock();
 
         len = sizeof( MESSAGE );
 
@@ -374,7 +492,7 @@ send_request:
             break;
         }
 
-        QThread::msleep(10);
+        QThread::msleep(5);
     }
 
     if( ret < 0 )

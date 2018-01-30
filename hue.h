@@ -6,6 +6,57 @@
 
 #include <QNetworkAccessManager>
 
+#include <QThread>
+#include <QMutex>
+
+#include "ScreenCapture.h"
+
+//-----------------------------------------------
+struct EntertainmentMessage
+{
+      bool isXY;
+
+      //isXY ? X : Red
+      uint16_t R;
+
+      //isXY ? Y : Green
+      uint16_t G;
+
+      //isXY ? Brightness : Blue
+      uint16_t B;
+
+      EntertainmentMessage()
+          : R(0), G(0), B(0)
+      {
+
+      }
+
+      EntertainmentMessage(uint16_t inR, uint16_t inG, uint16_t inB)
+          : R(inR), G(inG), B(inB)
+      {
+
+      }
+};
+
+class EntertainmentCommThread : public QThread
+{
+    Q_OBJECT
+
+public:
+    explicit EntertainmentCommThread(QObject *parent = 0);
+
+    void run() override;
+    void threadsafe_setMessage(const EntertainmentMessage& message);
+
+private:
+    QMutex m_messageMutex;
+    EntertainmentMessage m_message;
+};
+//-----------------------------------------------
+
+
+
+
 /* Hue API wrapper */
 class Hue : public QObject
 {
@@ -53,12 +104,18 @@ public slots:
 
 private slots:
     void replied(QNetworkReply *reply);
+    void entertainmentThreadFinished();
 
 private:
     QString m_message;
     bool m_connected;
 
     QNetworkAccessManager m_qnam;
+
+    EntertainmentCommThread* m_eThread;
+
+    std::shared_ptr<SL::Screen_Capture::IScreenCaptureManager> framegrabber;
+
 };
 
 #endif // HUERUNNER_H
