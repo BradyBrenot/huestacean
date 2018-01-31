@@ -239,20 +239,28 @@ void Hue::handleStreamingEnabled()
         double g = 0.;
         double b = 0.;
 
-        float n = SL::Screen_Capture::Height(img) * SL::Screen_Capture::Width(img);
+		const float Height = SL::Screen_Capture::Height(img);
+		const float Width = SL::Screen_Capture::Width(img);
+		const float n = Height * Width;
+		const int RowPadding = SL::Screen_Capture::RowPadding(img);
+		const int Pixelstride = img.Pixelstride;
+
+		const int skip = 2;
+		int s = 0;
 
         const unsigned char* src = SL::Screen_Capture::StartSrc(img);
-        for(int y = 0; y < SL::Screen_Capture::Height(img); ++y)
+        for(int y = 0; y < Height / skip; ++y)
         {
-            for(int x = 0; x < SL::Screen_Capture::Width(img); ++x)
+			src += s;
+            for(int x = 0; x < Width / skip; ++x)
             {
                 b += (src[0]) / n;
                 g += (src[1]) / n;
                 r += (src[2]) / n;
-                src += img.Pixelstride;
+                src += Pixelstride*skip;
             }
 
-            src += SL::Screen_Capture::RowPadding(img);
+			src += RowPadding*skip;
         }
 
         static EntertainmentMessage msg;
@@ -267,11 +275,8 @@ void Hue::handleStreamingEnabled()
 
         msg.R = static_cast<uint16_t>((x / (x + y + z)) * 0xffff);
         msg.G = static_cast<uint16_t>((y / (x + y + z)) * 0xffff);
-        msg.B = static_cast<uint16_t>(((r+g+b) / 3. / 255.) * 0xffff);
+		msg.B = static_cast<uint16_t>((std::max(std::max(r, g), b) * 3. / 255.) * 0xffff);
         m_eThread->threadsafe_setMessage(msg);
-
-        qDebug() << msg.R << msg.G << msg.B;
-        qDebug() << r << g << b;
 
       })->start_capturing();
 
