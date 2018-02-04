@@ -13,7 +13,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORC)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
@@ -33,37 +33,38 @@
 #include "mbedtls/certs.h"
 #include "mbedtls/timing.h"
 
-#include "hue.h"
+#include "huebridge.h"
 
 QString SETTING_USERNAME = "Bridge/Username";
 QString SETTING_CLIENTKEY = "Bridge/clientkey";
 
-Hue::Hue(QObject *parent)
+HueBridge::HueBridge(QObject *parent)
     : QObject(parent),
-      m_eThread(nullptr)
+    eThread(nullptr),
+    manuallyAdded(false)
 {
-    connect(&m_qnam, SIGNAL(finished(QNetworkReply*)),
-            this, SLOT(replied(QNetworkReply*)));
+    connect(&qnam, SIGNAL(finished(QNetworkReply*)),
+        this, SLOT(replied(QNetworkReply*)));
 
     connect(this, SIGNAL(connectedChanged()),
-            this, SLOT(requestGroups()));
+        this, SLOT(requestGroups()));
 
     setMessage("Not connected.");
     setConnected(false);
 }
 
-void Hue::connectToBridge()
+void HueBridge::connectToBridge()
 {
     setMessage("Connecting.");
     setConnected(false);
 
     QSettings settings;
-    if(settings.contains(SETTING_USERNAME) && settings.contains(SETTING_CLIENTKEY))
+    if (settings.contains(SETTING_USERNAME) && settings.contains(SETTING_CLIENTKEY))
     {
         //Verify existing registration
         //QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/config").arg(settings.value("username").toString())));
         QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/config").arg(settings.value(SETTING_USERNAME).toString())));
-        m_qnam.get(qnr);
+        qnam.get(qnr);
     }
     else
     {
@@ -72,31 +73,31 @@ void Hue::connectToBridge()
         qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
         QJsonObject json;
-        json.insert("devicetype","huestacean#windows");
-        json.insert("generateclientkey",true);
+        json.insert("devicetype", "huestacean#windows");
+        json.insert("generateclientkey", true);
 
-        m_qnam.post(qnr, QJsonDocument(json).toJson());
+        qnam.post(qnr, QJsonDocument(json).toJson());
     }
 }
-void Hue::resetConnection()
+void HueBridge::resetConnection()
 {
     QSettings settings;
     settings.remove(SETTING_USERNAME);
     settings.remove(SETTING_CLIENTKEY);
     connectToBridge();
 }
-void Hue::requestGroups()
+void HueBridge::requestGroups()
 {
     QSettings settings;
     QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/groups").arg(settings.value(SETTING_USERNAME).toString())));
-    m_qnam.get(qnr);
+    qnam.get(qnr);
 }
 
-void Hue::replied(QNetworkReply *reply)
+void HueBridge::replied(QNetworkReply *reply)
 {
     reply->deleteLater();
 
-    if(reply->request().url().toString().endsWith("/api"))
+    if (reply->request().url().toString().endsWith("/api"))
     {
         QSettings settings;
         QByteArray data = reply->readAll();
@@ -104,14 +105,14 @@ void Hue::replied(QNetworkReply *reply)
         qDebug() << "We got: \n" << QString::fromUtf8(data.data());
 
         QJsonDocument replyJson = QJsonDocument::fromJson(data);
-        if(!replyJson.isArray() || replyJson.array().size() == 0)
+        if (!replyJson.isArray() || replyJson.array().size() == 0)
         {
             setMessage("Bad reply from bridge");
             return;
         }
 
         QJsonObject obj = replyJson.array()[0].toObject();
-        if(obj.contains(QString("success")))
+        if (obj.contains(QString("success")))
         {
             //Connected!
             QString username = obj["success"].toObject()["username"].toString();
@@ -128,19 +129,19 @@ void Hue::replied(QNetworkReply *reply)
         }
         else
         {
-            if(obj[QString("error")].toObject()[QString("type")].toInt() == 101)
+            if (obj[QString("error")].toObject()[QString("type")].toInt() == 101)
             {
                 setMessage("Press the link button!");
                 emit wantsLinkButton();
             }
         }
     }
-    else if(reply->request().url().toString().endsWith("/config"))
+    else if (reply->request().url().toString().endsWith("/config"))
     {
         QByteArray data = reply->readAll();
 
         QJsonDocument replyJson = QJsonDocument::fromJson(data);
-        if(!replyJson.isObject() || !replyJson.object().contains("whitelist"))
+        if (!replyJson.isObject() || !replyJson.object().contains("whitelist"))
         {
             qDebug() << "Connection failed" << replyJson.isObject() << replyJson.object().contains("whitelist");
             resetConnection();
@@ -152,13 +153,13 @@ void Hue::replied(QNetworkReply *reply)
             setConnected(true);
         }
     }
-    else if(reply->request().url().toString().endsWith("/groups"))
+    else if (reply->request().url().toString().endsWith("/groups"))
     {
         QByteArray data = reply->readAll();
         QJsonDocument replyJson = QJsonDocument::fromJson(data);
         qDebug().noquote() << replyJson.toJson(QJsonDocument::Indented);
     }
-    else if(reply->request().url().toString().endsWith("/groups/6"))
+    else if (reply->request().url().toString().endsWith("/groups/6"))
     {
         qDebug() << "ENABLED";
         QByteArray data = reply->readAll();
@@ -173,7 +174,7 @@ void Hue::replied(QNetworkReply *reply)
     }
 }
 
-void Hue::testEntertainment()
+void HueBridge::testEntertainment()
 {
     QSettings settings;
 
@@ -186,7 +187,7 @@ void Hue::testEntertainment()
     QJsonObject body;
     body.insert("stream", stream);
 
-    m_qnam.put(qnr, QJsonDocument(body).toJson());
+    qnam.put(qnr, QJsonDocument(body).toJson());
 }
 
 
@@ -199,15 +200,15 @@ void rgb_to_xyz(double& r, double& g, double& b, double& x, double& y, double& z
     //sR, sG and sB (Standard RGB) input range = 0 ÷ 255
     //X, Y and Z output refer to a D65/2° standard illuminant.
 
-    double var_R = ( r / 255.0 );
-    double var_G = ( g / 255.0 );
-    double var_B = ( b / 255.0 );
+    double var_R = (r / 255.0);
+    double var_G = (g / 255.0);
+    double var_B = (b / 255.0);
 
-    if ( var_R > 0.04045 ) var_R = std::pow(( ( var_R + 0.055 ) / 1.055 ), 2.4);
+    if (var_R > 0.04045) var_R = std::pow(((var_R + 0.055) / 1.055), 2.4);
     else                   var_R = var_R / 12.92;
-    if ( var_G > 0.04045 ) var_G = std::pow(( ( var_G + 0.055 ) / 1.055 ), 2.4);
+    if (var_G > 0.04045) var_G = std::pow(((var_G + 0.055) / 1.055), 2.4);
     else                   var_G = var_G / 12.92;
-    if ( var_B > 0.04045 ) var_B = std::pow(( ( var_B + 0.055 ) / 1.055 ), 2.4);
+    if (var_B > 0.04045) var_B = std::pow(((var_B + 0.055) / 1.055), 2.4);
     else                   var_B = var_B / 12.92;
 
     var_R = var_R * 100.;
@@ -219,55 +220,57 @@ void rgb_to_xyz(double& r, double& g, double& b, double& x, double& y, double& z
     z = var_R * 0.0193 + var_G * 0.1192 + var_B * 0.9505;
 }
 
-void Hue::handleStreamingEnabled()
+void HueBridge::handleStreamingEnabled()
 {
-    if(m_eThread != nullptr) {
+    if (eThread != nullptr) {
         return;
     }
 
-    m_eThread = new EntertainmentCommThread(this);
-    connect(m_eThread, &EntertainmentCommThread::finished, this, &Hue::entertainmentThreadFinished);
-    m_eThread->start();
+    eThread = new EntertainmentCommThread(this);
+    connect(eThread, &EntertainmentCommThread::finished, this, &HueBridge::entertainmentThreadFinished);
+    eThread->start();
 
-    framegrabber =  SL::Screen_Capture::CreateCaptureConfiguration([]() {
-        auto monitors =  SL::Screen_Capture::GetMonitors();
+    framegrabber = SL::Screen_Capture::CreateCaptureConfiguration([]() {
+        auto monitors = SL::Screen_Capture::GetMonitors();
         return monitors;
-      })->onNewFrame([&](const SL::Screen_Capture::Image& img, const SL::Screen_Capture::Monitor& monitor) {
+    })->onNewFrame([&](const SL::Screen_Capture::Image& img, const SL::Screen_Capture::Monitor& monitor) {
         Q_UNUSED(monitor);
 
         double r = 0.;
         double g = 0.;
         double b = 0.;
 
-		const float Height = SL::Screen_Capture::Height(img);
-		const float Width = SL::Screen_Capture::Width(img);
-		const float n = Height * Width;
-		const int RowPadding = SL::Screen_Capture::RowPadding(img);
-		const int Pixelstride = img.Pixelstride;
+        const int Height = SL::Screen_Capture::Height(img);
+        const int Width = SL::Screen_Capture::Width(img);
 
-		const int skip = 2;
-		int s = 0;
+        const int RowPadding = SL::Screen_Capture::RowPadding(img);
+        const int Pixelstride = img.Pixelstride;
+
+        const int skip = 20;
+        int s = 0;
+
+        const float n = Height * Width * 1.0 / skip;
 
         const unsigned char* src = SL::Screen_Capture::StartSrc(img);
-        for(int y = 0; y < Height / skip; ++y)
+        for (int y = 0; y < Height; ++y)
         {
-			src += s;
-            for(int x = 0; x < Width / skip; ++x)
+            src += s;
+            for (int x = 0; x < Width; x += skip)
             {
                 b += (src[0]) / n;
                 g += (src[1]) / n;
                 r += (src[2]) / n;
-                src += Pixelstride*skip;
+                src += Pixelstride * skip;
             }
 
-			src += RowPadding*skip;
+            src += RowPadding;
         }
 
         static EntertainmentMessage msg;
 
         msg.isXY = true;
 
-        double x,y,z;
+        double x, y, z;
 
         //todo:
         //ideally average would be of x/y/z values, not of rgb (do this earlier)
@@ -275,22 +278,23 @@ void Hue::handleStreamingEnabled()
 
         msg.R = static_cast<uint16_t>((x / (x + y + z)) * 0xffff);
         msg.G = static_cast<uint16_t>((y / (x + y + z)) * 0xffff);
-		msg.B = static_cast<uint16_t>((std::max(std::max(r, g), b) * 3. / 255.) * 0xffff);
-        m_eThread->threadsafe_setMessage(msg);
+        msg.B = static_cast<uint16_t>((std::max(std::max(r, g), b) / 255.) * 0xffff);
+        eThread->threadsafe_setMessage(msg);
+        //qDebug() << r << g << b << msg.B;
 
-      })->start_capturing();
+    })->start_capturing();
 
-    framegrabber->setFrameChangeInterval(std::chrono::milliseconds(1));
+    framegrabber->setFrameChangeInterval(std::chrono::milliseconds(5));
 }
 
-void Hue::entertainmentThreadFinished()
+void HueBridge::entertainmentThreadFinished()
 {
     setMessage("Entertainment over");
 
     framegrabber.reset();
 
-    m_eThread->deleteLater();
-    m_eThread = nullptr;
+    eThread->deleteLater();
+    eThread = nullptr;
 }
 
 EntertainmentCommThread::EntertainmentCommThread(QObject *parent) : QThread(parent)
@@ -298,11 +302,11 @@ EntertainmentCommThread::EntertainmentCommThread(QObject *parent) : QThread(pare
 
 }
 
-void EntertainmentCommThread::threadsafe_setMessage(const EntertainmentMessage& message)
+void EntertainmentCommThread::threadsafe_setMessage(const EntertainmentMessage& inMessage)
 {
-    m_messageMutex.lock();
-    m_message = message;
-    m_messageMutex.unlock();
+    messageMutex.lock();
+    message = inMessage;
+    messageMutex.unlock();
 }
 
 //simple dtls test using mbedtls. Never ends!
@@ -348,7 +352,7 @@ void EntertainmentCommThread::run()
     mbedtls_x509_crt cacert;
     mbedtls_timing_delay_context timer;
 
-    mbedtls_debug_set_threshold( 0 );
+    mbedtls_debug_set_threshold(0);
 
     /*
      * -1. Load psk
@@ -364,20 +368,20 @@ void EntertainmentCommThread::run()
     /*
      * 0. Initialize the RNG and the session data
      */
-    mbedtls_net_init( &server_fd );
-    mbedtls_ssl_init( &ssl );
-    mbedtls_ssl_config_init( &conf );
-    mbedtls_x509_crt_init( &cacert );
-    mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_net_init(&server_fd);
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+    mbedtls_x509_crt_init(&cacert);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
 
-    qDebug() << "Seeding the random number generator..." ;
+    qDebug() << "Seeding the random number generator...";
 
-    mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
+    mbedtls_entropy_init(&entropy);
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+        (const unsigned char *)pers,
+        strlen(pers))) != 0)
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
+        mbedtls_printf(" failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret);
         goto exit;
     }
 
@@ -386,8 +390,8 @@ void EntertainmentCommThread::run()
      */
     qDebug() << "Connecting to udp" << SERVER_ADDR << SERVER_PORT;
 
-    if( ( ret = mbedtls_net_connect( &server_fd, SERVER_ADDR,
-                                         SERVER_PORT, MBEDTLS_NET_PROTO_UDP ) ) != 0 )
+    if ((ret = mbedtls_net_connect(&server_fd, SERVER_ADDR,
+        SERVER_PORT, MBEDTLS_NET_PROTO_UDP)) != 0)
     {
         qCritical() << "mbedtls_net_connect FAILED" << ret;
         goto exit;
@@ -398,18 +402,18 @@ void EntertainmentCommThread::run()
      */
     qDebug() << "Setting up the DTLS structure...";
 
-    if( ( ret = mbedtls_ssl_config_defaults( &conf,
-                   MBEDTLS_SSL_IS_CLIENT,
-                   MBEDTLS_SSL_TRANSPORT_DATAGRAM,
-                   MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
+    if ((ret = mbedtls_ssl_config_defaults(&conf,
+        MBEDTLS_SSL_IS_CLIENT,
+        MBEDTLS_SSL_TRANSPORT_DATAGRAM,
+        MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
     {
         qCritical() << "mbedtls_ssl_config_defaults FAILED" << ret;
         goto exit;
     }
 
-    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
-    mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
-    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
+    mbedtls_ssl_conf_ca_chain(&conf, &cacert, NULL);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
     if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0)
     {
@@ -417,8 +421,8 @@ void EntertainmentCommThread::run()
         goto exit;
     }
 
-    if(0 != (ret = mbedtls_ssl_conf_psk( &conf, (const unsigned char*) pskRawArray.data(), pskRawArray.length() * sizeof(char),
-        (const unsigned char *) pskIdRawArray.data(), pskIdRawArray.length() * sizeof(char) )))
+    if (0 != (ret = mbedtls_ssl_conf_psk(&conf, (const unsigned char*)pskRawArray.data(), pskRawArray.length() * sizeof(char),
+        (const unsigned char *)pskIdRawArray.data(), pskIdRawArray.length() * sizeof(char))))
     {
         qCritical() << "mbedtls_ssl_conf_psk FAILED" << ret;
     }
@@ -428,17 +432,17 @@ void EntertainmentCommThread::run()
     ciphers[1] = 0;
     mbedtls_ssl_conf_ciphersuites(&conf, ciphers);
 
-    if( ( ret = mbedtls_ssl_set_hostname( &ssl, SERVER_NAME ) ) != 0 )
+    if ((ret = mbedtls_ssl_set_hostname(&ssl, SERVER_NAME)) != 0)
     {
         qCritical() << "mbedtls_ssl_set_hostname FAILED" << ret;
         goto exit;
     }
 
-    mbedtls_ssl_set_bio( &ssl, &server_fd,
-                         mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout );
+    mbedtls_ssl_set_bio(&ssl, &server_fd,
+        mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout);
 
-    mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
-                                            mbedtls_timing_get_delay );
+    mbedtls_ssl_set_timer_cb(&ssl, &timer, mbedtls_timing_set_delay,
+        mbedtls_timing_get_delay);
 
     /*
      * 4. Handshake
@@ -446,10 +450,10 @@ void EntertainmentCommThread::run()
     qDebug() << "Performing the DTLS handshake...";
 
     do ret = mbedtls_ssl_handshake(&ssl);
-        while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
-            ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
+        ret == MBEDTLS_ERR_SSL_WANT_WRITE);
 
-    if( ret != 0)
+    if (ret != 0)
     {
         qCritical() << "mbedtls_ssl_handshake FAILED" << ret;
         goto exit;
@@ -459,9 +463,9 @@ void EntertainmentCommThread::run()
      * 6. Write the echo request
      */
 send_request:
-    while(true)
+    while (true)
     {
-        m_messageMutex.lock();
+        messageMutex.lock();
 
         char MESSAGE[] = {
               'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
@@ -472,27 +476,27 @@ send_request:
 
               0x00, 0x00, //Reserved write 0’s
 
-              m_message.isXY ? 0x01 : 0x00,
+              message.isXY ? 0x01 : 0x00,
 
               0x00, // Reserved, write 0’s
 
               0x001, 0x00, 0x06, //light ID
 
               //color: 16 bpc
-              (m_message.R >> 8) & 0xff, m_message.R & 0xff,
-              (m_message.G >> 8) & 0xff, m_message.G & 0xff,
-              (m_message.B >> 8) & 0xff, m_message.B & 0xff
+              (message.R >> 8) & 0xff, message.R & 0xff,
+              (message.G >> 8) & 0xff, message.G & 0xff,
+              (message.B >> 8) & 0xff, message.B & 0xff
         };
 
-        m_messageMutex.unlock();
+        messageMutex.unlock();
 
-        len = sizeof( MESSAGE );
+        len = sizeof(MESSAGE);
 
-        do ret = mbedtls_ssl_write( &ssl, (unsigned char *) MESSAGE, len );
-        while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-               ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+        do ret = mbedtls_ssl_write(&ssl, (unsigned char *)MESSAGE, len);
+        while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
+            ret == MBEDTLS_ERR_SSL_WANT_WRITE);
 
-        if( ret < 0 )
+        if (ret < 0)
         {
             break;
         }
@@ -500,24 +504,24 @@ send_request:
         QThread::msleep(5);
     }
 
-    if( ret < 0 )
+    if (ret < 0)
     {
-        switch( ret )
+        switch (ret)
         {
-            case MBEDTLS_ERR_SSL_TIMEOUT:
-                qWarning() << " timeout";
-                if( retry_left-- > 0 )
-                    goto send_request;
-                goto exit;
+        case MBEDTLS_ERR_SSL_TIMEOUT:
+            qWarning() << " timeout";
+            if (retry_left-- > 0)
+                goto send_request;
+            goto exit;
 
-            case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
-                qWarning() << " connection was closed gracefully";
-                ret = 0;
-                goto close_notify;
+        case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
+            qWarning() << " connection was closed gracefully";
+            ret = 0;
+            goto close_notify;
 
-            default:
-                qWarning() << " mbedtls_ssl_read returned" << ret ;
-                goto exit;
+        default:
+            qWarning() << " mbedtls_ssl_read returned" << ret;
+            goto exit;
         }
     }
 
@@ -528,8 +532,8 @@ close_notify:
     qDebug() << "Closing the connection...";
 
     /* No error checking, the connection might be closed already */
-    do ret = mbedtls_ssl_close_notify( &ssl );
-    while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+    do ret = mbedtls_ssl_close_notify(&ssl);
+    while (ret == MBEDTLS_ERR_SSL_WANT_WRITE);
     ret = 0;
 
     qDebug() << "Done";
@@ -540,19 +544,19 @@ close_notify:
 exit:
 
 #ifdef MBEDTLS_ERROR_C
-    if( ret != 0 )
+    if (ret != 0)
     {
         char error_buf[100];
-        mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf( "Last error was: %d - %s\n\n", ret, error_buf );
+        mbedtls_strerror(ret, error_buf, 100);
+        mbedtls_printf("Last error was: %d - %s\n\n", ret, error_buf);
     }
 #endif
 
-    mbedtls_net_free( &server_fd );
+    mbedtls_net_free(&server_fd);
 
-    mbedtls_x509_crt_free( &cacert );
-    mbedtls_ssl_free( &ssl );
-    mbedtls_ssl_config_free( &conf );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
+    mbedtls_x509_crt_free(&cacert);
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
 }

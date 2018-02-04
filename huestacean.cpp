@@ -2,6 +2,7 @@
 
 Huestacean::Huestacean(QObject *parent) : QObject(parent)
 {
-    m_hue = new Hue;
+    hueBridge = new HueBridge;
+    bridgeDiscovery = new BridgeDiscovery;
     emit hueInit();
 }

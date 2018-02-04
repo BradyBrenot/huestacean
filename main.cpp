@@ -4,8 +4,8 @@
 
 static QObject *huestacean_singleton_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
+    Q_UNUSED(engine);
+    Q_UNUSED(scriptEngine);
 
     Huestacean *huestacean = new Huestacean();
     return huestacean;

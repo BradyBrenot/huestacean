@@ -1,27 +1,31 @@
-#ifndef HUESTACEAN_H
-#define HUESTACEAN_H
+#pragma once
 
 #include <QObject>
-#include "hue.h"
+#include "huebridge.h"
+#include "objectmodel.h"
+#include "bridgediscovery.h"
 
 class Huestacean : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(Hue* hue READ hue NOTIFY hueInit)
+    Q_PROPERTY(HueBridge* hueBridge READ getHueBridge NOTIFY hueInit)
+    Q_PROPERTY(BridgeDiscovery* bridgeDiscovery READ getBridgeDiscovery NOTIFY hueInit)
 
 public:
     explicit Huestacean(QObject *parent = nullptr);
 
-    Hue* hue() {
-        return m_hue;
+    HueBridge* getHueBridge() {
+        return hueBridge;
+    }
+    BridgeDiscovery* getBridgeDiscovery() {
+        return bridgeDiscovery;
     }
 
 signals:
     void hueInit();
 
 private:
-    Hue* m_hue;
+	HueBridge* hueBridge;
+    BridgeDiscovery* bridgeDiscovery;
 };
-
-#endif // HUESTACEAN_H

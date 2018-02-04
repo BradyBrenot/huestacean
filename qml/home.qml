@@ -22,21 +22,23 @@ Pane {
         }
 
         Button {
-            id: button
             text: qsTr("Connect!")
             onClicked: Huestacean.hue.connectToBridge()
         }
 
         Button {
-            id: entertain
             text: qsTr("Entertain me!")
             onClicked: Huestacean.hue.testEntertainment()
         }
 
         Button {
-            id: groups
             text: qsTr("Show groups!")
             onClicked: Huestacean.hue.requestGroups()
+        }
+
+        Button {
+            text: qsTr("Ssdp search")
+            onClicked: Huestacean.bridgeDiscovery.startSearch()
         }
     }
 }
