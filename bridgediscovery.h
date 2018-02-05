@@ -25,5 +25,9 @@ signals:
     void closeSockets();
 
 private:
-    QVector<HueBridge*> Bridges;
+    void addBridgeByIp(QString ipAddress);
+
+    QVector<HueBridge*> bridges;
+    ObjectModel model;
+    bool hasSearched;
 };

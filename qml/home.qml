@@ -23,17 +23,17 @@ Pane {
 
         Button {
             text: qsTr("Connect!")
-            onClicked: Huestacean.hue.connectToBridge()
+            onClicked: Huestacean.hueBridge.connectToBridge()
         }
 
         Button {
             text: qsTr("Entertain me!")
-            onClicked: Huestacean.hue.testEntertainment()
+            onClicked: Huestacean.hueBridge.testEntertainment()
         }
 
         Button {
             text: qsTr("Show groups!")
-            onClicked: Huestacean.hue.requestGroups()
+            onClicked: Huestacean.hueBridge.requestGroups()
         }
 
         Button {

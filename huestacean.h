@@ -22,6 +22,9 @@ public:
         return bridgeDiscovery;
     }
 
+    //temporary home of screen sync
+    Q_INVOKABLE void startScreenSync();
+
 signals:
     void hueInit();
 

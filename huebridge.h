@@ -4,6 +4,7 @@
 #include <QDebug>
 
 #include <QNetworkAccessManager>
+#include <QHostAddress>
 
 #include <QThread>
 #include <QMutex>
@@ -42,7 +43,7 @@ class EntertainmentCommThread : public QThread
     Q_OBJECT
 
 public:
-    explicit EntertainmentCommThread(QObject *parent = 0);
+    explicit EntertainmentCommThread(QObject *parent, QString inUsername, QString inClientkey);
 
     void run() override;
     void threadsafe_setMessage(const EntertainmentMessage& inMessage);
@@ -50,20 +51,29 @@ public:
 private:
     QMutex messageMutex;
     EntertainmentMessage message;
+    QString username;
+    QString clientkey;
 };
 //-----------------------------------------------
 
 
 struct HueBridgeSavedSettings 
 {
-    QString ipAddress;
+    QHostAddress address;
     QString userName;
     QString clientKey;
 
-    HueBridgeSavedSettings::HueBridgeSavedSettings(QString inIpAddress, QString inUserName, QString inClientKey)
-        : ipAddress(inIpAddress), userName(inUserName), clientKey(inClientKey)
+    HueBridgeSavedSettings::HueBridgeSavedSettings(QHostAddress inAddress)
+        : address(inAddress), userName(), clientKey()
+    {}
+
+    HueBridgeSavedSettings::HueBridgeSavedSettings(QHostAddress inAddress, QString inUserName, QString inClientKey)
+        : address(inAddress), userName(inUserName), clientKey(inClientKey)
     {}
 };
+
+class Light;
+class Group;
 
 /* Hue API wrapper */
 class HueBridge : public QObject
@@ -71,13 +81,13 @@ class HueBridge : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QString message READ getMessage WRITE setMessage NOTIFY messageChanged)
-    Q_PROPERTY(bool connected READ getConnected NOTIFY connectedChanged)
-    Q_PROPERTY(bool manuallyAdded READ getManuallyAdded NOTIFY manuallyAddedChanged)
+    Q_PROPERTY(bool connected MEMBER connected NOTIFY connectedChanged)
+    Q_PROPERTY(bool manuallyAdded MEMBER manuallyAdded NOTIFY onInit)
+    Q_PROPERTY(QHostAddress address MEMBER address NOTIFY onInit)
+    Q_PROPERTY(bool streaming MEMBER streaming NOTIFY streamingChanged)
 
 public:
-    explicit HueBridge(QObject *parent = nullptr);
-    explicit HueBridge(QObject *parent, bool bManuallyAdded);
-    explicit HueBridge(QObject *parent, HueBridgeSavedSettings& SavedSettings, bool bReconnect = true);
+    explicit HueBridge(QObject *parent, HueBridgeSavedSettings& SavedSettings, bool bManuallyAdded = false, bool bReconnect = true);
 
     void setMessage(const QString &inMessage) {
         message = inMessage;
@@ -88,20 +98,20 @@ public:
         return message;
     }
 
-    bool getConnected() const {
-        return connected;
-    }
-
-    bool getManuallyAdded() const {
-        return manuallyAdded;
-    }
-
     Q_INVOKABLE void connectToBridge();
     Q_INVOKABLE void resetConnection();
 
-    Q_INVOKABLE void testEntertainment();
-
     void handleStreamingEnabled();
+
+    QHash<QString, Light*> Lights;
+    QHash<QString, Group*> Groups;
+
+    bool connected;
+    bool manuallyAdded;
+    bool streaming;
+    QHostAddress address;
+    QString username;
+    QString clientkey;
 
 signals:
     void wantsLinkButton();
@@ -109,7 +119,11 @@ signals:
     //Property notifies
     void messageChanged();
     void connectedChanged();
-    void manuallyAddedChanged();
+    void groupsChanged();
+    void lightsChanged();
+    void streamingChanged();
+
+    void onInit();
 
 public slots:
     void requestGroups();
@@ -124,13 +138,47 @@ private:
 		emit connectedChanged();
 	}
 
+    //path relative to http://address/api
+    QNetworkRequest makeRequest(QString path, bool bIncludeUser = true);
+    
     QString message;
-    bool connected;
-    bool manuallyAdded;
 
     QNetworkAccessManager qnam;
 
     EntertainmentCommThread* eThread;
 
     std::shared_ptr<SL::Screen_Capture::IScreenCaptureManager> framegrabber;
+
+    friend class Light;
+    friend class Group;
+};
+
+class BridgeObject : public QObject
+{
+    Q_OBJECT;
+
+public:
+    QString id;
+    explicit BridgeObject(HueBridge *parent) : QObject(parent) {}
+
+protected:
+    HueBridge * bridgeParent() { return reinterpret_cast<HueBridge*>(parent()); }
+};
+
+class Light : public BridgeObject
+{
+    Q_OBJECT;
+
+public:
+    explicit Light(HueBridge *parent) : BridgeObject(parent) {}
+};
+
+class Group : public BridgeObject
+{
+    Q_OBJECT;
+
+public:
+    explicit Group(HueBridge *parent) : BridgeObject(parent) {}
+
+    void startStreaming();
 };

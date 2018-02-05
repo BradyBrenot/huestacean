@@ -2,7 +2,9 @@
 #include <QNetworkInterface>
 #include <QHostAddress>
 
-BridgeDiscovery::BridgeDiscovery(QObject *parent) : QObject(parent)
+BridgeDiscovery::BridgeDiscovery(QObject *parent) 
+    : QObject(parent)
+    , hasSearched(false)
 {
 }
 
@@ -16,11 +18,21 @@ void BridgeDiscovery::startSearch()
     emit closeSockets();
     emit searchStarted();
 
-    //0. if this is the first search
+    ////////////////////////////////////////////////
+    //0a) this is the first search
     //   - Add known bridges (from QSettings)
-    //   else
+    if (!hasSearched)
+    {
+        hasSearched = true;
+    }
+    //0b) this is not the first search
     //   - Remove all non-connected non-known bridges for the re-search
+    else
+    {
 
+    }
+
+    ////////////////////////////////////////////////
     //1. SSDP UPNP discovery
     char data[] =
         "M-SEARCH * HTTP/1.1\r\n"
@@ -68,15 +80,20 @@ void BridgeDiscovery::processPendingDatagrams()
         return;
 
     QByteArray datagram;
-    while (ssdpSocket->hasPendingDatagrams()) {
+    while (ssdpSocket->hasPendingDatagrams()) 
+    {
         datagram.resize(int(ssdpSocket->pendingDatagramSize()));
         ssdpSocket->readDatagram(datagram.data(), datagram.size());
         if (datagram.contains("IpBridge"))
         {
-            //Hue docs doth say: If the responses contain “IpBridge”, it is considered to be a Hue bridge
-            const int location = datagram.indexOf("LOCATION: ");
-            const int end = datagram.indexOf("\r\n", location);
-            qDebug() << "Found a bridge" << datagram.mid((location + 10), end - location - 10);
+            //Hue docs doth say: If the response contains “IpBridge”, it is considered to be a Hue bridge
+            const int location = datagram.indexOf("http://");
+            const int end = datagram.indexOf(":80", location);
+
+            if (location == -1 || end == -1)
+                return;
+
+            addBridgeByIp(datagram.mid((location + 7), end - location - 7));
         }
     }
 }
@@ -84,4 +101,24 @@ void BridgeDiscovery::processPendingDatagrams()
 void BridgeDiscovery::saveBridges()
 {
 
+}
+
+void BridgeDiscovery::addBridgeByIp(QString ipAddress)
+{
+    qDebug() << "addBridgeByIp" << ipAddress;
+
+    //See if bridge already added
+    foreach(HueBridge* bridge, bridges)
+    {
+        if (bridge->address == QHostAddress(ipAddress))
+        {
+            qDebug() << "already have that bridge, don't readd";
+            return;
+        }
+    }
+
+    HueBridgeSavedSettings Settings = HueBridgeSavedSettings(QHostAddress(ipAddress));
+    HueBridge* bridge = new HueBridge(this, Settings);
+    bridges.push_back(bridge);
+    model.insert(bridge);
 }

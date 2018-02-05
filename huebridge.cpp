@@ -3,9 +3,9 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QSettings>
 #include <QThread>
 #include <QDateTime>
+#include <QMetaMethod>
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -38,10 +38,11 @@
 QString SETTING_USERNAME = "Bridge/Username";
 QString SETTING_CLIENTKEY = "Bridge/clientkey";
 
-HueBridge::HueBridge(QObject *parent)
+HueBridge::HueBridge(QObject *parent, HueBridgeSavedSettings& SavedSettings, bool bManuallyAdded/* = false*/, bool bReconnect/* = true*/)
     : QObject(parent),
     eThread(nullptr),
-    manuallyAdded(false)
+    address(SavedSettings.address),
+    manuallyAdded(bManuallyAdded)
 {
     connect(&qnam, SIGNAL(finished(QNetworkReply*)),
         this, SLOT(replied(QNetworkReply*)));
@@ -51,6 +52,23 @@ HueBridge::HueBridge(QObject *parent)
 
     setMessage("Not connected.");
     setConnected(false);
+
+    if (bReconnect)
+    {
+        metaObject()->method(metaObject()->indexOfMethod("connectToBridge()")).invoke(this, Qt::QueuedConnection);
+    }
+}
+
+QNetworkRequest HueBridge::makeRequest(QString path, bool bIncludeUser/* = true*/)
+{
+    if (bIncludeUser)
+    {
+        return QNetworkRequest(QUrl(QString("http://%1/api/%2%3").arg(address.toString(), username, path)));
+    }
+    else
+    {
+        return QNetworkRequest(QUrl(QString("http://%1/api%2").arg(address.toString(), path)));
+    }
 }
 
 void HueBridge::connectToBridge()
@@ -58,18 +76,16 @@ void HueBridge::connectToBridge()
     setMessage("Connecting.");
     setConnected(false);
 
-    QSettings settings;
-    if (settings.contains(SETTING_USERNAME) && settings.contains(SETTING_CLIENTKEY))
+    if (!username.isEmpty() && !clientkey.isEmpty())
     {
         //Verify existing registration
-        //QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/config").arg(settings.value("username").toString())));
-        QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/config").arg(settings.value(SETTING_USERNAME).toString())));
+        QNetworkRequest qnr = makeRequest("/config");
         qnam.get(qnr);
     }
     else
     {
         //Register
-        QNetworkRequest qnr(QUrl("http://192.168.0.102/api"));
+        QNetworkRequest qnr = makeRequest("", false);
         qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
         QJsonObject json;
@@ -81,15 +97,13 @@ void HueBridge::connectToBridge()
 }
 void HueBridge::resetConnection()
 {
-    QSettings settings;
-    settings.remove(SETTING_USERNAME);
-    settings.remove(SETTING_CLIENTKEY);
+    username = QString();
+    clientkey = QString();
     connectToBridge();
 }
 void HueBridge::requestGroups()
 {
-    QSettings settings;
-    QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/groups").arg(settings.value(SETTING_USERNAME).toString())));
+    QNetworkRequest qnr = makeRequest("/groups");
     qnam.get(qnr);
 }
 
@@ -99,7 +113,6 @@ void HueBridge::replied(QNetworkReply *reply)
 
     if (reply->request().url().toString().endsWith("/api"))
     {
-        QSettings settings;
         QByteArray data = reply->readAll();
 
         qDebug() << "We got: \n" << QString::fromUtf8(data.data());
@@ -115,13 +128,10 @@ void HueBridge::replied(QNetworkReply *reply)
         if (obj.contains(QString("success")))
         {
             //Connected!
-            QString username = obj["success"].toObject()["username"].toString();
-            QString clientkey = obj["success"].toObject()["clientkey"].toString();
+            username = obj["success"].toObject()["username"].toString();
+            clientkey = obj["success"].toObject()["clientkey"].toString();
 
             qDebug() << "Registered with bridge. Username:" << username << "Clientkey:" << clientkey;
-
-            settings.setValue(SETTING_USERNAME, username);
-            settings.setValue(SETTING_CLIENTKEY, clientkey);
 
             setMessage("Registered and connected to bridge!");
 
@@ -159,26 +169,23 @@ void HueBridge::replied(QNetworkReply *reply)
         QJsonDocument replyJson = QJsonDocument::fromJson(data);
         qDebug().noquote() << replyJson.toJson(QJsonDocument::Indented);
     }
-    else if (reply->request().url().toString().endsWith("/groups/6"))
+    else if (false /* handle activation of an entertainment group here? */)
     {
-        qDebug() << "ENABLED";
-        QByteArray data = reply->readAll();
-        QJsonDocument replyJson = QJsonDocument::fromJson(data);
-        qDebug().noquote() << replyJson.toJson(QJsonDocument::Indented);
-
-        handleStreamingEnabled();
+        
     }
     else
     {
         qCritical() << "Received reply to unknown request" << reply->request().url();
+
+        QByteArray data = reply->readAll();
+        QJsonDocument replyJson = QJsonDocument::fromJson(data);
+        qDebug().noquote() << replyJson.toJson(QJsonDocument::Indented);
     }
 }
 
-void HueBridge::testEntertainment()
+void Group::startStreaming()
 {
-    QSettings settings;
-
-    QNetworkRequest qnr(QUrl(QString("http://192.168.0.102/api/%1/groups/6").arg(settings.value(SETTING_USERNAME).toString())));
+    QNetworkRequest qnr = bridgeParent()->makeRequest(QString("/groups/%1").arg(id));
     qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     QJsonObject stream;
@@ -187,9 +194,8 @@ void HueBridge::testEntertainment()
     QJsonObject body;
     body.insert("stream", stream);
 
-    qnam.put(qnr, QJsonDocument(body).toJson());
+    bridgeParent()->qnam.put(qnr, QJsonDocument(body).toJson());
 }
-
 
 //---------------------------------------------------------------------------------
 // Entertainment API
@@ -226,7 +232,7 @@ void HueBridge::handleStreamingEnabled()
         return;
     }
 
-    eThread = new EntertainmentCommThread(this);
+    eThread = new EntertainmentCommThread(this, username, clientkey);
     connect(eThread, &EntertainmentCommThread::finished, this, &HueBridge::entertainmentThreadFinished);
     eThread->start();
 
@@ -284,7 +290,8 @@ void HueBridge::handleStreamingEnabled()
 
     })->start_capturing();
 
-    framegrabber->setFrameChangeInterval(std::chrono::milliseconds(5));
+    framegrabber->setFrameChangeInterval(std::chrono::milliseconds(10));
+    framegrabber->setMouseChangeInterval(std::chrono::milliseconds(100000));
 }
 
 void HueBridge::entertainmentThreadFinished()
@@ -297,7 +304,9 @@ void HueBridge::entertainmentThreadFinished()
     eThread = nullptr;
 }
 
-EntertainmentCommThread::EntertainmentCommThread(QObject *parent) : QThread(parent)
+EntertainmentCommThread::EntertainmentCommThread(QObject *parent, QString inUsername, QString inClientkey) 
+    : QThread(parent),
+    username(inUsername), clientkey(inClientkey)
 {
 
 }
@@ -357,12 +366,11 @@ void EntertainmentCommThread::run()
     /*
      * -1. Load psk
      */
-    QSettings settings;
-    QByteArray pskArray = settings.value(SETTING_CLIENTKEY).toString().toUtf8();
+    QByteArray pskArray = clientkey.toUtf8();
     QByteArray pskRawArray = QByteArray::fromHex(pskArray);
 
 
-    QByteArray pskIdArray = settings.value(SETTING_USERNAME).toString().toUtf8();
+    QByteArray pskIdArray = username.toUtf8();
     QByteArray pskIdRawArray = pskIdArray;
 
     /*
