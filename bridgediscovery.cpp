@@ -1,15 +1,23 @@
 #include "bridgediscovery.h"
+#include "huestacean.h"
+
 #include <QNetworkInterface>
 #include <QHostAddress>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QSettings>
 
 BridgeDiscovery::BridgeDiscovery(QObject *parent) 
     : QObject(parent)
     , hasSearched(false)
 {
+    connect(&qnam, SIGNAL(finished(QNetworkReply*)),
+        this, SLOT(replied(QNetworkReply*)));
 }
 
 BridgeDiscovery::~BridgeDiscovery()
 {
+    saveBridges();
     emit closeSockets();
 }
 
@@ -24,6 +32,28 @@ void BridgeDiscovery::startSearch()
     if (!hasSearched)
     {
         hasSearched = true;
+
+        QSettings settings;
+        settings.beginGroup("BridgeDiscovery");
+
+        int size = settings.beginReadArray("bridges");
+        for (int i = 0; i < size; ++i) {
+            settings.setArrayIndex(i);
+            
+            const QString id = settings.value("id").toString();
+            const QString addressStr = settings.value("address").toString();
+            const QHostAddress address = QHostAddress(addressStr);
+            const QString username = settings.value("username").toString();
+            const QString clientkey = settings.value("clientkey").toString();
+
+            HueBridgeSavedSettings settings(id, address, username, clientkey);
+
+            savedBridges.push_back(settings);
+            tryDescribeBridge(addressStr);
+        }
+        settings.endArray();
+
+        settings.endGroup();
     }
     //0b) this is not the first search
     //   - Remove all non-connected non-known bridges for the re-search
@@ -72,6 +102,7 @@ void BridgeDiscovery::startSearch()
     //TODO: 
     //2. N-UPNP
     //3. IP scan
+    //4. Manually-entered
 }
 void BridgeDiscovery::processPendingDatagrams()
 {
@@ -87,23 +118,41 @@ void BridgeDiscovery::processPendingDatagrams()
         if (datagram.contains("IpBridge"))
         {
             //Hue docs doth say: If the response contains “IpBridge”, it is considered to be a Hue bridge
-            const int location = datagram.indexOf("http://");
-            const int end = datagram.indexOf(":80", location);
+            const int start = datagram.indexOf("http://");
+            const int end = datagram.indexOf(":80", start);
 
-            if (location == -1 || end == -1)
-                return;
+            if (start == -1 || end == -1)
+            {
+                qWarning() << "Bad reply from IpBridge:" << datagram;
+            }
 
-            addBridgeByIp(datagram.mid((location + 7), end - location - 7));
+            tryDescribeBridge(datagram.mid((start + 7), end - start - 7));
         }
     }
 }
 
 void BridgeDiscovery::saveBridges()
 {
+    qDebug() << "BridgeDiscovery saving" << bridges.size() << "bridges";
 
+    QSettings settings;
+    settings.beginGroup("BridgeDiscovery");
+
+    settings.beginWriteArray("bridges");
+    for (int i = 0; i < bridges.size(); ++i) {
+        settings.setArrayIndex(i);
+
+        settings.setValue("id", bridges[i]->id);
+        settings.setValue("address", bridges[i]->address.toString());
+        settings.setValue("username", bridges[i]->username);
+        settings.setValue("clientkey", bridges[i]->clientkey);
+    }
+    settings.endArray();
+
+    settings.endGroup();
 }
 
-void BridgeDiscovery::addBridgeByIp(QString ipAddress)
+void BridgeDiscovery::tryDescribeBridge(QString ipAddress)
 {
     qDebug() << "addBridgeByIp" << ipAddress;
 
@@ -117,8 +166,65 @@ void BridgeDiscovery::addBridgeByIp(QString ipAddress)
         }
     }
 
-    HueBridgeSavedSettings Settings = HueBridgeSavedSettings(QHostAddress(ipAddress));
+    QNetworkRequest r = QNetworkRequest(QUrl(QString("http://%1/description.xml").arg(ipAddress)));
+    r.setOriginatingObject(this);
+    qnam.get(r);
+}
+
+void BridgeDiscovery::replied(QNetworkReply *reply)
+{
+    if (reply->request().originatingObject() != this)
+        return;
+
+    reply->deleteLater();
+
+    qDebug() << "BridgeDiscovery got describe reply for" << reply->request().url().toString();
+
+    QByteArray data = reply->readAll();
+
+    const int start = data.indexOf("<serialNumber>");
+    const int end = data.indexOf("</serialNumber>", start);
+
+    if (start == -1 || end == -1)
+    {
+        qWarning() << "Bad reply from bridge" << data;
+        return;
+    }
+
+    const QString id = data.mid((start + 14), end - start - 14);
+    const QString url = reply->request().url().toString();
+    const QString ipAddress = url.mid(url.indexOf("http://") + 7, url.indexOf("/description.xml") - url.indexOf("http://") - 7);
+
+    foreach(HueBridge* bridge, bridges)
+    {
+        if (bridge->address == QHostAddress(ipAddress)
+            || bridge->id == id)
+        {
+            qDebug() << "already have that bridge, don't readd";
+            return;
+        }
+    }
+
+    qDebug() << "bridge that replied was" << id << "at" << ipAddress;
+
+    //Check for the ID amongst our saved settings, see if we have it but under a different IP address
+    foreach(const HueBridgeSavedSettings& settings, savedBridges)
+    {
+        if (settings.id == id)
+        {
+            HueBridgeSavedSettings newSettings(settings);
+            newSettings.address = ipAddress;
+
+            HueBridge* bridge = new HueBridge(this, newSettings);
+            bridges.push_back(bridge);
+            model.insert(bridge);
+            return;
+        }
+    }
+
+    HueBridgeSavedSettings Settings = HueBridgeSavedSettings(id, QHostAddress(ipAddress));
     HueBridge* bridge = new HueBridge(this, Settings);
     bridges.push_back(bridge);
     model.insert(bridge);
 }
+    

@@ -5,6 +5,8 @@
 #include "objectmodel.h"
 #include "bridgediscovery.h"
 
+extern QNetworkAccessManager qnam;
+
 class Huestacean : public QObject
 {
     Q_OBJECT

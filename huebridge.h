@@ -59,16 +59,21 @@ private:
 
 struct HueBridgeSavedSettings 
 {
+    QString id;
     QHostAddress address;
     QString userName;
     QString clientKey;
 
-    HueBridgeSavedSettings::HueBridgeSavedSettings(QHostAddress inAddress)
-        : address(inAddress), userName(), clientKey()
+    HueBridgeSavedSettings::HueBridgeSavedSettings()
+        : id(), address(), userName(), clientKey()
     {}
 
-    HueBridgeSavedSettings::HueBridgeSavedSettings(QHostAddress inAddress, QString inUserName, QString inClientKey)
-        : address(inAddress), userName(inUserName), clientKey(inClientKey)
+    HueBridgeSavedSettings::HueBridgeSavedSettings(QString inId, QHostAddress inAddress)
+        : id(inId), address(inAddress), userName(), clientKey()
+    {}
+
+    HueBridgeSavedSettings::HueBridgeSavedSettings(QString inId, QHostAddress inAddress, QString inUserName, QString inClientKey)
+        : id(inId), address(inAddress), userName(inUserName), clientKey(inClientKey)
     {}
 };
 
@@ -84,7 +89,7 @@ class HueBridge : public QObject
     Q_PROPERTY(bool connected MEMBER connected NOTIFY connectedChanged)
     Q_PROPERTY(bool manuallyAdded MEMBER manuallyAdded NOTIFY onInit)
     Q_PROPERTY(QHostAddress address MEMBER address NOTIFY onInit)
-    Q_PROPERTY(bool streaming MEMBER streaming NOTIFY streamingChanged)
+    Q_PROPERTY(bool wantsLinkButton MEMBER wantsLinkButton NOTIFY streamingChanged)
 
 public:
     explicit HueBridge(QObject *parent, HueBridgeSavedSettings& SavedSettings, bool bManuallyAdded = false, bool bReconnect = true);
@@ -108,20 +113,20 @@ public:
 
     bool connected;
     bool manuallyAdded;
-    bool streaming;
+    bool wantsLinkButton;
     QHostAddress address;
+    QString id;
     QString username;
     QString clientkey;
 
 signals:
-    void wantsLinkButton();
-
     //Property notifies
     void messageChanged();
     void connectedChanged();
     void groupsChanged();
     void lightsChanged();
     void streamingChanged();
+    void wantsLinkButtonChanged();
 
     void onInit();
 
@@ -142,8 +147,6 @@ private:
     QNetworkRequest makeRequest(QString path, bool bIncludeUser = true);
     
     QString message;
-
-    QNetworkAccessManager qnam;
 
     EntertainmentCommThread* eThread;
 

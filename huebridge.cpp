@@ -34,6 +34,7 @@
 #include "mbedtls/timing.h"
 
 #include "huebridge.h"
+#include "huestacean.h"
 
 QString SETTING_USERNAME = "Bridge/Username";
 QString SETTING_CLIENTKEY = "Bridge/clientkey";
@@ -42,7 +43,11 @@ HueBridge::HueBridge(QObject *parent, HueBridgeSavedSettings& SavedSettings, boo
     : QObject(parent),
     eThread(nullptr),
     address(SavedSettings.address),
-    manuallyAdded(bManuallyAdded)
+    id(SavedSettings.id),
+    username(SavedSettings.userName),
+    clientkey(SavedSettings.clientKey),
+    manuallyAdded(bManuallyAdded),
+    wantsLinkButton(false)
 {
     connect(&qnam, SIGNAL(finished(QNetworkReply*)),
         this, SLOT(replied(QNetworkReply*)));
@@ -63,11 +68,15 @@ QNetworkRequest HueBridge::makeRequest(QString path, bool bIncludeUser/* = true*
 {
     if (bIncludeUser)
     {
-        return QNetworkRequest(QUrl(QString("http://%1/api/%2%3").arg(address.toString(), username, path)));
+        QNetworkRequest request = QNetworkRequest(QUrl(QString("http://%1/api/%2%3").arg(address.toString(), username, path)));
+        request.setOriginatingObject(this);
+        return request;
     }
     else
     {
-        return QNetworkRequest(QUrl(QString("http://%1/api%2").arg(address.toString(), path)));
+        QNetworkRequest request = QNetworkRequest(QUrl(QString("http://%1/api%2").arg(address.toString(), path)));
+        request.setOriginatingObject(this);
+        return request;
     }
 }
 
@@ -109,6 +118,9 @@ void HueBridge::requestGroups()
 
 void HueBridge::replied(QNetworkReply *reply)
 {
+    if (reply->request().originatingObject() != this)
+        return;
+
     reply->deleteLater();
 
     if (reply->request().url().toString().endsWith("/api"))
@@ -142,7 +154,9 @@ void HueBridge::replied(QNetworkReply *reply)
             if (obj[QString("error")].toObject()[QString("type")].toInt() == 101)
             {
                 setMessage("Press the link button!");
-                emit wantsLinkButton();
+
+                wantsLinkButton = true;
+                emit wantsLinkButtonChanged();
             }
         }
     }
@@ -194,7 +208,7 @@ void Group::startStreaming()
     QJsonObject body;
     body.insert("stream", stream);
 
-    bridgeParent()->qnam.put(qnr, QJsonDocument(body).toJson());
+    qnam.put(qnr, QJsonDocument(body).toJson());
 }
 
 //---------------------------------------------------------------------------------

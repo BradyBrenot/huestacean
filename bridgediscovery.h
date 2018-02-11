@@ -24,10 +24,15 @@ signals:
 
     void closeSockets();
 
+ private slots:
+    void replied(QNetworkReply *reply);
+
 private:
-    void addBridgeByIp(QString ipAddress);
+    void tryDescribeBridge(QString ipAddress);
 
     QVector<HueBridge*> bridges;
     ObjectModel model;
     bool hasSearched;
+
+    QVector<HueBridgeSavedSettings> savedBridges;
 };
