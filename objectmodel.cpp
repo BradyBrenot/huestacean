@@ -1,5 +1,11 @@
 #include "objectmodel.h"
 
+ObjectModel::ObjectModel(QObject *parent)
+    : QAbstractListModel(parent)
+{
+
+}
+
 int ObjectModel::rowCount(const QModelIndex&) const {
     return items.size();
 }

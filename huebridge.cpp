@@ -108,7 +108,6 @@ void HueBridge::resetConnection()
 {
     username = QString();
     clientkey = QString();
-    connectToBridge();
 }
 void HueBridge::requestGroups()
 {
@@ -174,6 +173,7 @@ void HueBridge::replied(QNetworkReply *reply)
         {
             setMessage("Connected! Reused old connection!");
             qDebug() << "Reply" << replyJson;
+            friendlyName = replyJson.object()["name"].toString();
             setConnected(true);
         }
     }

@@ -4,10 +4,10 @@ import QtQuick.Controls.Material 2.2
 
 ApplicationWindow {
     id: window
-    width: 800
-    height: 520
+    width: 1000
+    height: 700
     visible: true
-    title: qsTr("Side Panel")
+    title: qsTr("Huestacean")
 
     readonly property bool inPortrait: window.width < window.height
 

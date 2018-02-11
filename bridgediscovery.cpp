@@ -13,6 +13,9 @@ BridgeDiscovery::BridgeDiscovery(QObject *parent)
 {
     connect(&qnam, SIGNAL(finished(QNetworkReply*)),
         this, SLOT(replied(QNetworkReply*)));
+
+    connect(&model, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &, const QVector<int> &)),
+        this, SIGNAL(modelChanged()));
 }
 
 BridgeDiscovery::~BridgeDiscovery()
@@ -201,6 +204,7 @@ void BridgeDiscovery::replied(QNetworkReply *reply)
             || bridge->id == id)
         {
             qDebug() << "already have that bridge, don't readd";
+
             return;
         }
     }

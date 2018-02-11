@@ -88,8 +88,10 @@ class HueBridge : public QObject
     Q_PROPERTY(QString message READ getMessage WRITE setMessage NOTIFY messageChanged)
     Q_PROPERTY(bool connected MEMBER connected NOTIFY connectedChanged)
     Q_PROPERTY(bool manuallyAdded MEMBER manuallyAdded NOTIFY onInit)
-    Q_PROPERTY(QHostAddress address MEMBER address NOTIFY onInit)
-    Q_PROPERTY(bool wantsLinkButton MEMBER wantsLinkButton NOTIFY streamingChanged)
+    Q_PROPERTY(QString address READ getAddress NOTIFY onInit)
+    Q_PROPERTY(QString id MEMBER id NOTIFY onInit)
+    Q_PROPERTY(QString friendlyName MEMBER friendlyName NOTIFY connectedChanged)
+    Q_PROPERTY(bool wantsLinkButton MEMBER wantsLinkButton NOTIFY wantsLinkButtonChanged)
 
 public:
     explicit HueBridge(QObject *parent, HueBridgeSavedSettings& SavedSettings, bool bManuallyAdded = false, bool bReconnect = true);
@@ -101,6 +103,10 @@ public:
     }
     QString getMessage() const {
         return message;
+    }
+
+    QString getAddress() const {
+        return address.toString();
     }
 
     Q_INVOKABLE void connectToBridge();
@@ -118,6 +124,7 @@ public:
     QString id;
     QString username;
     QString clientkey;
+    QString friendlyName;
 
 signals:
     //Property notifies

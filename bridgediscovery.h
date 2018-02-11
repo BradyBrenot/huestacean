@@ -9,16 +9,22 @@ class BridgeDiscovery : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(ObjectModel* model READ getModel NOTIFY modelChanged)
+
 public:
     explicit BridgeDiscovery(QObject *parent = nullptr);
     virtual ~BridgeDiscovery();
     void saveBridges();
+    ObjectModel* getModel() {
+        return &model;
+    }
 
 public slots:
     void startSearch();
     void processPendingDatagrams();
 
 signals:
+    void modelChanged();
     void searchStarted();
     void searchCompleted();
 
