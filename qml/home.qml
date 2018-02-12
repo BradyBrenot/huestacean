@@ -73,19 +73,19 @@ Pane {
 
 									Label {
 										font.bold: true
-										text: model.item.friendlyName
+										text: modelData.friendlyName
 									}
 
 									Label {
-										text: model.item.address
+										text: modelData.address
 									}
 						
 									Label {
-										text: model.item.id
+										text: modelData.id
 									}
 
 									Label {
-										text: "Connected: " + model.item.connected
+										text: "Connected: " + modelData.connected
 									}
 								}
 
@@ -94,9 +94,9 @@ Pane {
 									anchors.bottom: parent.bottom
 									Layout.column: 1
 									text: "Connect"
-									visible: !model.item.connected && !model.item.wantsLinkButton
+									visible: !modelData.connected && !modelData.wantsLinkButton
 
-									onClicked: model.item.connectToBridge()
+									onClicked: modelData.connectToBridge()
 								}
 
 								Button {
@@ -104,10 +104,10 @@ Pane {
 									anchors.bottom: parent.bottom
 									Layout.column: 1
 									text: "Link"
-									visible: !model.item.connected && model.item.wantsLinkButton
+									visible: !modelData.connected && modelData.wantsLinkButton
 
 									onClicked: {
-										linkPopup.bridge = model.item
+										linkPopup.bridge = modelData
 										linkPopup.open()
 									}
 								}
@@ -117,9 +117,9 @@ Pane {
 									anchors.bottom: parent.bottom
 									Layout.column: 1
 									text: "Forget"
-									visible: model.item.connected
+									visible: modelData.connected
 
-									onClicked: model.item.resetConnection()
+									onClicked: modelData.resetConnection()
 								}
 							}
 						}
@@ -172,7 +172,7 @@ Pane {
 				Row {
 					ComboBox {
 						currentIndex: 0
-						width: 400
+						width: 200
 						model: Huestacean.monitorsModel
 						textRole: "asString"
 						onCurrentIndexChanged: Huestacean.setActiveMonitor(currentIndex)

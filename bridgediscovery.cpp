@@ -13,9 +13,6 @@ BridgeDiscovery::BridgeDiscovery(QObject *parent)
 {
     connect(&qnam, SIGNAL(finished(QNetworkReply*)),
         this, SLOT(replied(QNetworkReply*)));
-
-    connect(&model, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &, const QVector<int> &)),
-        this, SIGNAL(modelChanged()));
 }
 
 BridgeDiscovery::~BridgeDiscovery()
@@ -221,7 +218,7 @@ void BridgeDiscovery::replied(QNetworkReply *reply)
 
             HueBridge* bridge = new HueBridge(this, newSettings);
             bridges.push_back(bridge);
-            model.insert(bridge);
+            emit modelChanged();
             return;
         }
     }
@@ -229,6 +226,6 @@ void BridgeDiscovery::replied(QNetworkReply *reply)
     HueBridgeSavedSettings Settings = HueBridgeSavedSettings(id, QHostAddress(ipAddress));
     HueBridge* bridge = new HueBridge(this, Settings);
     bridges.push_back(bridge);
-    model.insert(bridge);
+    emit modelChanged();
 }
     

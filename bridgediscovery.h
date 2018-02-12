@@ -9,14 +9,15 @@ class BridgeDiscovery : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(ObjectModel* model READ getModel NOTIFY modelChanged)
+    Q_PROPERTY(QList<QObject*> model READ getModel NOTIFY modelChanged)
 
 public:
     explicit BridgeDiscovery(QObject *parent = nullptr);
     virtual ~BridgeDiscovery();
     void saveBridges();
-    ObjectModel* getModel() {
-        return &model;
+
+    QList<QObject*> getModel() {
+        return *reinterpret_cast<const QList<QObject*>*>(&bridges);
     }
 
 public slots:
@@ -36,8 +37,7 @@ signals:
 private:
     void tryDescribeBridge(QString ipAddress);
 
-    QVector<HueBridge*> bridges;
-    ObjectModel model;
+    QList<HueBridge*> bridges;
     bool hasSearched;
 
     QVector<HueBridgeSavedSettings> savedBridges;
