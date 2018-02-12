@@ -10,17 +10,10 @@ Pane {
     Column {
         anchors.fill: parent
 
-        Label {
-            text: Huestacean.hue.message
-            anchors.margins: 20
-            anchors.left: parent.left
-            anchors.right: parent.right
-            horizontalAlignment: Label.AlignHCenter
-            verticalAlignment: Label.AlignVCenter
-            wrapMode: Label.Wrap
-        }
+		spacing: 10
 
 		GroupBox {
+			id: bridgesBox
 			anchors.left: parent.left
 			anchors.right: parent.right
 			title: "Bridges"
@@ -31,9 +24,30 @@ Pane {
 				anchors.right: parent.right
 				spacing: 10
 
-				Button {
-					text: qsTr("Search")
-					onClicked: Huestacean.bridgeDiscovery.startSearch()
+				Row {
+					spacing: 10
+
+					Button {
+						text: qsTr("Search")
+						onClicked: {
+							searchIndicator.searching = true
+							searchTimer.start()
+							Huestacean.bridgeDiscovery.startSearch()
+						}
+					}
+
+					BusyIndicator {
+						id: searchIndicator
+						property bool searching
+						visible: searching
+					}
+
+					Timer {
+						id: searchTimer
+						interval: 5000;
+						repeat: false
+						onTriggered: searchIndicator.searching = false
+					}
 				}
 
 				Component {
@@ -134,11 +148,50 @@ Pane {
 						placeholderText: "0.0.0.0"
 					}
 					Button {
-						text: "Manually add IP"
+						text: "(TODO) Manually add IP"
 					}
 				}
 			}
-		}		
+		}
+		
+		GroupBox {
+			anchors.left: parent.left
+			anchors.right: parent.right
+
+			title: "Screen sync settings"
+
+			Column {
+				anchors.left: parent.left
+				anchors.right: parent.right
+				spacing: 10
+
+				Label {
+					text: "Monitor"
+				}
+
+				Row {
+					ComboBox {
+						currentIndex: 0
+						width: 400
+						model: Huestacean.monitorsModel
+						textRole: "asString"
+						onCurrentIndexChanged: Huestacean.setActiveMonitor(currentIndex)
+					}
+
+					Button {
+						text: "Redetect"
+						onClicked: Huestacean.detectMonitors()
+					}
+				}
+				
+				RowLayout {
+					anchors.left: parent.left
+					anchors.right: parent.right
+
+					Rectangle { height: 200; width: 300; }
+				}
+			}
+		}
     }
 
 	Popup {

@@ -21,12 +21,6 @@ void ObjectModel::insert(QObject* item) {
     endInsertRows();
 }
 
-void ObjectModel::insert(const QVector<QObject*>& insertItems) {
-    beginInsertRows(QModelIndex(), 0, 0);
-    items.append(insertItems);
-    endInsertRows();
-}
-
 void ObjectModel::remove(QObject* item) {
     for (int i = 0; i < items.size(); ++i) {
         if (items.at(i) == item) {
