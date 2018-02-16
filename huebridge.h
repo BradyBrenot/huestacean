@@ -78,7 +78,7 @@ struct HueBridgeSavedSettings
 };
 
 class Light;
-class Group;
+class EntertainmentGroup;
 
 /* Hue API wrapper */
 class HueBridge : public QObject
@@ -114,8 +114,8 @@ public:
 
     void handleStreamingEnabled();
 
-    QHash<QString, Light*> Lights;
-    QHash<QString, Group*> Groups;
+    QHash<QString, Light> Lights;
+    QHash<QString, EntertainmentGroup> EntertainmentGroups;
 
     bool connected;
     bool manuallyAdded;
@@ -130,10 +130,11 @@ signals:
     //Property notifies
     void messageChanged();
     void connectedChanged();
-    void groupsChanged();
-    void lightsChanged();
     void streamingChanged();
     void wantsLinkButtonChanged();
+
+    void entertainmentGroupsChanged();
+    void lightsChanged();
 
     void onInit();
 
@@ -160,35 +161,134 @@ private:
     std::shared_ptr<SL::Screen_Capture::IScreenCaptureManager> framegrabber;
 
     friend class Light;
-    friend class Group;
+    friend class EntertainmentGroup;
 };
 
 class BridgeObject : public QObject
 {
     Q_OBJECT;
 
+    Q_PROPERTY(QString id MEMBER id NOTIFY propertiesChanged)
+
+signals:
+    void propertiesChanged();
+
 public:
     QString id;
     explicit BridgeObject(HueBridge *parent) : QObject(parent) {}
 
 protected:
-    HueBridge * bridgeParent() { return reinterpret_cast<HueBridge*>(parent()); }
+    HueBridge * bridgeParent() const { return reinterpret_cast<HueBridge*>(parent()); }
 };
 
 class Light : public BridgeObject
 {
     Q_OBJECT;
 
+    Q_PROPERTY(QString name MEMBER name NOTIFY propertiesChanged)
+
 public:
-    explicit Light(HueBridge *parent) : BridgeObject(parent) {}
+    explicit Light() : BridgeObject(nullptr)
+    {
+    }
+
+    explicit Light(HueBridge *parent) : BridgeObject(parent) 
+    {
+        emit propertiesChanged();
+    }
+    explicit Light(const Light& other) : BridgeObject(other.bridgeParent())
+    {
+        name = other.name;
+        emit propertiesChanged();
+    }
+
+    Light& operator=(const Light& other)
+    {
+        setParent(other.parent());
+        name = other.name;
+        id = other.id;
+        emit propertiesChanged();
+        return *this;
+    }
+
+    QString name;
 };
 
-class Group : public BridgeObject
+class EntertainmentLight : public QObject
 {
     Q_OBJECT;
 
+    Q_PROPERTY(QString id MEMBER id NOTIFY propertiesChanged)
+    Q_PROPERTY(int x MEMBER x NOTIFY propertiesChanged)
+    Q_PROPERTY(int y MEMBER y NOTIFY propertiesChanged)
+    Q_PROPERTY(int z MEMBER z NOTIFY propertiesChanged)
+
+signals:
+    void propertiesChanged();
+    
 public:
-    explicit Group(HueBridge *parent) : BridgeObject(parent) {}
+    QString id;
+    int x;
+    int y;
+    int z;
+
+    explicit EntertainmentLight() : QObject(nullptr)
+    {
+    }
+
+    explicit EntertainmentLight(QObject* parent, QString inId, int inX, int inY, int inZ) :
+        QObject(parent), id(inId), x(inX), y(inY), z(inZ)
+    {
+        emit propertiesChanged();
+    }
+
+    explicit EntertainmentLight(const EntertainmentLight& other) : EntertainmentLight(other.parent(), other.id, other.x, other.y, other.z)
+    {
+    }
+};
+
+inline bool operator==(const EntertainmentLight& a, const EntertainmentLight& b)
+{
+    return a.id == b.id;
+}
+
+class EntertainmentGroup : public BridgeObject
+{
+    Q_OBJECT;
+
+    Q_PROPERTY(QString name MEMBER name NOTIFY propertiesChanged)
+    Q_PROPERTY(bool isStreaming MEMBER isStreaming NOTIFY propertiesChanged)
+    Q_PROPERTY(QVector<EntertainmentLight> lights MEMBER lights NOTIFY propertiesChanged)
+
+public:
+    explicit EntertainmentGroup() : BridgeObject(nullptr)
+    {
+    }
+
+    explicit EntertainmentGroup(HueBridge *parent) : BridgeObject(parent) 
+    {
+        isStreaming = false;
+        emit propertiesChanged();
+    }
+    explicit EntertainmentGroup(const EntertainmentGroup& other) : BridgeObject(other.bridgeParent())
+    {
+        name = other.name;
+        id = other.id;
+        emit propertiesChanged();
+    }
+    EntertainmentGroup& operator=(const EntertainmentGroup& other)
+    {
+        setParent(other.parent());
+        name = other.name;
+        id = other.id;
+        emit propertiesChanged();
+        return *this;
+    }
 
     void startStreaming();
+    void stopStreaming();
+
+    QString name;
+    QVector<EntertainmentLight> lights;
+    bool isStreaming;
 };

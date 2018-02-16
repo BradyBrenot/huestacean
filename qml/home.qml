@@ -165,30 +165,66 @@ Pane {
 				anchors.right: parent.right
 				spacing: 10
 
-				Label {
-					text: "Monitor"
-				}
+				RowLayout {
+					anchors.left: parent.left
+					anchors.right: parent.right
+					spacing: 20
+					Column {
+						Label {
+							text: "Monitor"
+						}
 
-				Row {
-					ComboBox {
-						currentIndex: 0
-						width: 200
-						model: Huestacean.monitorsModel
-						textRole: "asString"
-						onCurrentIndexChanged: Huestacean.setActiveMonitor(currentIndex)
+						Row {
+							ComboBox {
+								currentIndex: 0
+								width: 200
+								model: Huestacean.monitorsModel
+								textRole: "asString"
+								onCurrentIndexChanged: Huestacean.setActiveMonitor(currentIndex)
+							}
+
+							Button {
+								text: "Redetect"
+								onClicked: Huestacean.detectMonitors()
+					
+							}
+						}
 					}
 
-					Button {
-						text: "Redetect"
-						onClicked: Huestacean.detectMonitors()
+					Column {
+						Label {
+							text: "Entertainment group"
+						}
+
+						Row {
+							ComboBox {
+								currentIndex: 0
+								width: 200
+								model: Huestacean.monitorsModel
+								textRole: "asString"
+								onCurrentIndexChanged: Huestacean.setActiveMonitor(currentIndex)
+							}
+
+							Button {
+								text: "Redetect"
+								onClicked: Huestacean.detectMonitors()
+							}
+						}
 					}
 				}
 				
 				RowLayout {
 					anchors.left: parent.left
 					anchors.right: parent.right
+					spacing: 20
 
 					Rectangle { height: 200; width: 300; }
+
+					Rectangle { height: 200; width: 200; }
+
+					ListView {
+					
+					}
 				}
 			}
 		}

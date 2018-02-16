@@ -5,7 +5,7 @@ import QtQuick.Controls.Material 2.2
 ApplicationWindow {
     id: window
     width: 1000
-    height: 700
+    height: 800
     visible: true
     title: qsTr("Huestacean")
 

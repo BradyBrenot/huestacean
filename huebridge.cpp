@@ -111,7 +111,10 @@ void HueBridge::resetConnection()
 }
 void HueBridge::requestGroups()
 {
-    QNetworkRequest qnr = makeRequest("/groups");
+    QNetworkRequest qnr = makeRequest("/lights");
+    qnam.get(qnr);
+
+    qnr = makeRequest("/groups");
     qnam.get(qnr);
 }
 
@@ -177,11 +180,47 @@ void HueBridge::replied(QNetworkReply *reply)
             setConnected(true);
         }
     }
+    else if (reply->request().url().toString().endsWith("/lights"))
+    {
+        QByteArray data = reply->readAll();
+        QJsonDocument replyJson = QJsonDocument::fromJson(data);
+        QJsonObject obj = replyJson.object();
+
+        for (auto it = obj.begin(); it != obj.end(); ++it)
+        {
+            QString string = it.key();
+            Light& newLight = Lights[it.key()] = Light(this);
+            newLight.id = it.key();
+            newLight.name = it.value().toObject()["name"].toString();
+        }
+
+        emit lightsChanged();
+    }
     else if (reply->request().url().toString().endsWith("/groups"))
     {
         QByteArray data = reply->readAll();
         QJsonDocument replyJson = QJsonDocument::fromJson(data);
-        qDebug().noquote() << replyJson.toJson(QJsonDocument::Indented);
+        QJsonObject obj = replyJson.object();
+
+        for (auto it = obj.begin(); it != obj.end(); ++it)
+        {
+            if (it.value().toObject()["type"].toString().compare(QString("entertainment"), Qt::CaseInsensitive) == 0)
+            {
+                QString string = it.key();
+                EntertainmentGroup& newGroup = EntertainmentGroups[it.key()] = EntertainmentGroup(this);
+                newGroup.id = it.key();
+                newGroup.name = it.value().toObject()["name"].toString();
+                QJsonObject locations = it.value().toObject()["locations"].toObject();
+
+                for (auto j = locations.begin(); j != locations.end(); ++j)
+                {
+                    QJsonArray loc = j.value().toArray();
+                    newGroup.lights.push_back(EntertainmentLight(this, j.key(), loc[0].toInt(), loc[1].toInt(), loc[2].toInt()));
+                }
+            }                        
+        }
+
+        emit entertainmentGroupsChanged();
     }
     else if (false /* handle activation of an entertainment group here? */)
     {
@@ -197,7 +236,7 @@ void HueBridge::replied(QNetworkReply *reply)
     }
 }
 
-void Group::startStreaming()
+void EntertainmentGroup::startStreaming()
 {
     QNetworkRequest qnr = bridgeParent()->makeRequest(QString("/groups/%1").arg(id));
     qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
