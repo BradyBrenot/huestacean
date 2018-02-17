@@ -9,6 +9,9 @@ Huestacean::Huestacean(QObject *parent) : QObject(parent)
     bridgeDiscovery->startSearch();
     detectMonitors();
 
+    connect(bridgeDiscovery, SIGNAL(modelChanged()),
+        this, SLOT(connectBridges()));
+
     emit hueInit();
 }
 
@@ -40,4 +43,42 @@ void Huestacean::startScreenSync()
 void Huestacean::setActiveMonitor(int index)
 {
     activeMonitorIndex = index;
+}
+
+void Huestacean::updateEntertainmentGroups()
+{
+    for (EntertainmentGroup* group : entertainmentGroups)
+    {
+        group->deleteLater();
+    }
+    entertainmentGroups.clear();
+
+    for (QObject* Obj : bridgeDiscovery->getModel())
+    {
+        HueBridge* bridge = qobject_cast<HueBridge*>(Obj);
+        if (bridge != nullptr)
+        {
+            for (auto& group : bridge->EntertainmentGroups)
+            {
+                entertainmentGroups.push_back(new EntertainmentGroup(group));
+            }
+        }
+    }
+
+    emit entertainmentGroupsChanged();
+}
+
+void Huestacean::connectBridges()
+{
+    for (QObject* Obj : bridgeDiscovery->getModel())
+    {
+        HueBridge* bridge = qobject_cast<HueBridge*>(Obj);
+        if (bridge != nullptr)
+        {
+            connect(bridge, SIGNAL(entertainmentGroupsChanged()),
+                this, SLOT(updateEntertainmentGroups()));
+            connect(bridge, SIGNAL(lightsChanged()),
+                this, SIGNAL(entertainmentGroupsChanged()));
+        }
+    }
 }

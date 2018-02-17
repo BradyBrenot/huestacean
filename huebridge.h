@@ -259,6 +259,7 @@ class EntertainmentGroup : public BridgeObject
     Q_PROPERTY(QString name MEMBER name NOTIFY propertiesChanged)
     Q_PROPERTY(bool isStreaming MEMBER isStreaming NOTIFY propertiesChanged)
     Q_PROPERTY(QVector<EntertainmentLight> lights MEMBER lights NOTIFY propertiesChanged)
+    Q_PROPERTY(QString asString READ toString NOTIFY propertiesChanged)
 
 public:
     explicit EntertainmentGroup() : BridgeObject(nullptr)
@@ -285,8 +286,11 @@ public:
         return *this;
     }
 
-    void startStreaming();
-    void stopStreaming();
+    QString toString() {
+        return QString("%1 (%2)").arg(name, bridgeParent()->friendlyName);;
+    }
+
+    void toggleStreaming(bool enable);
 
     QString name;
     QVector<EntertainmentLight> lights;

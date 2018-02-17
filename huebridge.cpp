@@ -236,13 +236,13 @@ void HueBridge::replied(QNetworkReply *reply)
     }
 }
 
-void EntertainmentGroup::startStreaming()
+void EntertainmentGroup::toggleStreaming(bool enable)
 {
     QNetworkRequest qnr = bridgeParent()->makeRequest(QString("/groups/%1").arg(id));
     qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     QJsonObject stream;
-    stream.insert("active", true);
+    stream.insert("active", enable);
 
     QJsonObject body;
     body.insert("stream", stream);

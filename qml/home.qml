@@ -199,10 +199,10 @@ Pane {
 						Row {
 							ComboBox {
 								currentIndex: 0
-								width: 200
-								model: Huestacean.monitorsModel
+								width: 300
+								model: Huestacean.entertainmentGroupsModel
 								textRole: "asString"
-								onCurrentIndexChanged: Huestacean.setActiveMonitor(currentIndex)
+								//onCurrentIndexChanged: Huestacean.setActiveMonitor(currentIndex)
 							}
 
 							Button {

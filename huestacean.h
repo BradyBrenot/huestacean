@@ -56,42 +56,47 @@ class Huestacean : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(HueBridge* hueBridge READ getHueBridge NOTIFY hueInit)
     Q_PROPERTY(BridgeDiscovery* bridgeDiscovery READ getBridgeDiscovery NOTIFY hueInit)
     Q_PROPERTY(QList<QObject*> monitorsModel READ getMonitorsModel NOTIFY monitorsChanged)
+
+    Q_PROPERTY(QList<QObject*> entertainmentGroupsModel READ getEntertainmentGroupsModel NOTIFY entertainmentGroupsChanged)
 
 public:
     explicit Huestacean(QObject *parent = nullptr);
 
-    HueBridge* getHueBridge() {
-        return hueBridge;
-    }
     BridgeDiscovery* getBridgeDiscovery() {
         return bridgeDiscovery;
     }
     QList<QObject*> getMonitorsModel() {
-        return monitors;
+        return *(reinterpret_cast<QList<QObject*>*>(&monitors));
+    }
+    QList<QObject*> getEntertainmentGroupsModel() {
+        return *(reinterpret_cast<QList<QObject*>*>(&entertainmentGroups));
     }
 
 signals:
     void hueInit();
 
 private:
-	HueBridge* hueBridge;
     BridgeDiscovery* bridgeDiscovery;
 
-    QList<QObject*> monitors;
+    QList<Monitor*> monitors;
+    QList<EntertainmentGroup*> entertainmentGroups;
 
     /////////////////////////////////////////////////////////////////////////////
     // temporary home of screen sync
 public:
     Q_INVOKABLE void detectMonitors();
     Q_INVOKABLE void startScreenSync();
+
 signals:
     void monitorsChanged();
+    void entertainmentGroupsChanged();
 
 public slots:
     void setActiveMonitor(int index);
+    void updateEntertainmentGroups();
+    void connectBridges();
 
 private:
     int activeMonitorIndex;
