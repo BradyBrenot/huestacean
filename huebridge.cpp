@@ -399,6 +399,9 @@ void EntertainmentCommThread::threadsafe_setMessage(const EntertainmentMessage& 
 //simple dtls test using mbedtls. Never ends!
 void EntertainmentCommThread::run()
 {
+    /* 
+     * The following is modified from the Simple DTLS client demonstration program to contain the minimum needed to talk with a Hue bridge
+     */
     /*
      *  Simple DTLS client demonstration program
      *

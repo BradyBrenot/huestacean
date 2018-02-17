@@ -6,5 +6,6 @@
         <file>qml/home.qml</file>
         <file>qml/bridges.qml</file>
         <file>images/egroup-xy.png</file>
+        <file>qml/about.qml</file>
     </qresource>
 </RCC>

@@ -137,7 +137,7 @@ Pane {
 					model: Huestacean.bridgeDiscovery.model
 					delegate: bridgeDelegate
 
-					ScrollBar.vertical: ScrollBar {}
+					ScrollBar.vertical: ScrollBar { contentItem.opacity: 1; }
 				}
 
 				Row {

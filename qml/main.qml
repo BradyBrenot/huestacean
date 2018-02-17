@@ -57,21 +57,10 @@ ApplicationWindow {
             id: listView
             anchors.fill: parent
 
-            footer: ItemDelegate {
-                id: footer
-                text: qsTr("Footer")
-                width: parent.width
-
-                MenuSeparator {
-                    parent: footer
-                    width: parent.width
-                    anchors.verticalCenter: parent.top
-                }
-            }
-
             model: ListModel {
                 ListElement { title: "Home"; source: "qrc:/qml/home.qml" }
-                ListElement { title: "Bridges"; source: "qrc:/qml/bridges.qml" }
+                //ListElement { title: "Bridges"; source: "qrc:/qml/bridges.qml" }
+				ListElement { title: "About"; source: "qrc:/qml/about.qml" }
             }
 
             delegate: ItemDelegate {
