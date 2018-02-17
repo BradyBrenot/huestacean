@@ -219,24 +219,24 @@ class EntertainmentLight : public QObject
     Q_OBJECT;
 
     Q_PROPERTY(QString id MEMBER id NOTIFY propertiesChanged)
-    Q_PROPERTY(int x MEMBER x NOTIFY propertiesChanged)
-    Q_PROPERTY(int y MEMBER y NOTIFY propertiesChanged)
-    Q_PROPERTY(int z MEMBER z NOTIFY propertiesChanged)
+    Q_PROPERTY(double x MEMBER x NOTIFY propertiesChanged)
+    Q_PROPERTY(double y MEMBER y NOTIFY propertiesChanged)
+    Q_PROPERTY(double z MEMBER z NOTIFY propertiesChanged)
 
 signals:
     void propertiesChanged();
     
 public:
     QString id;
-    int x;
-    int y;
-    int z;
+    double x;
+    double y;
+    double z;
 
     explicit EntertainmentLight() : QObject(nullptr)
     {
     }
 
-    explicit EntertainmentLight(QObject* parent, QString inId, int inX, int inY, int inZ) :
+    explicit EntertainmentLight(QObject* parent, QString inId, double inX, double inY, double inZ) :
         QObject(parent), id(inId), x(inX), y(inY), z(inZ)
     {
         emit propertiesChanged();
@@ -258,22 +258,30 @@ class EntertainmentGroup : public BridgeObject
 
     Q_PROPERTY(QString name MEMBER name NOTIFY propertiesChanged)
     Q_PROPERTY(bool isStreaming MEMBER isStreaming NOTIFY propertiesChanged)
-    Q_PROPERTY(QVector<EntertainmentLight> lights MEMBER lights NOTIFY propertiesChanged)
+    Q_PROPERTY(QList<EntertainmentLight> lights MEMBER lights NOTIFY propertiesChanged)
     Q_PROPERTY(QString asString READ toString NOTIFY propertiesChanged)
 
 public:
-    explicit EntertainmentGroup() : BridgeObject(nullptr)
+    explicit EntertainmentGroup() 
+        : BridgeObject(nullptr),
+        name(), lights(), isStreaming(false)
     {
     }
 
-    explicit EntertainmentGroup(HueBridge *parent) : BridgeObject(parent) 
+    explicit EntertainmentGroup(HueBridge *parent) 
+        : BridgeObject(parent),
+        name(), 
+        lights(), 
+        isStreaming(false)
     {
-        isStreaming = false;
         emit propertiesChanged();
     }
-    explicit EntertainmentGroup(const EntertainmentGroup& other) : BridgeObject(other.bridgeParent())
+    explicit EntertainmentGroup(const EntertainmentGroup& other) 
+        : BridgeObject(other.bridgeParent()),
+        name(other.name), 
+        lights(other.lights), 
+        isStreaming(false)
     {
-        name = other.name;
         id = other.id;
         emit propertiesChanged();
     }
@@ -282,6 +290,7 @@ public:
         setParent(other.parent());
         name = other.name;
         id = other.id;
+        lights = other.lights;
         emit propertiesChanged();
         return *this;
     }
@@ -290,9 +299,13 @@ public:
         return QString("%1 (%2)").arg(name, bridgeParent()->friendlyName);;
     }
 
+    Q_INVOKABLE int numLights() { return lights.length(); }
+    Q_INVOKABLE QObject* getLight(int index) { return &lights[index]; }
+    Q_INVOKABLE void updateLightXZ(int index, float x, float z);
+
     void toggleStreaming(bool enable);
 
     QString name;
-    QVector<EntertainmentLight> lights;
+    QList<EntertainmentLight> lights;
     bool isStreaming;
 };

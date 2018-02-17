@@ -189,6 +189,8 @@ Pane {
 					
 							}
 						}
+
+						//Rectangle { height: 200; width: 300; }
 					}
 
 					Column {
@@ -198,11 +200,41 @@ Pane {
 
 						Row {
 							ComboBox {
+								id: entertainmentComboBox
 								currentIndex: 0
 								width: 300
 								model: Huestacean.entertainmentGroupsModel
 								textRole: "asString"
-								//onCurrentIndexChanged: Huestacean.setActiveMonitor(currentIndex)
+
+								property var lights: undefined
+
+								onModelChanged: {
+									updateLights();
+								}
+
+								onCurrentIndexChanged: {
+									updateLights()
+								}
+
+								function updateLights() {
+									if(model) {
+										if(lights) {
+											for (var i in lights) {
+												lights[i].destroy();
+											}
+										}
+
+										lights = [];
+										for(var i = 0; i < model[currentIndex].numLights(); i++) {
+											var light = model[currentIndex].getLight(i);
+											var l = lightComponent.createObject(groupImage);
+											l.name = light.id;
+											l.index = i
+											l.setPos(light.x, light.z)
+											lights.push(l);
+										}
+									}
+								}
 							}
 
 							Button {
@@ -210,25 +242,78 @@ Pane {
 								onClicked: Huestacean.detectMonitors()
 							}
 						}
+
+						Rectangle {
+							color: "black"
+							height: 220; 
+							width: 220; 
+							border.width: 1
+							border.color: "#414141"
+
+							Image { 
+								anchors.centerIn: parent
+								id: groupImage
+								height: 200; width: 200; 
+								source: "qrc:/images/egroup-xy.png"
+							}
+						}						
 					}
 				}
-				
-				RowLayout {
-					anchors.left: parent.left
-					anchors.right: parent.right
-					spacing: 20
 
-					Rectangle { height: 200; width: 300; }
-
-					Rectangle { height: 200; width: 200; }
-
-					ListView {
-					
-					}
+				Button {
+					text: Huestacean.syncing ? "Stop sync" : "Start sync"
+					onClicked: Huestacean.syncing ? Huestacean.stopScreenSync() : Huestacean.startScreenSync()
 				}
 			}
 		}
     }
+
+	Component {
+        id: lightComponent
+
+		Rectangle { 
+			id: lightIcon
+			color: "blue";
+			height: 20; 
+			width: 20; 
+			radius: 5
+
+			property var name: "INVALID"
+			property var index: 0
+
+			function setPos(inX, inY) {
+				x = ((1 + inX) / 2.0) * groupImage.width - width/2
+				y = ((1 - inY) / 2.0) * groupImage.height - height/2
+			}
+
+			Label {
+				anchors.centerIn: parent
+				text: lightIcon.name
+			}
+
+			MouseArea {
+				id: mouseArea
+				anchors.fill: parent
+				drag.target: lightIcon
+				drag.axis: Drag.XAndYAxis
+
+				drag.minimumX: 0 - width/2
+				drag.maximumX: groupImage.width - width/2
+
+				drag.minimumY: 0 - height/2
+				drag.maximumY: groupImage.height - height/2
+
+				drag.onActiveChanged: {
+					if(!drag.active) {
+						var bridgeX = 2 * (lightIcon.x + lightIcon.width/2) / groupImage.width - 1
+						var bridgeZ = 2 * (lightIcon.y + lightIcon.height/2) / groupImage.height + 1
+
+						entertainmentComboBox.model[entertainmentComboBox.currentIndex].updateLightXZ(index, bridgeX, bridgeZ);
+					}
+				}
+			}
+		}
+	}
 
 	Popup {
 		id: linkPopup

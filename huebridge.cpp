@@ -215,7 +215,7 @@ void HueBridge::replied(QNetworkReply *reply)
                 for (auto j = locations.begin(); j != locations.end(); ++j)
                 {
                     QJsonArray loc = j.value().toArray();
-                    newGroup.lights.push_back(EntertainmentLight(this, j.key(), loc[0].toInt(), loc[1].toInt(), loc[2].toInt()));
+                    newGroup.lights.push_back(EntertainmentLight(this, j.key(), loc[0].toDouble(), loc[1].toDouble(), loc[2].toDouble()));
                 }
             }                        
         }
@@ -234,6 +234,31 @@ void HueBridge::replied(QNetworkReply *reply)
         QJsonDocument replyJson = QJsonDocument::fromJson(data);
         qDebug().noquote() << replyJson.toJson(QJsonDocument::Indented);
     }
+}
+
+
+void EntertainmentGroup::updateLightXZ(int index, float x, float z)
+{
+    lights[index].x = x;
+    lights[index].z = z;
+
+    QNetworkRequest qnr = bridgeParent()->makeRequest(QString("/groups/%1").arg(id));
+    qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    QJsonObject locations;
+    for (EntertainmentLight& light : lights)
+    {
+        QJsonArray arr;
+        arr.append(light.x);
+        arr.append(light.y);
+        arr.append(light.z);
+        locations.insert(light.id, arr);
+    }
+
+    QJsonObject body;
+    body.insert("locations", locations);
+
+    qnam.put(qnr, QJsonDocument(body).toJson());
 }
 
 void EntertainmentGroup::toggleStreaming(bool enable)

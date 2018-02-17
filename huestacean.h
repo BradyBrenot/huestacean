@@ -58,8 +58,8 @@ class Huestacean : public QObject
 
     Q_PROPERTY(BridgeDiscovery* bridgeDiscovery READ getBridgeDiscovery NOTIFY hueInit)
     Q_PROPERTY(QList<QObject*> monitorsModel READ getMonitorsModel NOTIFY monitorsChanged)
-
     Q_PROPERTY(QList<QObject*> entertainmentGroupsModel READ getEntertainmentGroupsModel NOTIFY entertainmentGroupsChanged)
+    Q_PROPERTY(bool syncing MEMBER syncing NOTIFY syncingChanged)
 
 public:
     explicit Huestacean(QObject *parent = nullptr);
@@ -88,10 +88,12 @@ private:
 public:
     Q_INVOKABLE void detectMonitors();
     Q_INVOKABLE void startScreenSync();
+    Q_INVOKABLE void stopScreenSync();
 
 signals:
     void monitorsChanged();
     void entertainmentGroupsChanged();
+    void syncingChanged();
 
 public slots:
     void setActiveMonitor(int index);
@@ -100,4 +102,5 @@ public slots:
 
 private:
     int activeMonitorIndex;
+    bool syncing;
 };

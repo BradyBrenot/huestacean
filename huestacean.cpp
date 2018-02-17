@@ -3,7 +3,9 @@
 
 QNetworkAccessManager qnam(nullptr);
 
-Huestacean::Huestacean(QObject *parent) : QObject(parent)
+Huestacean::Huestacean(QObject *parent) 
+    : QObject(parent),
+    syncing(false)
 {
     bridgeDiscovery = new BridgeDiscovery(this);
     bridgeDiscovery->startSearch();
@@ -37,7 +39,13 @@ void Huestacean::detectMonitors()
 
 void Huestacean::startScreenSync()
 {
-
+    syncing = true;
+    emit syncingChanged();
+}
+void Huestacean::stopScreenSync()
+{
+    syncing = false;
+    emit syncingChanged();
 }
 
 void Huestacean::setActiveMonitor(int index)
@@ -47,10 +55,6 @@ void Huestacean::setActiveMonitor(int index)
 
 void Huestacean::updateEntertainmentGroups()
 {
-    for (EntertainmentGroup* group : entertainmentGroups)
-    {
-        group->deleteLater();
-    }
     entertainmentGroups.clear();
 
     for (QObject* Obj : bridgeDiscovery->getModel())
@@ -60,7 +64,7 @@ void Huestacean::updateEntertainmentGroups()
         {
             for (auto& group : bridge->EntertainmentGroups)
             {
-                entertainmentGroups.push_back(new EntertainmentGroup(group));
+                entertainmentGroups.push_back(&group);
             }
         }
     }
