@@ -2,6 +2,11 @@
 
 #include <QObject>
 #include <QStringListModel>
+#include <QQuickImageProvider>
+#include <QReadWriteLock>
+#include <QAtomicInteger>
+#include <QColor>
+
 #include "huebridge.h"
 #include "objectmodel.h"
 #include "bridgediscovery.h"
@@ -63,8 +68,15 @@ class Huestacean : public QObject
     Q_PROPERTY(QList<QObject*> entertainmentGroupsModel READ getEntertainmentGroupsModel NOTIFY entertainmentGroupsChanged)
     Q_PROPERTY(bool syncing MEMBER syncing NOTIFY syncingChanged)
 
+    Q_PROPERTY(int frameReadElapsed READ getFrameReadElapsed NOTIFY frameReadElapsedChanged)
+    Q_PROPERTY(int messageSendElapsed READ getMessageSendElapsed NOTIFY messageSendElapsedChanged)
+
+    Q_PROPERTY(int skip READ getSkip WRITE setSkip NOTIFY captureParamsChanged)
+    Q_PROPERTY(int captureInterval READ getCaptureInterval WRITE setCaptureInterval NOTIFY captureParamsChanged)
+
 public:
     explicit Huestacean(QObject *parent = nullptr);
+    virtual ~Huestacean();
 
     BridgeDiscovery* getBridgeDiscovery() {
         return bridgeDiscovery;
@@ -75,6 +87,26 @@ public:
     QList<QObject*> getEntertainmentGroupsModel() {
         return *(reinterpret_cast<QList<QObject*>*>(&entertainmentGroups));
     }
+
+    int getFrameReadElapsed() {
+        return frameReadElapsed;
+    }
+    int getMessageSendElapsed();
+
+    int getSkip() {
+        return skip;
+    }
+
+    void setSkip(int inSkip) {
+        skip = inSkip;
+        emit captureParamsChanged();
+    }
+
+    int getCaptureInterval() {
+        return captureInterval;
+    }
+
+    void setCaptureInterval(int interval);
 
 signals:
     void hueInit();
@@ -97,6 +129,11 @@ signals:
     void entertainmentGroupsChanged();
     void syncingChanged();
 
+    void frameReadElapsedChanged();
+    void messageSendElapsedChanged();
+
+    void captureParamsChanged();
+
 public slots:
     void setActiveMonitor(int index);
     void updateEntertainmentGroups();
@@ -106,12 +143,18 @@ private:
     int activeMonitorIndex;
     bool syncing;
 
-
     /////////////////////////////////////////////////////////////////////
     ///ENTERTAINMENT ------------------
     void runSync(EntertainmentGroup* eGroup);
     class EntertainmentCommThread* eThread;
+    QMutex eThreadMutex;
+    friend class EntertainmentImageProvider;
+    class EntertainmentImageProvider* eImageProvider;
     std::shared_ptr<SL::Screen_Capture::IScreenCaptureManager> framegrabber;
+
+    QAtomicInteger<qint64> frameReadElapsed;
+    QAtomicInteger<int> skip;
+    int captureInterval;
 
 private slots:
     void entertainmentThreadFinished();
@@ -120,29 +163,46 @@ private slots:
 
 //-----------------------------------------------
 ///ENTERTAINMENT ------------------
-struct EntertainmentMessage
+
+struct PixelBucket
 {
-    bool isXY;
+    uint64_t R;
+    uint64_t G;
+    uint64_t B;
+    uint64_t samples;
 
-    //isXY ? X : Red
-    uint16_t R;
+    PixelBucket()
+        : R(0), G(0), B(0), samples(0)
+    {
 
-    //isXY ? Y : Green
-    uint16_t G;
+    }
+};
 
-    //isXY ? Brightness : Blue
-    uint16_t B;
+//Screen broken down into buckets
+struct EntertainmentScreen
+{
+    std::vector<PixelBucket> screen;
+    int width;
+    int height;
 
-    EntertainmentMessage()
-        : R(0), G(0), B(0)
+    EntertainmentScreen()
+        : screen(), width(0), height(0)
     {
 
     }
 
-    EntertainmentMessage(uint16_t inR, uint16_t inG, uint16_t inB)
-        : R(inR), G(inG), B(inB)
+    EntertainmentScreen(int inWidth, int inHeight)
+        : screen(), width(inWidth), height(inHeight)
     {
+        screen.resize(inWidth * inHeight);
+    }
 
+    EntertainmentScreen& operator=(const EntertainmentScreen& other)
+    {
+        screen = other.screen;
+        width = other.width;
+        height = other.height;
+        return *this;
     }
 };
 
@@ -151,19 +211,42 @@ class EntertainmentCommThread : public QThread
     Q_OBJECT
 
 public:
-    explicit EntertainmentCommThread(QObject *parent, QString inUsername, QString inClientkey, QString address);
+    explicit EntertainmentCommThread(QObject *parent, QString inUsername, QString inClientkey, QString address, EntertainmentGroup* inGroup);
 
     void run() override;
-    void threadsafe_setMessage(const EntertainmentMessage& inMessage);
+    void threadsafe_setScreen(const EntertainmentScreen& inScreen);
+    EntertainmentScreen& getScreenForPixmap();
     void stop();
 
+    QReadWriteLock LightColorsLock;
+    QHash<QString, QColor> LightColors;
+
+    QAtomicInteger<qint64> messageSendElapsed;
+
+signals:
+    void messageSendElapsedChanged();
+    void lightColorsChanged();
+
 private:
-    QMutex messageMutex;
-    EntertainmentMessage message;
+    QMutex screenMutex;
+    EntertainmentScreen screen;
     QString username;
     QString clientkey;
     std::atomic<bool> stopRequested;
     QString address;
+
+    Huestacean* huestacean;
+    EntertainmentGroup eGroup;
+};
+
+class EntertainmentImageProvider : public QQuickImageProvider
+{
+public:
+    EntertainmentImageProvider(Huestacean* parent);
+    QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
+
+private:
+    Huestacean * huestaceanParent;
 };
 ///END ENTERTAINMENT ------------------
 //-----------------------------------------------

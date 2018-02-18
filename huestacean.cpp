@@ -1,6 +1,9 @@
 #include "huestacean.h"
 #include "ScreenCapture.h"
 
+#include <QQmlApplicationEngine>
+#include <QElapsedTimer>
+
 ///ENTERTAINMENT ------------------
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -45,7 +48,42 @@ Huestacean::Huestacean(QObject *parent)
     connect(bridgeDiscovery, SIGNAL(modelChanged()),
         this, SLOT(connectBridges()));
 
+    eImageProvider = new EntertainmentImageProvider(this);
+    extern QQmlApplicationEngine* engine;
+    engine->addImageProvider("entimage", eImageProvider);
+
     emit hueInit();
+
+    //ENTERTAINMENT
+    skip = 32;
+    captureInterval = 25;
+}
+
+Huestacean::~Huestacean()
+{
+    if (eThread != nullptr)
+    {
+        eThread->stop();
+        while (eThread->isRunning())
+        {
+            QThread::msleep(100);
+        }
+    }
+}
+
+int Huestacean::getMessageSendElapsed()
+{
+    return eThread ? eThread->messageSendElapsed : 0;
+}
+
+void Huestacean::setCaptureInterval(int interval)
+{
+    captureInterval = interval;
+    if (framegrabber)
+    {
+        framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
+    }
+    emit captureParamsChanged();
 }
 
 void Huestacean::detectMonitors()
@@ -82,7 +120,6 @@ void Huestacean::stopScreenSync()
     {
         return;
     }
-
 
     eThread->stop();
 
@@ -147,30 +184,19 @@ void Huestacean::connectBridges()
 ///////////////////////////////////////////////////////////////////////////////////
 // Entertainment API
 
-//http://www.easyrgb.com/en/math.php
-void rgb_to_xyz(double& r, double& g, double& b, double& x, double& y, double& z)
+void rgb_to_xyz(double& r, double& g, double& b, double& x, double& y, double& brightness)
 {
-    //sR, sG and sB (Standard RGB) input range = 0 ÷ 255
-    //X, Y and Z output refer to a D65/2° standard illuminant.
+    r = (r > 0.04045f) ? pow((r + 0.055f) / (1.0f + 0.055f), 2.4f) : (r / 12.92f);
+    g = (g > 0.04045f) ? pow((g + 0.055f) / (1.0f + 0.055f), 2.4f) : (g / 12.92f);
+    b = (b > 0.04045f) ? pow((b + 0.055f) / (1.0f + 0.055f), 2.4f) : (b / 12.92f);
 
-    double var_R = (r / 255.0);
-    double var_G = (g / 255.0);
-    double var_B = (b / 255.0);
+    float X = r * 0.664511f + g * 0.154324f + b * 0.162028f;
+    float Y = r * 0.283881f + g * 0.668433f + b * 0.047685f;
+    float Z = r * 0.000088f + g * 0.072310f + b * 0.986039f;
 
-    if (var_R > 0.04045) var_R = std::pow(((var_R + 0.055) / 1.055), 2.4);
-    else                   var_R = var_R / 12.92;
-    if (var_G > 0.04045) var_G = std::pow(((var_G + 0.055) / 1.055), 2.4);
-    else                   var_G = var_G / 12.92;
-    if (var_B > 0.04045) var_B = std::pow(((var_B + 0.055) / 1.055), 2.4);
-    else                   var_B = var_B / 12.92;
-
-    var_R = var_R * 100.;
-    var_G = var_G * 100.;
-    var_B = var_B * 100.;
-
-    x = var_R * 0.4124 + var_G * 0.3576 + var_B * 0.1805;
-    y = var_R * 0.2126 + var_G * 0.7152 + var_B * 0.0722;
-    z = var_R * 0.0193 + var_G * 0.1192 + var_B * 0.9505;
+    x = X / (X + Y + Z);
+    y = Y / (X + Y + Z);
+    brightness = Y;
 }
 
 void Huestacean::runSync(EntertainmentGroup* eGroup)
@@ -190,19 +216,34 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         return;
     }
 
-    eThread = new EntertainmentCommThread(this, bridge->username, bridge->clientkey, bridge->address.toString());
+    eThreadMutex.lock();
+    eThread = new EntertainmentCommThread(this, bridge->username, bridge->clientkey, bridge->address.toString(), eGroup);
+    eThreadMutex.unlock();
+
+    connect(eThread, &EntertainmentCommThread::messageSendElapsedChanged, this, &Huestacean::messageSendElapsedChanged);
     connect(eThread, &EntertainmentCommThread::finished, this, &Huestacean::entertainmentThreadFinished);
     eThread->start();
 
-    framegrabber = SL::Screen_Capture::CreateCaptureConfiguration([]() {
-        auto monitors = SL::Screen_Capture::GetMonitors();
-        return monitors;
+    int monitorIndex = activeMonitorIndex;
+
+    framegrabber = SL::Screen_Capture::CreateCaptureConfiguration([monitorIndex]() {
+        auto allMonitors = SL::Screen_Capture::GetMonitors();
+        std::vector<SL::Screen_Capture::Monitor> chosenMonitor;
+        for (auto& monitor : allMonitors)
+        {
+            if (monitor.Index == monitorIndex)
+            {
+                chosenMonitor.push_back(monitor);
+                break;
+            }
+        }
+        
+        return chosenMonitor;
     })->onNewFrame([&](const SL::Screen_Capture::Image& img, const SL::Screen_Capture::Monitor& monitor) {
         Q_UNUSED(monitor);
 
-        double r = 0.;
-        double g = 0.;
-        double b = 0.;
+        static QElapsedTimer timer;
+        timer.restart();
 
         const int Height = SL::Screen_Capture::Height(img);
         const int Width = SL::Screen_Capture::Width(img);
@@ -210,76 +251,143 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         const int RowPadding = SL::Screen_Capture::RowPadding(img);
         const int Pixelstride = img.Pixelstride;
 
-        const int skip = 20;
-        int s = 0;
+        const int ScreenWidth = 16;
+        const int ScreenHeight = 9;
 
-        const float n = Height * Width * 1.0 / skip;
+        const int numPixels = Height * Width;
+
+        EntertainmentScreen eScreen(ScreenWidth, ScreenHeight);
+        auto& screen = eScreen.screen;
+
+        const int s = skip;
 
         const unsigned char* src = SL::Screen_Capture::StartSrc(img);
-        for (int y = 0; y < Height; ++y)
+        for (int y = 0; y < Height; y += 1 + s)
         {
-            src += s;
-            for (int x = 0; x < Width; x += skip)
-            {
-                b += (src[0]) / n;
-                g += (src[1]) / n;
-                r += (src[2]) / n;
-                src += Pixelstride * skip;
-            }
+            src = SL::Screen_Capture::StartSrc(img) + (Pixelstride * Width + RowPadding)*y;
+            int screenY = static_cast<int>((static_cast<uint64_t>(y) * static_cast<uint64_t>(ScreenHeight)) / static_cast<uint64_t>(Height));
 
-            src += RowPadding;
+            for (int x = 0; x < Width; x += 1 + s)
+            {
+                const int screenX = static_cast<int>((static_cast<uint64_t>(x) * static_cast<uint64_t>(ScreenWidth)) / static_cast<uint64_t>(Width));
+                const int screenPos = screenY * eScreen.width + screenX;
+                screen[screenPos].B += (src[0]);
+                screen[screenPos].G += (src[1]);
+                screen[screenPos].R += (src[2]);
+                ++screen[screenPos].samples;
+                src += Pixelstride * (1 + s);
+            }
         }
 
-        static EntertainmentMessage msg;
+        eThread->threadsafe_setScreen(eScreen);
 
-        msg.isXY = true;
-
-        double x, y, z;
-
-        //todo:
-        //ideally average would be of x/y/z values, not of rgb (do this earlier)
-        rgb_to_xyz(r, g, b, x, y, z);
-
-        msg.R = static_cast<uint16_t>((x / (x + y + z)) * 0xffff);
-        msg.G = static_cast<uint16_t>((y / (x + y + z)) * 0xffff);
-        msg.B = static_cast<uint16_t>((std::max(std::max(r, g), b) / 255.) * 0xffff);
-        eThread->threadsafe_setMessage(msg);
-        //qDebug() << r << g << b << msg.B;
+        frameReadElapsed = timer.elapsed();
+        emit frameReadElapsedChanged(); //TODO: make sure this is thread-safe. Pretty sure it is from the docs I'm reading...
 
     })->start_capturing();
 
-    framegrabber->setFrameChangeInterval(std::chrono::milliseconds(10));
-    framegrabber->setMouseChangeInterval(std::chrono::milliseconds(100000));
+    framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
+    framegrabber->setMouseChangeInterval(std::chrono::milliseconds(0));
 }
 
 void Huestacean::entertainmentThreadFinished()
 {
     framegrabber.reset();
 
+    eThreadMutex.lock();
     eThread->deleteLater();
     eThread = nullptr;
+    eThreadMutex.unlock();
 
     syncing = false;
     emit syncingChanged();
 }
 
-EntertainmentCommThread::EntertainmentCommThread(QObject *parent, QString inUsername, QString inClientkey, QString inAddress)
+EntertainmentCommThread::EntertainmentCommThread(QObject *parent, QString inUsername, QString inClientkey, QString inAddress, EntertainmentGroup* inGroup)
     : QThread(parent),
-    messageMutex(), message(), username(inUsername), clientkey(inClientkey), address(inAddress), stopRequested(false)
+    screenMutex(), screen(), username(inUsername), clientkey(inClientkey), address(inAddress), eGroup(nullptr), stopRequested(false)
 {
-
+    eGroup.name = inGroup->name;
+    eGroup.id = inGroup->id;
+    eGroup.lights = inGroup->lights;
+    for (auto& light : eGroup.lights)
+    {
+        light.setParent(nullptr);
+    }
 }
 
-void EntertainmentCommThread::threadsafe_setMessage(const EntertainmentMessage& inMessage)
+void EntertainmentCommThread::threadsafe_setScreen(const EntertainmentScreen& inScreen)
 {
-    messageMutex.lock();
-    message = inMessage;
-    messageMutex.unlock();
+    screenMutex.lock();
+    screen = inScreen;
+    screenMutex.unlock();
+}
+
+EntertainmentScreen& EntertainmentCommThread::getScreenForPixmap()
+{
+    static EntertainmentScreen retScreen;
+    screenMutex.lock();
+    retScreen = screen;
+    screenMutex.unlock();
+    return retScreen;
 }
 
 void EntertainmentCommThread::stop()
 {
     stopRequested = true;
+}
+
+EntertainmentImageProvider::EntertainmentImageProvider(Huestacean* parent)
+    : QQuickImageProvider(QQmlImageProviderBase::Image), huestaceanParent(parent)
+{
+
+}
+
+QImage EntertainmentImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
+{
+    Q_UNUSED(id);
+
+    huestaceanParent->eThreadMutex.lock();
+    if (huestaceanParent->eThread == nullptr)
+    {
+        huestaceanParent->eThreadMutex.unlock();
+        return QImage();
+    }
+    EntertainmentScreen& screen = huestaceanParent->eThread->getScreenForPixmap();
+    //"safe": it's a ref to a static variable, eThread can go away now
+    huestaceanParent->eThreadMutex.unlock();
+
+    if (size)
+    {
+        size->setWidth(screen.width);
+        size->setHeight(screen.height);
+    }
+
+    QImage img = QImage(screen.width, screen.height, QImage::Format_RGB16);
+    int pixel = 0;
+    for (int y = 0; y < screen.height; ++y)
+    {
+        for (int x = 0; x < screen.width; ++x)
+        {
+            img.setPixelColor(QPoint(x, y), 
+                QColor(
+                    screen.screen[pixel].R / screen.screen[pixel].samples,
+                    screen.screen[pixel].G / screen.screen[pixel].samples,
+                    screen.screen[pixel].B / screen.screen[pixel].samples
+                ));
+
+            ++pixel;
+        }
+    }
+
+    //i.setPixelColor(QPoint())
+
+    if(requestedSize.isValid())
+        img = img.scaled(requestedSize, Qt::IgnoreAspectRatio, Qt::FastTransformation);
+
+    //p.scaled
+
+    return img;
 }
 
 //simple dtls test using mbedtls. Never ends!
@@ -315,7 +423,7 @@ void EntertainmentCommThread::run()
 #define SERVER_PORT "2100"
 #define SERVER_NAME "Hue"
 
-    int ret, len;
+    int ret;
     mbedtls_net_context server_fd;
     const char *pers = "dtls_client";
     int retry_left = MAX_RETRY;
@@ -371,6 +479,9 @@ void EntertainmentCommThread::run()
         goto exit;
     }
 
+    if (stopRequested)
+        goto exit;
+
     /*
     * 2. Setup stuff
     */
@@ -418,11 +529,15 @@ void EntertainmentCommThread::run()
     mbedtls_ssl_set_timer_cb(&ssl, &timer, mbedtls_timing_set_delay,
         mbedtls_timing_get_delay);
 
+    if (stopRequested)
+        goto exit;
+
     /*
     * 4. Handshake
     */
     qDebug() << "Performing the DTLS handshake...";
 
+    mbedtls_ssl_conf_handshake_timeout(&conf, 400, 1200);
     do ret = mbedtls_ssl_handshake(&ssl);
     while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
         ret == MBEDTLS_ERR_SSL_WANT_WRITE);
@@ -433,15 +548,21 @@ void EntertainmentCommThread::run()
         goto exit;
     }
 
+    if (stopRequested)
+        goto exit;
+
     /*
     * 6. Write the echo request
     */
 send_request:
     while (true)
     {
-        messageMutex.lock();
+        screenMutex.lock();
 
-        char MESSAGE[] = {
+        static QElapsedTimer timer;
+        timer.restart();
+
+        static const unsigned char HEADER[] = {
             'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
 
             0x01, 0x00, //version 1.0
@@ -450,23 +571,87 @@ send_request:
 
             0x00, 0x00, //Reserved write 0’s
 
-            message.isXY ? 0x01 : 0x00,
+            0x01,
 
             0x00, // Reserved, write 0’s
-
-            0x001, 0x00, 0x06, //light ID
-
-                               //color: 16 bpc
-                               (message.R >> 8) & 0xff, message.R & 0xff,
-                               (message.G >> 8) & 0xff, message.G & 0xff,
-                               (message.B >> 8) & 0xff, message.B & 0xff
         };
 
-        messageMutex.unlock();
+        static const unsigned char PAYLOAD_PER_LIGHT[] =
+        {
+            0x01, 0x00, 0x06, //light ID
 
-        len = sizeof(MESSAGE);
+            //color: 16 bpc
+            0xff, 0xff,
+            0xff, 0xff,
+            0xff, 0xff,
+            /*
+            (message.R >> 8) & 0xff, message.R & 0xff,
+            (message.G >> 8) & 0xff, message.G & 0xff,
+            (message.B >> 8) & 0xff, message.B & 0xff
+            */
+        };
 
-        do ret = mbedtls_ssl_write(&ssl, (unsigned char *)MESSAGE, len);
+        QByteArray Msg;
+        Msg.reserve(sizeof(HEADER) + sizeof(PAYLOAD_PER_LIGHT) * eGroup.lights.size());
+
+        Msg.append((char*)HEADER, sizeof(HEADER));
+
+        for (auto& light : eGroup.lights)
+        {
+            const double width = std::max(1.0 - std::abs(light.x), 0.3);
+            const double height = std::max(1.0 - std::abs(light.z), 0.3);
+
+            const int minX = std::round((std::max(light.x - width, -1.0) + 1.0) * screen.width / 2.0);
+            const int maxX = std::round((std::min(light.x + width, 1.0) + 1.0) * screen.width / 2.0);
+
+            const int minY = std::round((std::max(light.z - height, -1.0) + 1.0) * screen.height / 2.0);
+            const int maxY = std::round((std::min(light.z + height, 1.0) + 1.0) * screen.height / 2.0);
+
+            quint64 R = 0;
+            quint64 G = 0;
+            quint64 B = 0;
+            quint64 samples = 0;
+
+            for (int y = minY; y < maxY; ++y)
+            {
+                int rowOffset = y * screen.width;
+                for (int x = minX; x < maxX; ++x)
+                {
+                    R += screen.screen[rowOffset + x].R;
+                    G += screen.screen[rowOffset + x].G;
+                    B += screen.screen[rowOffset + x].B;
+                    samples += screen.screen[rowOffset + x].samples;
+                }
+            }
+
+            double X, Y, L;
+            double dR = (double)R / samples / 256.0;
+            double dG = (double)G / samples / 256.0;
+            double dB = (double)B / samples / 256.0;
+
+            rgb_to_xyz(dR, dG, dB, X, Y, L);
+
+            R = X * 0xffff;
+            G = Y * 0xffff;
+            B = L * 0xffff;
+
+            const unsigned char payload[] = {
+                0x00, 0x00, ((uint8_t)light.id.toInt()),
+
+                (R >> 8) & 0xff, (R & 0xff),
+                (G >> 8) & 0xff, (G & 0xff),
+                (B >> 8) & 0xff, (B & 0xff)
+            };
+
+            Msg.append((char*)payload, sizeof(payload));
+        }
+
+
+        screenMutex.unlock();
+
+        int len = Msg.size();
+
+        do ret = mbedtls_ssl_write(&ssl, (unsigned char *) Msg.data(), len);
         while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
             ret == MBEDTLS_ERR_SSL_WANT_WRITE);
 
@@ -474,6 +659,10 @@ send_request:
         {
             break;
         }
+
+        messageSendElapsed  = timer.elapsed();
+        emit messageSendElapsedChanged();
+        emit lightColorsChanged();
 
         QThread::msleep(5);
 

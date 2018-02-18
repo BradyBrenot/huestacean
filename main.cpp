@@ -4,6 +4,9 @@
 #include <QQmlContext>
 #include "huestacean.h"
 
+extern QQmlApplicationEngine* engine;
+QQmlApplicationEngine* engine = nullptr;
+
 static QObject *huestacean_singleton_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine);
@@ -25,14 +28,14 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    QQmlApplicationEngine engine;
-
     qmlRegisterSingletonType<Huestacean>("Huestacean", 1, 0, "Huestacean", huestacean_singleton_provider);
 
     const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    engine.rootContext()->setContextProperty("fixedFont", fixedFont);
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
-    if (engine.rootObjects().isEmpty())
+    QQmlApplicationEngine theEngine;
+    ::engine = &theEngine;
+    theEngine.rootContext()->setContextProperty("fixedFont", fixedFont);
+    theEngine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+    if (theEngine.rootObjects().isEmpty())
         return -1;
 
     return app.exec();

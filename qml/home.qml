@@ -186,11 +186,29 @@ Pane {
 							Button {
 								text: "Redetect"
 								onClicked: Huestacean.detectMonitors()
-					
 							}
 						}
 
 						//Rectangle { height: 200; width: 300; }
+
+						Image {
+							id: entimage
+							source: "image://entimage/ent"
+							height: 225
+							width: 400
+							cache: false
+							smooth: false
+
+							Timer {
+								interval: 500; 
+								running: entimagepreview.checked; 
+								repeat: true;
+								onTriggered: {
+									entimage.source = "image://"
+									entimage.source = "image://entimage/ent"
+								}
+							}
+						}
 					}
 
 					Column {
@@ -260,10 +278,70 @@ Pane {
 					}
 				}
 
-				Button {
-					text: Huestacean.syncing ? "Stop sync" : "Start sync"
-					onClicked: Huestacean.syncing ? Huestacean.stopScreenSync() : Huestacean.startScreenSync(entertainmentComboBox.model[entertainmentComboBox.currentIndex])
+				RowLayout {
+					spacing: 20
+
+					CheckBox {
+						id:entimagepreview
+						text: "Visualize"
+						checked: true
+					}
+
+					Label {
+						text: "Frame read:" + Huestacean.frameReadElapsed + "ms"
+					}				
+
+					Label {
+						text: "Net send:" + Huestacean.messageSendElapsed + "ms"
+					}
 				}
+
+				RowLayout {
+					spacing: 20
+
+					Button {
+						text: Huestacean.syncing ? "Stop sync" : "Start sync"
+						onClicked: Huestacean.syncing ? Huestacean.stopScreenSync() : Huestacean.startScreenSync(entertainmentComboBox.model[entertainmentComboBox.currentIndex])
+					}
+
+					Label {
+						text: "Capture interval"
+					}
+
+					Column {
+						Slider {
+							id: frameslider
+							value: Huestacean.captureInterval / 100
+							onValueChanged: {
+								Huestacean.captureInterval = value * 100
+							}
+						}
+
+						Label {
+							text: Huestacean.captureInterval + " milliseconds"
+						}
+					}
+
+					Label {
+						text: "Skip pixels"
+					}
+
+					Column {
+						Slider {
+							id: skipslider
+							value: Huestacean.skip / 64
+							onValueChanged: {
+								Huestacean.skip = value * 64
+							}
+						}
+
+						Label {
+							text: Huestacean.skip
+						}
+					}
+					
+				}
+				
 			}
 		}
     }
