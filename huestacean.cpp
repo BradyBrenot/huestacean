@@ -186,6 +186,8 @@ void Huestacean::connectBridges()
 
 void rgb_to_xyz(double& r, double& g, double& b, double& x, double& y, double& brightness)
 {
+    brightness = std::min(std::max(std::max(r, g), b)*1.2, 1.0);
+
     r = (r > 0.04045f) ? pow((r + 0.055f) / (1.0f + 0.055f), 2.4f) : (r / 12.92f);
     g = (g > 0.04045f) ? pow((g + 0.055f) / (1.0f + 0.055f), 2.4f) : (g / 12.92f);
     b = (b > 0.04045f) ? pow((b + 0.055f) / (1.0f + 0.055f), 2.4f) : (b / 12.92f);
@@ -196,7 +198,8 @@ void rgb_to_xyz(double& r, double& g, double& b, double& x, double& y, double& b
 
     x = X / (X + Y + Z);
     y = Y / (X + Y + Z);
-    brightness = Y;
+
+    //brightness = Y;
 }
 
 void Huestacean::runSync(EntertainmentGroup* eGroup)
@@ -243,7 +246,6 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         Q_UNUSED(monitor);
 
         static QElapsedTimer timer;
-        timer.restart();
 
         const int Height = SL::Screen_Capture::Height(img);
         const int Width = SL::Screen_Capture::Width(img);
@@ -281,7 +283,8 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
 
         eThread->threadsafe_setScreen(eScreen);
 
-        frameReadElapsed = timer.elapsed();
+        frameReadElapsed = timer.restart();
+        qDebug() << timer.clockType();
         emit frameReadElapsedChanged(); //TODO: make sure this is thread-safe. Pretty sure it is from the docs I'm reading...
 
     })->start_capturing();
@@ -351,7 +354,14 @@ QImage EntertainmentImageProvider::requestImage(const QString &id, QSize *size, 
     if (huestaceanParent->eThread == nullptr)
     {
         huestaceanParent->eThreadMutex.unlock();
-        return QImage();
+
+        if (size)
+        {
+            size->setWidth(1);
+            size->setHeight(1);
+        }
+
+        return QImage(1, 1, QImage::Format_RGB16);
     }
     EntertainmentScreen& screen = huestaceanParent->eThread->getScreenForPixmap();
     //"safe": it's a ref to a static variable, eThread can go away now
@@ -537,10 +547,18 @@ void EntertainmentCommThread::run()
     */
     qDebug() << "Performing the DTLS handshake...";
 
-    mbedtls_ssl_conf_handshake_timeout(&conf, 400, 1200);
-    do ret = mbedtls_ssl_handshake(&ssl);
-    while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
-        ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    for(int attempt = 0; attempt < 4; ++attempt)
+    {
+        mbedtls_ssl_conf_handshake_timeout(&conf, 400, 1000);
+        do ret = mbedtls_ssl_handshake(&ssl);
+        while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
+            ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+
+        if (ret == 0)
+            break;
+
+        msleep(200);
+    }
 
     if (ret != 0)
     {
@@ -625,9 +643,9 @@ send_request:
             }
 
             double X, Y, L;
-            double dR = (double)R / samples / 256.0;
-            double dG = (double)G / samples / 256.0;
-            double dB = (double)B / samples / 256.0;
+            double dR = (double)R / samples / 255.0;
+            double dG = (double)G / samples / 255.0;
+            double dB = (double)B / samples / 255.0;
 
             rgb_to_xyz(dR, dG, dB, X, Y, L);
 

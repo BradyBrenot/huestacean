@@ -169,15 +169,23 @@ Pane {
 					anchors.left: parent.left
 					anchors.right: parent.right
 					spacing: 20
-					Column {
+
+					ColumnLayout {
+						Layout.fillWidth: true
+
 						Label {
 							text: "Monitor"
 						}
 
-						Row {
+						RowLayout {
+							anchors.left: parent.left
+							anchors.right: parent.right
+
 							ComboBox {
+								Layout.fillWidth: true
+								Layout.maximumWidth: 200
+
 								currentIndex: 0
-								width: 200
 								model: Huestacean.monitorsModel
 								textRole: "asString"
 								onCurrentIndexChanged: Huestacean.setActiveMonitor(currentIndex)
@@ -194,33 +202,42 @@ Pane {
 						Image {
 							id: entimage
 							source: "image://entimage/ent"
-							height: 225
-							width: 400
+							
+							Layout.fillWidth: true
+							Layout.maximumWidth: 400
+							Layout.maximumHeight: 225
+
+							Layout.preferredWidth: 400
+							Layout.preferredHeight: 225
+
 							cache: false
 							smooth: false
 
 							Timer {
 								interval: 500; 
-								running: entimagepreview.checked; 
+								running: entimagepreview.checked && Huestacean.syncing; 
 								repeat: true;
 								onTriggered: {
-									entimage.source = "image://"
-									entimage.source = "image://entimage/ent"
+									entimage.source = "image://entimage/ent" + Math.random()
 								}
 							}
 						}
 					}
 
-					Column {
+					ColumnLayout {
+						Layout.fillWidth: true
+
 						Label {
 							text: "Entertainment group"
 						}
 
-						Row {
+						RowLayout {
+							Layout.maximumWidth: 300
+
 							ComboBox {
 								id: entertainmentComboBox
+								Layout.fillWidth: true
 								currentIndex: 0
-								width: 300
 								model: Huestacean.entertainmentGroupsModel
 								textRole: "asString"
 
@@ -279,6 +296,8 @@ Pane {
 				}
 
 				RowLayout {
+					anchors.left: parent.left
+					anchors.right: parent.right
 					spacing: 20
 
 					CheckBox {
@@ -297,6 +316,8 @@ Pane {
 				}
 
 				RowLayout {
+					anchors.left: parent.left
+					anchors.right: parent.right
 					spacing: 20
 
 					Button {
@@ -304,11 +325,11 @@ Pane {
 						onClicked: Huestacean.syncing ? Huestacean.stopScreenSync() : Huestacean.startScreenSync(entertainmentComboBox.model[entertainmentComboBox.currentIndex])
 					}
 
-					Label {
-						text: "Capture interval"
-					}
-
 					Column {
+						Label {
+							text: "Capture interval"
+						}
+
 						Slider {
 							id: frameslider
 							value: Huestacean.captureInterval / 100
@@ -322,16 +343,16 @@ Pane {
 						}
 					}
 
-					Label {
-						text: "Skip pixels"
-					}
-
 					Column {
+						Label {
+							text: "Skip pixels"
+						}
+
 						Slider {
 							id: skipslider
-							value: Huestacean.skip / 64
+							value: Huestacean.skip / 128
 							onValueChanged: {
-								Huestacean.skip = value * 64
+								Huestacean.skip = value * 128
 							}
 						}
 
@@ -384,7 +405,7 @@ Pane {
 				drag.onActiveChanged: {
 					if(!drag.active) {
 						var bridgeX = 2 * (lightIcon.x + lightIcon.width/2) / groupImage.width - 1
-						var bridgeZ = 2 * (lightIcon.y + lightIcon.height/2) / groupImage.height + 1
+						var bridgeZ = 1 - 2 * (lightIcon.y + lightIcon.height/2) / groupImage.height
 
 						entertainmentComboBox.model[entertainmentComboBox.currentIndex].updateLightXZ(index, bridgeX, bridgeZ);
 					}
