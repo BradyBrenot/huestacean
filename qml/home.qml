@@ -262,7 +262,7 @@ Pane {
 
 				Button {
 					text: Huestacean.syncing ? "Stop sync" : "Start sync"
-					onClicked: Huestacean.syncing ? Huestacean.stopScreenSync() : Huestacean.startScreenSync()
+					onClicked: Huestacean.syncing ? Huestacean.stopScreenSync() : Huestacean.startScreenSync(entertainmentComboBox.model[entertainmentComboBox.currentIndex])
 				}
 			}
 		}

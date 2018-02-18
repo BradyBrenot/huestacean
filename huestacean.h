@@ -6,6 +6,8 @@
 #include "objectmodel.h"
 #include "bridgediscovery.h"
 
+#include "ScreenCapture.h"
+
 extern QNetworkAccessManager qnam;
 
 class Monitor : public QObject
@@ -87,7 +89,7 @@ private:
     // temporary home of screen sync
 public:
     Q_INVOKABLE void detectMonitors();
-    Q_INVOKABLE void startScreenSync();
+    Q_INVOKABLE void startScreenSync(EntertainmentGroup* eGroup);
     Q_INVOKABLE void stopScreenSync();
 
 signals:
@@ -103,4 +105,65 @@ public slots:
 private:
     int activeMonitorIndex;
     bool syncing;
+
+
+    /////////////////////////////////////////////////////////////////////
+    ///ENTERTAINMENT ------------------
+    void runSync(EntertainmentGroup* eGroup);
+    class EntertainmentCommThread* eThread;
+    std::shared_ptr<SL::Screen_Capture::IScreenCaptureManager> framegrabber;
+
+private slots:
+    void entertainmentThreadFinished();
+    ///END ENTERTAINMENT ------------------
 };
+
+//-----------------------------------------------
+///ENTERTAINMENT ------------------
+struct EntertainmentMessage
+{
+    bool isXY;
+
+    //isXY ? X : Red
+    uint16_t R;
+
+    //isXY ? Y : Green
+    uint16_t G;
+
+    //isXY ? Brightness : Blue
+    uint16_t B;
+
+    EntertainmentMessage()
+        : R(0), G(0), B(0)
+    {
+
+    }
+
+    EntertainmentMessage(uint16_t inR, uint16_t inG, uint16_t inB)
+        : R(inR), G(inG), B(inB)
+    {
+
+    }
+};
+
+class EntertainmentCommThread : public QThread
+{
+    Q_OBJECT
+
+public:
+    explicit EntertainmentCommThread(QObject *parent, QString inUsername, QString inClientkey, QString address);
+
+    void run() override;
+    void threadsafe_setMessage(const EntertainmentMessage& inMessage);
+    void stop();
+
+private:
+    QMutex messageMutex;
+    EntertainmentMessage message;
+    QString username;
+    QString clientkey;
+    std::atomic<bool> stopRequested;
+    QString address;
+};
+///END ENTERTAINMENT ------------------
+//-----------------------------------------------

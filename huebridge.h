@@ -9,53 +9,6 @@
 #include <QThread>
 #include <QMutex>
 
-#include "ScreenCapture.h"
-
-//-----------------------------------------------
-struct EntertainmentMessage
-{
-      bool isXY;
-
-      //isXY ? X : Red
-      uint16_t R;
-
-      //isXY ? Y : Green
-      uint16_t G;
-
-      //isXY ? Brightness : Blue
-      uint16_t B;
-
-      EntertainmentMessage()
-          : R(0), G(0), B(0)
-      {
-
-      }
-
-      EntertainmentMessage(uint16_t inR, uint16_t inG, uint16_t inB)
-          : R(inR), G(inG), B(inB)
-      {
-
-      }
-};
-
-class EntertainmentCommThread : public QThread
-{
-    Q_OBJECT
-
-public:
-    explicit EntertainmentCommThread(QObject *parent, QString inUsername, QString inClientkey);
-
-    void run() override;
-    void threadsafe_setMessage(const EntertainmentMessage& inMessage);
-
-private:
-    QMutex messageMutex;
-    EntertainmentMessage message;
-    QString username;
-    QString clientkey;
-};
-//-----------------------------------------------
-
 
 struct HueBridgeSavedSettings 
 {
@@ -143,7 +96,6 @@ public slots:
 
 private slots:
     void replied(QNetworkReply *reply);
-    void entertainmentThreadFinished();
 
 private:
 	void setConnected(bool inConnected) {
@@ -155,10 +107,6 @@ private:
     QNetworkRequest makeRequest(QString path, bool bIncludeUser = true);
     
     QString message;
-
-    EntertainmentCommThread* eThread;
-
-    std::shared_ptr<SL::Screen_Capture::IScreenCaptureManager> framegrabber;
 
     friend class Light;
     friend class EntertainmentGroup;
@@ -176,8 +124,6 @@ signals:
 public:
     QString id;
     explicit BridgeObject(HueBridge *parent) : QObject(parent) {}
-
-protected:
     HueBridge * bridgeParent() const { return reinterpret_cast<HueBridge*>(parent()); }
 };
 
