@@ -18,6 +18,9 @@ static QObject *huestacean_singleton_provider(QQmlEngine *engine, QJSEngine *scr
 
 int main(int argc, char *argv[])
 {
+    //https://github.com/sqlitebrowser/sqlitebrowser/commit/73946400c32d1f7cfcd4672ab0ab3f563eb84f4e
+    qputenv("QT_BEARER_POLL_TIMEOUT", QByteArray::number(INT_MAX));
+
 #if defined(Q_OS_WIN)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
