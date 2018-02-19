@@ -22,7 +22,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += main.cpp \
-    hue.cpp \
+    huebridge.cpp \
+    bridgediscovery.cpp \
     huestacean.cpp
 
 RESOURCES += qml.qrc
@@ -39,7 +40,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    hue.h \
+    huebridge.h \
+    bridgediscovery.h \
     huestacean.h
 
 DISTFILES += \
@@ -53,9 +55,18 @@ DISTFILES += \
 LIBS +=  -lAdvapi32
 
 #mbedtls
-LIBS += -LC:/mbedtls-mbedtls-2.6.1/visualc/VS2010/x64/Debug/ -lmbedTLS
 INCLUDEPATH += C:/mbedtls-mbedtls-2.6.1/include
 
 #screen capture lite
-LIBS += -LC:/hueproj/screen_capture_lite-14.0.7/lib -ldwmapi -lGdi32 -lUser32 -lscreen_capture_lite_d
+LIBS += -LC:/hueproj/screen_capture_lite-14.0.7/lib -ldwmapi -lGdi32 -lUser32
 INCLUDEPATH += C:/hueproj/screen_capture_lite-14.0.7/include
+
+CONFIG(debug, debug|release) {
+    LIBS += -LC:/mbedtls-mbedtls-2.6.1/visualc/VS2010/x64/Debug/ -lmbedTLS
+    LIBS += -lscreen_capture_lite_d
+}
+
+CONFIG(release, debug|release) {
+    LIBS += -LC:/mbedtls-mbedtls-2.6.1/visualc/VS2010/x64/Release/ -lmbedTLS
+    LIBS += -lscreen_capture_lite
+}
