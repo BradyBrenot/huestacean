@@ -143,12 +143,14 @@ Pane {
 				Row {
 					spacing: 10
 					TextField {
+						id: manualIP
 						focus: true
 						width: 150
 						placeholderText: "0.0.0.0"
 					}
 					Button {
-						text: "(TODO) Manually add IP"
+						text: "Manually add IP"
+						onClicked: Huestacean.bridgeDiscovery.manuallyAddIp(manualIP.text)
 					}
 				}
 			}
@@ -218,7 +220,7 @@ Pane {
 								running: entimagepreview.checked && Huestacean.syncing; 
 								repeat: true;
 								onTriggered: {
-									entimage.source = "image://entimage/ent" + Math.random()
+                                    entimage.source = entimage.source == "image://entimage/ent" ? "image://entimage/ent1" : "image://entimage/ent"
 								}
 							}
 						}

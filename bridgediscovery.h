@@ -20,6 +20,10 @@ public:
         return *reinterpret_cast<const QList<QObject*>*>(&bridges);
     }
 
+    Q_INVOKABLE void manuallyAddIp(QString ipAddress) {
+        tryDescribeBridge(ipAddress);
+    }
+
 public slots:
     void startSearch();
     void processPendingDatagrams();

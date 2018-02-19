@@ -78,4 +78,5 @@ Thumbs.db
 *.psess
 moc_*
 x64
+out
 
