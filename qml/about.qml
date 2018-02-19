@@ -5,7 +5,6 @@ import QtQuick.Layouts 1.3
 
 Pane {
     id: bridges
-
 	ColumnLayout {
 		anchors.fill: parent
 		spacing: 20
