@@ -8,10 +8,7 @@ Philips Hue screen syncing app for Desktop. Uses Philips' new Entertainment API 
 This software can cause rapid flickering of your Hue lights that may trigger photosensitive epileptic seizures in vulnerable individuals. ***DO NOT*** use this if you are or suspect you are affected by photosensitive epilepsy, or are otherwise photosensitive, epileptic, or suffer from seizures generally. Cease use immediately and consult a doctor if you suffer from any seizure symptoms, which may include lightheadedness, altered vision, eye or face twitching, jerking or shaking of arms or legs, disorientation, confusion, or momentary loss of awareness.
 
 ## General notes
-
-See [releases](https://github.com/BradyBrenot/huestacean/releases) to download the latest version.
-
-Binaries are currently available only for Windows. Binaries for macOS are on the TODO list. It ought to also be possible to build the source for Linux, see ***Building*** below.
+Binaries are currently available only for Windows (see [Installing](#installing)). Binaries for macOS are on the TODO list. It ought to also be possible to build the source for Linux, see ***Building*** below.
 
 ### Hue requirements
 A Gen2 bridge is a **must**. Your bridge and lights should also be using the latest firmware. Use the Philips Hue Android or iOS app to update the firmware.
@@ -26,6 +23,8 @@ For the best use of this, use one or more lights behind your display. Lights off
 
 ## Installing
 ### Windows
+Only 64-bit Windows is supported. Only Windows 10 has been tested at this point.
+
 #### Prerequisites
 * [Visual Studio 2017 redistributable](https://aka.ms/vs/15/release/VC_redist.x64.exe)
 
@@ -34,6 +33,11 @@ Download the latest from [releases](https://github.com/BradyBrenot/huestacean/re
 
 ## Building
 TODO
+
+Any platform supported by Qt, mbedtls, and screen_capture_lite ought to work.
+
+## Reporting bugs
+Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
 
 ## Shout outs
 Many thanks to [Qt](https://www.qt.io/), [mbedtls](https://github.com/ARMmbed/mbedtls), and [screen_capture_lite](https://github.com/smasherprog/screen_capture_lite).
@@ -55,6 +59,7 @@ Wish list. Whether I'll get to any of this remains to be seen.
 * Write out instructions for compiling from source
 * Build Mac binaries
 * Test Linux
+* Test Windows 7
 * More friendliness
   * Create / delete Entertainment Groups
   * Save more settings
