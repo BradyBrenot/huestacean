@@ -19,7 +19,7 @@ At the moment this software can't create entertainment groups. You need to do th
 The Lightstrip Plus is by far the best light I've found for this. It has a wide color gamut, and it dims to a *super dark* state before it turns off completely. My Gen 1 lights are still pretty bright at their dimmest. This can be a problem when syncing the lights in a darkened room.
 
 ### Positioning lights
-For the best use of this, use one or more lights behind your display. Lights off to the side of the display but still in front of your vision are fine too. Rapid changes in lights behind or to your side are likely to be more *distracting* and *annoying* than they are actually enjoyable.
+For the best experience, I'd suggest using or more lights behind or to the side of the display, in front of you and within the central cone of vision. Rapid changes in lights behind or to your side are likely to be more *distracting* and *annoying* than they are actually enjoyable.
 
 ## Installing
 ### Windows
