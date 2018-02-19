@@ -259,6 +259,11 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         const int numPixels = Height * Width;
 
         EntertainmentScreen eScreen(ScreenWidth, ScreenHeight);
+        //if (ScreenWidth*ScreenHeight != eScreen.screen.size())
+        //{
+        //    eScreen.screen.resize(ScreenWidth * ScreenHeight);
+        //}
+
         auto& screen = eScreen.screen;
 
         const int s = skip;
@@ -290,7 +295,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
     })->start_capturing();
 
     framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
-    framegrabber->setMouseChangeInterval(std::chrono::milliseconds(0));
+    framegrabber->setMouseChangeInterval(std::chrono::milliseconds(100000));
 }
 
 void Huestacean::entertainmentThreadFinished()
