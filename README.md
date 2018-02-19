@@ -66,6 +66,7 @@ Wish list. Whether I'll get to any of this remains to be seen.
   * Presets
   * Restore lights when sync stops
   * Turn off or set the state of some lights when sync starts
+  * An installer for Windows
 * More options
   * Brightness
   * More control of screen=>light mapping
