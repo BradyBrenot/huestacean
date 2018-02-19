@@ -51,31 +51,3 @@ Refer to the [LICENSE](LICENSE) file for license info.
 This software makes use of open source software under various licenses. See [qml/about.qml](qml/about.qml) for a full listing of licenses both applicable and not, or the various text files included with the source distribution.
 
 This software uses Qt 5, which is licensed under the GNU Lesser General Public License v3.0. The text of the license can be found in [lgpl-3.txt](lgpl-3.txt). The corresponding source code for Qt can be found [on their website](https://www.qt.io/download), or at https://s3.us-east-2.amazonaws.com/bbrenot-thirdparty-sourcecode/qt-everywhere-src-5.10.0.tar.xz ; the end user can provide their own Qt5 and modifications by replacing the distributed Qt shared library files (Qt* .dll, .so, .dylib, etc.)
-
-## TODO
-Wish list. Whether I'll get to any of this remains to be seen.
-
-* Organize the code better
-* Write out instructions for compiling from source
-* Build Mac binaries
-* Test Linux
-* Test Windows 7
-* More friendliness
-  * Create / delete Entertainment Groups
-  * Save more settings
-  * Presets
-  * Restore lights when sync stops
-  * Turn off or set the state of some lights when sync starts
-  * An installer for Windows
-* More options
-  * Brightness
-  * More control of screen=>light mapping
-* Better screen sync
-  * Color quantization
-  * Black bar detection
-  * Smooth out transitions
-  * ...
-* Other things that aren't screen sync
-  * Audio visualizer (super seizure mode)
-  * General 
-* Android support?
