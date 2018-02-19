@@ -227,14 +227,15 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
     connect(eThread, &EntertainmentCommThread::finished, this, &Huestacean::entertainmentThreadFinished);
     eThread->start();
 
-    int monitorIndex = activeMonitorIndex;
+    int monitorId = monitors[activeMonitorIndex]->id;
 
-    framegrabber = SL::Screen_Capture::CreateCaptureConfiguration([monitorIndex]() {
+    framegrabber = SL::Screen_Capture::CreateCaptureConfiguration([monitorId]() {
         auto allMonitors = SL::Screen_Capture::GetMonitors();
+
         std::vector<SL::Screen_Capture::Monitor> chosenMonitor;
         for (auto& monitor : allMonitors)
         {
-            if (monitor.Index == monitorIndex)
+            if (monitor.Id == monitorId)
             {
                 chosenMonitor.push_back(monitor);
                 break;
@@ -289,7 +290,6 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         eThread->threadsafe_setScreen(eScreen);
 
         frameReadElapsed = timer.restart();
-        qDebug() << timer.clockType();
         emit frameReadElapsedChanged(); //TODO: make sure this is thread-safe. Pretty sure it is from the docs I'm reading...
 
     })->start_capturing();
@@ -365,6 +365,8 @@ QImage EntertainmentImageProvider::requestImage(const QString &id, QSize *size, 
             size->setWidth(1);
             size->setHeight(1);
         }
+
+        qWarning() << "FAIL";
 
         return QImage(1, 1, QImage::Format_RGB16);
     }
@@ -450,7 +452,7 @@ void EntertainmentCommThread::run()
     mbedtls_x509_crt cacert;
     mbedtls_timing_delay_context timer;
 
-    mbedtls_debug_set_threshold(0);
+    mbedtls_debug_set_threshold(4);
 
     /*
     * -1. Load psk
@@ -585,7 +587,7 @@ send_request:
         static QElapsedTimer timer;
         timer.restart();
 
-        static const unsigned char HEADER[] = {
+        static const uint8_t HEADER[] = {
             'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
 
             0x01, 0x00, //version 1.0
@@ -599,7 +601,7 @@ send_request:
             0x00, // Reserved, write 0’s
         };
 
-        static const unsigned char PAYLOAD_PER_LIGHT[] =
+        static const uint8_t PAYLOAD_PER_LIGHT[] =
         {
             0x01, 0x00, 0x06, //light ID
 
@@ -658,7 +660,7 @@ send_request:
             G = Y * 0xffff;
             B = L * 0xffff;
 
-            const unsigned char payload[] = {
+            const uint8_t payload[] = {
                 0x00, 0x00, ((uint8_t)light.id.toInt()),
 
                 (R >> 8) & 0xff, (R & 0xff),
