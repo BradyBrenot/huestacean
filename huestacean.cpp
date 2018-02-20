@@ -649,13 +649,10 @@ send_request:
                 int rowOffset = y * screen.width;
                 for (int x = minX; x < maxX; ++x)
                 {
-                    if (screen.screen[rowOffset + x].samples > 0)
-                    {
-                        R += screen.screen[rowOffset + x].R;
-                        G += screen.screen[rowOffset + x].G;
-                        B += screen.screen[rowOffset + x].B;
-                        samples += screen.screen[rowOffset + x].samples;
-                    }
+                    R += screen.screen[rowOffset + x].R;
+                    G += screen.screen[rowOffset + x].G;
+                    B += screen.screen[rowOffset + x].B;
+                    samples += screen.screen[rowOffset + x].samples;
                 }
             }
 
