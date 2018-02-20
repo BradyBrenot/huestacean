@@ -40,8 +40,11 @@ Any platform supported by Qt, mbedtls, and screen_capture_lite ought to work.
 ## Reporting bugs
 Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
 
-## Shout outs
-Many thanks to [Qt](https://www.qt.io/), [mbedtls](https://github.com/ARMmbed/mbedtls), and [screen_capture_lite](https://github.com/smasherprog/screen_capture_lite).
+## External libraries
+This project is using:
+- [Qt](https://www.qt.io/)
+- [mbedtls](https://github.com/ARMmbed/mbedtls)
+- [screen_capture_lite](https://github.com/smasherprog/screen_capture_lite)
 
 ## License
 

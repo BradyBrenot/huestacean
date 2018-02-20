@@ -123,7 +123,11 @@ signals:
 
 public:
     QString id;
-    explicit BridgeObject(HueBridge *parent) : QObject(parent) {}
+    explicit BridgeObject(HueBridge *parent) 
+        : QObject(parent),
+        id()
+    {
+    }
     HueBridge * bridgeParent() const { return reinterpret_cast<HueBridge*>(parent()); }
 };
 
@@ -138,11 +142,14 @@ public:
     {
     }
 
-    explicit Light(HueBridge *parent) : BridgeObject(parent) 
+    explicit Light(HueBridge *parent) 
+        : BridgeObject(parent),
+        name()
     {
         emit propertiesChanged();
     }
-    explicit Light(const Light& other) : BridgeObject(other.bridgeParent())
+    explicit Light(const Light& other) 
+        : BridgeObject(other.bridgeParent())
     {
         name = other.name;
         emit propertiesChanged();
@@ -158,100 +165,4 @@ public:
     }
 
     QString name;
-};
-
-class EntertainmentLight : public QObject
-{
-    Q_OBJECT;
-
-    Q_PROPERTY(QString id MEMBER id NOTIFY propertiesChanged)
-    Q_PROPERTY(double x MEMBER x NOTIFY propertiesChanged)
-    Q_PROPERTY(double y MEMBER y NOTIFY propertiesChanged)
-    Q_PROPERTY(double z MEMBER z NOTIFY propertiesChanged)
-
-signals:
-    void propertiesChanged();
-    
-public:
-    QString id;
-    double x;
-    double y;
-    double z;
-
-    explicit EntertainmentLight() : QObject(nullptr)
-    {
-    }
-
-    explicit EntertainmentLight(QObject* parent, QString inId, double inX, double inY, double inZ) :
-        QObject(parent), id(inId), x(inX), y(inY), z(inZ)
-    {
-        emit propertiesChanged();
-    }
-
-    explicit EntertainmentLight(const EntertainmentLight& other) : EntertainmentLight(other.parent(), other.id, other.x, other.y, other.z)
-    {
-    }
-};
-
-inline bool operator==(const EntertainmentLight& a, const EntertainmentLight& b)
-{
-    return a.id == b.id;
-}
-
-class EntertainmentGroup : public BridgeObject
-{
-    Q_OBJECT;
-
-    Q_PROPERTY(QString name MEMBER name NOTIFY propertiesChanged)
-    Q_PROPERTY(bool isStreaming MEMBER isStreaming NOTIFY propertiesChanged)
-    Q_PROPERTY(QList<EntertainmentLight> lights MEMBER lights NOTIFY propertiesChanged)
-    Q_PROPERTY(QString asString READ toString NOTIFY propertiesChanged)
-
-public:
-    explicit EntertainmentGroup() 
-        : BridgeObject(nullptr),
-        name(), lights(), isStreaming(false)
-    {
-    }
-
-    explicit EntertainmentGroup(HueBridge *parent) 
-        : BridgeObject(parent),
-        name(), 
-        lights(), 
-        isStreaming(false)
-    {
-        emit propertiesChanged();
-    }
-    explicit EntertainmentGroup(const EntertainmentGroup& other) 
-        : BridgeObject(other.bridgeParent()),
-        name(other.name), 
-        lights(other.lights), 
-        isStreaming(false)
-    {
-        id = other.id;
-        emit propertiesChanged();
-    }
-    EntertainmentGroup& operator=(const EntertainmentGroup& other)
-    {
-        setParent(other.parent());
-        name = other.name;
-        id = other.id;
-        lights = other.lights;
-        emit propertiesChanged();
-        return *this;
-    }
-
-    QString toString() {
-        return QString("%1 (%2)").arg(name, bridgeParent()->friendlyName);;
-    }
-
-    Q_INVOKABLE int numLights() { return lights.length(); }
-    Q_INVOKABLE QObject* getLight(int index) { return &lights[index]; }
-    Q_INVOKABLE void updateLightXZ(int index, float x, float z);
-
-    void toggleStreaming(bool enable);
-
-    QString name;
-    QList<EntertainmentLight> lights;
-    bool isStreaming;
 };

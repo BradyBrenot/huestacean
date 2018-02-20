@@ -9,6 +9,7 @@
 
 #include "huebridge.h"
 #include "huestacean.h"
+#include "entertainment.h"
 
 QString SETTING_USERNAME = "Bridge/Username";
 QString SETTING_CLIENTKEY = "Bridge/clientkey";
@@ -207,43 +208,4 @@ void HueBridge::replied(QNetworkReply *reply)
         QJsonDocument replyJson = QJsonDocument::fromJson(data);
         qDebug().noquote() << replyJson.toJson(QJsonDocument::Indented);
     }
-}
-
-
-void EntertainmentGroup::updateLightXZ(int index, float x, float z)
-{
-    lights[index].x = x;
-    lights[index].z = z;
-
-    QNetworkRequest qnr = bridgeParent()->makeRequest(QString("/groups/%1").arg(id));
-    qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-    QJsonObject locations;
-    for (EntertainmentLight& light : lights)
-    {
-        QJsonArray arr;
-        arr.append(light.x);
-        arr.append(light.y);
-        arr.append(light.z);
-        locations.insert(light.id, arr);
-    }
-
-    QJsonObject body;
-    body.insert("locations", locations);
-
-    qnam.put(qnr, QJsonDocument(body).toJson());
-}
-
-void EntertainmentGroup::toggleStreaming(bool enable)
-{
-    QNetworkRequest qnr = bridgeParent()->makeRequest(QString("/groups/%1").arg(id));
-    qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-    QJsonObject stream;
-    stream.insert("active", enable);
-
-    QJsonObject body;
-    body.insert("stream", stream);
-
-    qnam.put(qnr, QJsonDocument(body).toJson());
 }
