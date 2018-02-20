@@ -386,12 +386,19 @@ QImage EntertainmentImageProvider::requestImage(const QString &id, QSize *size, 
     {
         for (int x = 0; x < screen.width; ++x)
         {
-            img.setPixelColor(QPoint(x, y), 
-                QColor(
-                    screen.screen[pixel].R / screen.screen[pixel].samples,
-                    screen.screen[pixel].G / screen.screen[pixel].samples,
-                    screen.screen[pixel].B / screen.screen[pixel].samples
-                ));
+            if (screen.screen[pixel].samples == 0) 
+            {
+                img.setPixelColor(QPoint(x, y), QColor());
+            }
+            else
+            {
+                img.setPixelColor(QPoint(x, y),
+                    QColor(
+                        screen.screen[pixel].R / screen.screen[pixel].samples,
+                        screen.screen[pixel].G / screen.screen[pixel].samples,
+                        screen.screen[pixel].B / screen.screen[pixel].samples
+                    ));
+            }
 
             ++pixel;
         }
@@ -642,10 +649,13 @@ send_request:
                 int rowOffset = y * screen.width;
                 for (int x = minX; x < maxX; ++x)
                 {
-                    R += screen.screen[rowOffset + x].R;
-                    G += screen.screen[rowOffset + x].G;
-                    B += screen.screen[rowOffset + x].B;
-                    samples += screen.screen[rowOffset + x].samples;
+                    if (screen.screen[rowOffset + x].samples > 0)
+                    {
+                        R += screen.screen[rowOffset + x].R;
+                        G += screen.screen[rowOffset + x].G;
+                        B += screen.screen[rowOffset + x].B;
+                        samples += screen.screen[rowOffset + x].samples;
+                    }
                 }
             }
 
