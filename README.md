@@ -52,6 +52,11 @@ git clone --recursive git://github.com/BradyBrenot/huestacean.git
 cd huestacean
 ```
 
+If you've already cloned without the submodules, be sure you
+```
+git submodule update --init --recursive
+```
+
 ### Windows
 #### CMake, command prompt
 Run the 'x64 Native Tools Command Prompt for VS 2017'. `cd` to the repository directory.
