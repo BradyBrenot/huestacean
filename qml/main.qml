@@ -81,16 +81,35 @@ ApplicationWindow {
         }
     }
 
-    StackView {
-        id: stackView
+	Flickable {
+		id: flick
 
-        anchors.fill: parent
-        anchors.topMargin: (inPortrait ? overlayHeader.height : 0)
-        anchors.leftMargin: !inPortrait ? drawer.width : undefined
+		anchors.fill: parent
+		anchors.topMargin: (inPortrait ? overlayHeader.height : 0)
+		anchors.leftMargin: !inPortrait ? drawer.width : undefined
+		anchors.rightMargin: 0
+		anchors.left: parent.left
+		anchors.right: parent.right
 
-        topPadding: 20
-        bottomPadding: 20
+		contentHeight: stackView.currentItem.implicitHeight
+		contentWidth: Math.max(stackView.currentItem.implicitWidth, width)
 
-        initialItem: "qrc:/qml/home.qml"
-    }
+
+		StackView {
+			id: stackView
+
+			topPadding: 20
+			bottomPadding: 20
+
+			initialItem: "qrc:/qml/home.qml"
+		}
+
+		ScrollBar.vertical: ScrollBar { 
+			contentItem.opacity: flick.contentHeight > flick.height ? 1 : 0;
+		} 
+
+		ScrollBar.horizontal: ScrollBar { 
+			contentItem.opacity: flick.contentWidth > flick.width ? 1 : 0;
+		} 
+	}
 }

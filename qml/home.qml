@@ -7,21 +7,19 @@ import Huestacean 1.0
 Pane {
     id: home
 
-    Column {
-        anchors.fill: parent
+	contentWidth: mainColumn.implicitWidth
+    contentHeight: mainColumn.implicitHeight
 
+    ColumnLayout {
+		id: mainColumn
 		spacing: 10
 
 		GroupBox {
 			id: bridgesBox
-			anchors.left: parent.left
-			anchors.right: parent.right
 			title: "Bridges"
 
 			Column
 			{
-				anchors.left: parent.left
-				anchors.right: parent.right
 				spacing: 10
 
 				Row {
@@ -129,8 +127,7 @@ Pane {
 				GridView {
 					id: bridgesGrid
 					clip: true
-					anchors.left: parent.left
-					anchors.right: parent.right
+					width: 500
 					height: 125
 
 					cellWidth: 200; cellHeight: 100
@@ -157,19 +154,13 @@ Pane {
 		}
 		
 		GroupBox {
-			anchors.left: parent.left
-			anchors.right: parent.right
 
 			title: "Screen sync settings"
 
-			Column {
-				anchors.left: parent.left
-				anchors.right: parent.right
+			ColumnLayout {
 				spacing: 10
 
 				RowLayout {
-					anchors.left: parent.left
-					anchors.right: parent.right
 					spacing: 20
 
 					ColumnLayout {
@@ -180,9 +171,6 @@ Pane {
 						}
 
 						RowLayout {
-							anchors.left: parent.left
-							anchors.right: parent.right
-
 							ComboBox {
 								Layout.fillWidth: true
 								Layout.maximumWidth: 200
@@ -298,8 +286,6 @@ Pane {
 				}
 
 				RowLayout {
-					anchors.left: parent.left
-					anchors.right: parent.right
 					spacing: 20
 
 					CheckBox {
@@ -318,8 +304,6 @@ Pane {
 				}
 
 				RowLayout {
-					anchors.left: parent.left
-					anchors.right: parent.right
 					spacing: 20
 
 					Button {
