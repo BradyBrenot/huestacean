@@ -32,6 +32,11 @@ Only 64-bit Windows is supported. Only Windows 10 has been tested at this point.
 #### Install
 Download the latest from [releases](https://github.com/BradyBrenot/huestacean/releases). Extract anywhere. Run `huestacean.exe`
 
+## Reporting bugs
+Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
+
+----
+
 ## Building
 ### Dependencies
 * Qt 5.10
@@ -74,9 +79,6 @@ cd build
 cmake ..
 make
 ```
-
-## Reporting bugs
-Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
 
 ## External libraries
 This project is using:
