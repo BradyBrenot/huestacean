@@ -11,7 +11,7 @@
 #include "objectmodel.h"
 #include "bridgediscovery.h"
 
-#include "ScreenCapture.h"
+#include "screen_capture_lite/include/ScreenCapture.h"
 
 extern QNetworkAccessManager qnam;
 

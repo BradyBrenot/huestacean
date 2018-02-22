@@ -1,5 +1,4 @@
 #include "huestacean.h"
-#include "ScreenCapture.h"
 #include "entertainment.h"
 #include "utility.h"
 
