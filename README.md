@@ -40,7 +40,7 @@ Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues)
 ## Building
 ### Dependencies
 * Qt 5.10
-* CMake 3.11
+* CMake 3.9
 
 #### Windows
 * Visual Studio 2017. Community Edition is fine.
