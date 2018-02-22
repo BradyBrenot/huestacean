@@ -299,6 +299,7 @@ Pane {
 					}				
 
 					Label {
+						visible: false
 						text: "Net send:" + Huestacean.messageSendElapsed + "ms"
 					}
 				}

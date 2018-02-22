@@ -36,24 +36,14 @@ Pane {
 			//onClicked: licenses.visible = !licenses.visible
 		}
 
-		Flickable {
-			contentHeight: licenses.height
-			contentWidth: parent.width
+		Label {
+			id: licenses
+			anchors.left: parent.left
+            anchors.right: parent.right
+			font: fixedFont
+			wrapMode: Label.Wrap
 
-			Layout.fillHeight: true
-			Layout.fillWidth: true
-
-			ScrollBar.vertical: ScrollBar { contentItem.opacity: 1; } 
-			clip: true
-
-			Label {
-				id: licenses
-				anchors.left: parent.left
-                anchors.right: parent.right
-				font: fixedFont
-				wrapMode: Label.Wrap
-
-				text: '
+			text: '
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1353,8 +1343,7 @@ we thank the authors who made this possible:
 
 
 
-				'
-			}
+			'
 		}
 	}
 }
