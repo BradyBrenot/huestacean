@@ -33,9 +33,47 @@ Only 64-bit Windows is supported. Only Windows 10 has been tested at this point.
 Download the latest from [releases](https://github.com/BradyBrenot/huestacean/releases). Extract anywhere. Run `huestacean.exe`
 
 ## Building
-TODO
+### Dependencies
+* Qt 5.10
+* CMake 3.11
 
-Any platform supported by Qt, mbedtls, and screen_capture_lite ought to work.
+#### Windows
+* Visual Studio 2017. Community Edition is fine.
+
+### All platforms
+Clone the repository and its submodules
+```
+git clone --recursive git://github.com/BradyBrenot/huestacean.git
+cd huestacean
+```
+
+### Windows
+Run the 'x64 Native Tools Command Prompt for VS 2017'. `cd` to the repository directory.
+
+Assuming you have Qt5.10 installed in `C:\Qt\5.10.0`, run:
+
+```
+mkdir build
+mkdir build\debug
+mkdir build\release
+cd build
+SET CMAKE_PREFIX_PATH=C:\Qt\5.10.0\msvc2017_64\lib\cmake
+cmake .. -G "Visual Studio 15 2017 Win64"
+cd debug
+msbuild ../Huestacean.vcxproj /property:Configuration=Debug /property:Platform=x64
+cd ../release
+msbuild ../Huestacean.vcxproj /property:Configuration=Release /property:Platform=x64
+```
+Then use [windeployqt](http://doc.qt.io/qt-5/windows-deployment.html) to copy in the necessary deployment files.
+
+### Linux, OS X
+Are as-yet untested
+```
+mkdir build
+cd build
+cmake ..
+make
+```
 
 ## Reporting bugs
 Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
