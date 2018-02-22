@@ -70,7 +70,10 @@ msbuild ../Huestacean.vcxproj /property:Configuration=Debug /property:Platform=x
 cd ../release
 msbuild ../Huestacean.vcxproj /property:Configuration=Release /property:Platform=x64
 ```
-Then use [windeployqt](http://doc.qt.io/qt-5/windows-deployment.html) to copy in the necessary deployment files.
+Then use [windeployqt](http://doc.qt.io/qt-5/windows-deployment.html) to copy in the necessary deployment files. e.g.
+```
+C:\Qt\Qt5.10.0\5.10.0\msvc2017_64\bin\windeployqt.exe huestacean.exe
+```
 
 #### CMake, Visual Studio
 Set the `CMAKE_PREFIX_PATH` environment variable to, e.g., `C:\Qt\5.10.0\msvc2017_64\lib\cmake`
@@ -83,10 +86,10 @@ CMake -> Build Only -> Huestacean
 
 or set Huestacean as the startup target and start debugging.
 
-**NB:** You'll need to copy the necessary Qt DLLs over or run [windeployqt](http://doc.qt.io/qt-5/windows-deployment.html) before the project will run.
-
-#### Qt Visual Studio Tools 
-Install the **Qt Visual Studio Tools** extension.
+**NB:** You'll need to copy the necessary Qt DLLs over or run [windeployqt](http://doc.qt.io/qt-5/windows-deployment.html) before the project will run. e.g.
+```
+C:\Qt\Qt5.10.0\5.10.0\msvc2017_64\bin\windeployqt.exe huestacean.exe
+```
 
 ### Linux, OS X
 Are as-yet untested
