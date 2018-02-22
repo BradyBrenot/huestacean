@@ -53,6 +53,7 @@ cd huestacean
 ```
 
 ### Windows
+#### CMake, command prompt
 Run the 'x64 Native Tools Command Prompt for VS 2017'. `cd` to the repository directory.
 
 Assuming you have Qt5.10 installed in `C:\Qt\5.10.0`, run:
@@ -70,6 +71,22 @@ cd ../release
 msbuild ../Huestacean.vcxproj /property:Configuration=Release /property:Platform=x64
 ```
 Then use [windeployqt](http://doc.qt.io/qt-5/windows-deployment.html) to copy in the necessary deployment files.
+
+#### CMake, Visual Studio
+Set the `CMAKE_PREFIX_PATH` environment variable to, e.g., `C:\Qt\5.10.0\msvc2017_64\lib\cmake`
+
+Open VS 2017. File -> Open -> CMake -> huestacean\CMakeLists.txt
+
+Switch configuration to x64-Debug or x64-Release
+
+CMake -> Build Only -> Huestacean
+
+or set Huestacean as the startup target and start debugging.
+
+**NB:** You'll need to copy the necessary Qt DLLs over or run [windeployqt](http://doc.qt.io/qt-5/windows-deployment.html) before the project will run.
+
+#### Qt Visual Studio Tools 
+Install the **Qt Visual Studio Tools** extension.
 
 ### Linux, OS X
 Are as-yet untested
