@@ -9,7 +9,7 @@ Philips Hue screen syncing app for Desktop. Uses Philips' new Entertainment API 
 This software can cause rapid flickering of your Hue lights that may trigger photosensitive epileptic seizures in vulnerable individuals. ***DO NOT*** use this if you are or suspect you are affected by photosensitive epilepsy, or are otherwise photosensitive, epileptic, or suffer from seizures generally. Cease use immediately and consult a doctor if you suffer from any seizure symptoms, which may include lightheadedness, altered vision, eye or face twitching, jerking or shaking of arms or legs, disorientation, confusion, or momentary loss of awareness.
 
 ## General notes
-Binaries are currently available only for Windows (see [Installing](#installing)). Binaries for macOS are on the TODO list. It ought to also be possible to build the source for Linux, see ***Building*** below.
+Binaries are available for Windows and macOS (see [Installing](#installing)). It ought to also be possible to build the source for Linux but this has not yet been tested, see ***Building*** below.
 
 ### Hue requirements
 A Gen2 bridge is a **must**. Your bridge and lights should also be using the latest firmware. Use the Philips Hue Android or iOS app to update the firmware.
@@ -31,6 +31,9 @@ Only 64-bit Windows is supported. Only Windows 10 has been tested at this point.
 
 #### Install
 Download the latest from [releases](https://github.com/BradyBrenot/huestacean/releases). Extract anywhere. Run `huestacean.exe`
+
+### macOS
+Download the .app and run it. So far it's only been tested on 10.11.6 on an old Macbook Pro.
 
 ## Reporting bugs
 Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
