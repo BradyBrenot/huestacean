@@ -96,8 +96,12 @@ or set Huestacean as the startup target and start debugging.
 C:\Qt\Qt5.10.0\5.10.0\msvc2017_64\bin\windeployqt.exe huestacean.exe
 ```
 
-### Linux, OS X
-Are as-yet untested
+### Linux, Mac
+Set the `CMAKE_PREFIX_PATH` environment variable to point to your Qt install directory. For Mac, this could look like:
+```
+export CMAKE_PREFIX_PATH=~/Qt/5.10.0/clang_64/lib/cmake
+```
+`cd` into the repository directory, then simply build with `cmake` and `make`
 ```
 mkdir build
 cd build
