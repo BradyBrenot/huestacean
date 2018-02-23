@@ -81,7 +81,7 @@ void BridgeDiscovery::startSearch()
 
         foreach(QNetworkAddressEntry addr, iface.addressEntries())
         {
-            if (!addr.ip().protocol() == QUdpSocket::IPv4Protocol)
+            if (addr.ip().protocol() != QUdpSocket::IPv4Protocol)
                 continue;
             
             QUdpSocket* socket = new QUdpSocket(this);

@@ -39,5 +39,29 @@ add_subdirectory(mbedtls)
 
 add_executable(huestacean WIN32 MACOSX_BUNDLE ${SOURCES} ${HEADERS} ${HEADERS_MOC} qml.qrc)
 
-#screen_capture_lite isn't adding Dwmapi?
-target_link_libraries(huestacean Qt5::Core Qt5::Network Qt5::Quick screen_capture_lite mbedtls Dwmapi)
+set(LIBRARIES
+   ${LIBRARIES}
+   Qt5::Core
+   Qt5::Network
+   Qt5::Quick 
+   screen_capture_lite
+   mbedtls
+)
+
+#screen_capture_lite additional requirements
+if(WIN32)
+   set(LIBRARIES
+      ${LIBRARIES}
+      Dwmapi
+   )
+elseif(APPLE)
+   find_library(corefoundation_lib CoreFoundation)
+   find_library(cocoa_lib Cocoa)
+   set(LIBRARIES
+      ${LIBRARIES}
+      ${corefoundation_lib}
+      ${cocoa_lib}
+   )
+endif()
+
+target_link_libraries(huestacean ${LIBRARIES})

@@ -17,15 +17,15 @@ struct HueBridgeSavedSettings
     QString userName;
     QString clientKey;
 
-    HueBridgeSavedSettings::HueBridgeSavedSettings()
+    HueBridgeSavedSettings()
         : id(), address(), userName(), clientKey()
     {}
 
-    HueBridgeSavedSettings::HueBridgeSavedSettings(QString inId, QHostAddress inAddress)
+    HueBridgeSavedSettings(QString inId, QHostAddress inAddress)
         : id(inId), address(inAddress), userName(), clientKey()
     {}
 
-    HueBridgeSavedSettings::HueBridgeSavedSettings(QString inId, QHostAddress inAddress, QString inUserName, QString inClientKey)
+    HueBridgeSavedSettings(QString inId, QHostAddress inAddress, QString inUserName, QString inClientKey)
         : id(inId), address(inAddress), userName(inUserName), clientKey(inClientKey)
     {}
 };
@@ -67,8 +67,8 @@ public:
 
     void handleStreamingEnabled();
 
-    QHash<QString, Light> Lights;
-    QHash<QString, EntertainmentGroup> EntertainmentGroups;
+    QHash<QString, Light*> Lights;
+    QHash<QString, EntertainmentGroup*> EntertainmentGroups;
 
     bool connected;
     bool manuallyAdded;

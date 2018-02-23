@@ -439,9 +439,9 @@ send_request:
             const uint8_t payload[] = {
                 0x00, 0x00, ((uint8_t)light.id.toInt()),
 
-                (R >> 8) & 0xff, (R & 0xff),
-                (G >> 8) & 0xff, (G & 0xff),
-                (B >> 8) & 0xff, (B & 0xff)
+                static_cast<uint8_t>((R >> 8) & 0xff), static_cast<uint8_t>(R & 0xff),
+                static_cast<uint8_t>((G >> 8) & 0xff), static_cast<uint8_t>(G & 0xff),
+                static_cast<uint8_t>((B >> 8) & 0xff), static_cast<uint8_t>(B & 0xff)
             };
 
             Msg.append((char*)payload, sizeof(payload));

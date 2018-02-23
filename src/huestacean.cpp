@@ -5,6 +5,9 @@
 #include <QQmlApplicationEngine>
 #include <QElapsedTimer>
 
+#include <algorithm>
+#include <cmath>
+
 QNetworkAccessManager qnam(nullptr);
 
 Huestacean::Huestacean(QObject *parent) 
@@ -41,8 +44,8 @@ Huestacean::~Huestacean()
         {
             for (auto& group : bridge->EntertainmentGroups)
             {
-                group.shutDownImmediately();
-                while (group.hasRunningThread())
+                group->shutDownImmediately();
+                while (group->hasRunningThread())
                 {
                     QThread::msleep(100);
                 }
@@ -150,9 +153,9 @@ void Huestacean::stopScreenSync()
         {
             for (auto& group : bridge->EntertainmentGroups)
             {
-                if (group.isStreaming)
+                if (group->isStreaming)
                 {
-                    group.stopStreaming();
+                    group->stopStreaming();
                 }
             }
         }
@@ -175,7 +178,7 @@ void Huestacean::updateEntertainmentGroups()
         {
             for (auto& group : bridge->EntertainmentGroups)
             {
-                entertainmentGroups.push_back(&group);
+                entertainmentGroups.push_back(group);
             }
         }
     }

@@ -1,5 +1,7 @@
 #include "utility.h"
-#include<algorithm>
+
+#include <algorithm>
+#include <cmath>
 
 /*
  * Color conversion per Hue docs, _except_ for brightness.

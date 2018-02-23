@@ -106,7 +106,7 @@ export CMAKE_PREFIX_PATH=~/Qt/5.10.0/clang_64/lib/cmake
 mkdir build
 cd build
 cmake ..
-make
+make huestacean
 ```
 
 ## External libraries

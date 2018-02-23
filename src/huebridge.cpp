@@ -163,9 +163,9 @@ void HueBridge::replied(QNetworkReply *reply)
         for (auto it = obj.begin(); it != obj.end(); ++it)
         {
             QString string = it.key();
-            Light& newLight = Lights[it.key()] = Light(this);
-            newLight.id = it.key();
-            newLight.name = it.value().toObject()["name"].toString();
+            Light* newLight = Lights[it.key()] = new Light(this);
+            newLight->id = it.key();
+            newLight->name = it.value().toObject()["name"].toString();
         }
 
         emit lightsChanged();
@@ -181,15 +181,15 @@ void HueBridge::replied(QNetworkReply *reply)
             if (it.value().toObject()["type"].toString().compare(QString("entertainment"), Qt::CaseInsensitive) == 0)
             {
                 QString string = it.key();
-                EntertainmentGroup& newGroup = EntertainmentGroups[it.key()] = EntertainmentGroup(this);
-                newGroup.id = it.key();
-                newGroup.name = it.value().toObject()["name"].toString();
+                EntertainmentGroup* newGroup = EntertainmentGroups[it.key()] = new EntertainmentGroup(this);
+                newGroup->id = it.key();
+                newGroup->name = it.value().toObject()["name"].toString();
                 QJsonObject locations = it.value().toObject()["locations"].toObject();
 
                 for (auto j = locations.begin(); j != locations.end(); ++j)
                 {
                     QJsonArray loc = j.value().toArray();
-                    newGroup.lights.push_back(EntertainmentLight(this, j.key(), loc[0].toDouble(), loc[1].toDouble(), loc[2].toDouble()));
+                    newGroup->lights.push_back(EntertainmentLight(this, j.key(), loc[0].toDouble(), loc[1].toDouble(), loc[2].toDouble()));
                 }
             }                        
         }
