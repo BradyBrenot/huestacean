@@ -77,7 +77,7 @@ msbuild ../Huestacean.vcxproj /property:Configuration=Release /property:Platform
 ```
 Then use [windeployqt](http://doc.qt.io/qt-5/windows-deployment.html) to copy in the necessary deployment files. e.g.
 ```
-C:\Qt\Qt5.10.0\5.10.0\msvc2017_64\bin\windeployqt.exe huestacean.exe
+C:\Qt\Qt5.10.0\5.10.0\msvc2017_64\bin\windeployqt.exe huestacean.exe -qmldir=../../qml
 ```
 
 #### CMake, Visual Studio
@@ -93,7 +93,7 @@ or set Huestacean as the startup target and start debugging.
 
 **NB:** You'll need to copy the necessary Qt DLLs over or run [windeployqt](http://doc.qt.io/qt-5/windows-deployment.html) before the project will run. e.g.
 ```
-C:\Qt\Qt5.10.0\5.10.0\msvc2017_64\bin\windeployqt.exe huestacean.exe
+C:\Qt\Qt5.10.0\5.10.0\msvc2017_64\bin\windeployqt.exe huestacean.exe -qmldir=../../qml
 ```
 
 ### Linux, Mac
@@ -107,6 +107,12 @@ mkdir build
 cd build
 cmake ..
 make huestacean
+```
+
+#### Mac deployment
+Use `macdeployqt` to copy in the necessary Frameworks and other files.
+```
+~/Qt/5.10.0/clang_64/bin/macdeployqt huestacean.app -qmldir=../qml
 ```
 
 ## External libraries
