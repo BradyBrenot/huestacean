@@ -232,6 +232,9 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         framegrabber.reset();
     }
 
+    const int WidthBuckets = 16;
+    const int HeightBuckets = 9;
+
     framegrabber = SL::Screen_Capture::CreateCaptureConfiguration([monitorId]() {
         auto allMonitors = SL::Screen_Capture::GetMonitors();
 
@@ -277,7 +280,8 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         }
         std::fill(screen.begin(), screen.end(), PixelBucket());
 
-        const int s = skip;
+        //no pixel skip if mipmap generation is working on this platform
+        const int s = Width != SL::Screen_Capture::Width(monitor) ? 0 : skip;
 
         const unsigned char* src = SL::Screen_Capture::StartSrc(img);
         for (int y = 0; y < Height; y += 1 + s)
@@ -307,6 +311,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
     framegrabber->pause();
     framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
     framegrabber->setMouseChangeInterval(std::chrono::milliseconds(100000));
+    framegrabber->setMipLevel(static_cast<int>(std::max(std::log2(monitors[activeMonitorIndex]->width / WidthBuckets), std::log2(monitors[activeMonitorIndex]->height / HeightBuckets))));
 }
 
 void Huestacean::isStreamingChanged(bool isStreaming)
