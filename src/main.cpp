@@ -4,6 +4,10 @@
 #include <QQmlContext>
 #include "huestacean.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 extern QQmlApplicationEngine* engine;
 QQmlApplicationEngine* engine = nullptr;
 
@@ -18,6 +22,13 @@ static QObject *huestacean_singleton_provider(QQmlEngine *engine, QJSEngine *scr
 
 int main(int argc, char *argv[])
 {
+#ifdef _WIN32
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+    }
+#endif
+
     //https://github.com/sqlitebrowser/sqlitebrowser/commit/73946400c32d1f7cfcd4672ab0ab3f563eb84f4e
     qputenv("QT_BEARER_POLL_TIMEOUT", QByteArray::number(INT_MAX));
 
