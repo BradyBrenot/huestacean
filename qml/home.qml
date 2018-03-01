@@ -319,7 +319,7 @@ Pane {
 
 						Slider {
 							id: frameslider
-							value: Huestacean.captureInterval / 100
+							Component.onCompleted: value = Huestacean.captureInterval / 100
 							onValueChanged: {
 								Huestacean.captureInterval = value * 100
 							}
@@ -337,7 +337,7 @@ Pane {
 
 						Slider {
 							id: skipslider
-							value: Huestacean.skip / 128
+							Component.onCompleted: value = Huestacean.skip / 128
 							onValueChanged: {
 								Huestacean.skip = value * 128
 							}
@@ -347,9 +347,65 @@ Pane {
 							text: Huestacean.skip
 						}
 					}
-					
 				}
+
+				RowLayout {
+					spacing: 20
 				
+					Column {
+						Label {
+							text: "Min brightness"
+						}
+
+						Slider {
+							Component.onCompleted: value = Huestacean.minLuminance
+							onValueChanged: {
+								Huestacean.minLuminance = value
+							}
+						}
+
+						Label {
+							text: Huestacean.minLuminance
+						}
+					}
+
+					Column {
+						Label {
+							text: "Max brightness"
+						}
+
+						Slider {
+							Component.onCompleted: value = Huestacean.maxLuminance
+							onValueChanged: {
+								Huestacean.maxLuminance = value
+							}
+						}
+
+						Label {
+							text: Huestacean.maxLuminance
+						}
+					}
+				}
+				RowLayout {
+					spacing: 20
+
+					Column {
+						Label {
+							text: "Saturation boost"
+						}
+
+						Slider {
+							Component.onCompleted: value = Huestacean.chromaBoost / 3
+							onValueChanged: {
+								Huestacean.chromaBoost = value * 3
+							}
+						}
+
+						Label {
+							text: Huestacean.chromaBoost
+						}
+					}
+				}
 			}
 		}
     }

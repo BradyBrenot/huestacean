@@ -31,6 +31,9 @@ Huestacean::Huestacean(QObject *parent)
     skip = 32;
     captureInterval = 25;
     streamingGroup = nullptr;
+    setMaxLuminance(1.0);
+    setMinLuminance(0.0);
+    setChromaBoost(1.0);
 
     qmlRegisterType<EntertainmentGroup>();
 }
@@ -140,6 +143,73 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
         double dB = (double)B / samples / 255.0;
 
         Utility::rgb_to_xy(dR, dG, dB, X, Y, L);
+
+        //Boost 'saturation' by boosting distance from D65... in a stupid way but what'll you do?
+        constexpr double D65_x = 0.3128;
+        constexpr double D65_y = 0.3290;
+
+        double chromaBoost = getChromaBoost();
+
+        double dist = std::sqrt(std::pow(X - D65_x, 2.0) + std::pow(Y - D65_y, 2.0));
+
+        double boostDist = std::pow(dist, 1.0 / chromaBoost);
+        double diffX = (X - D65_x);
+        double diffY = (Y - D65_y);
+        double unitX = diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+        double unitY = diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+
+        double boostX = D65_x + unitX * boostDist;
+        double boostY = D65_y + unitY * boostDist;
+
+        double bestDist = 0;
+        double testDist;
+
+        if (boostX < 0 || boostX > 1.0 || boostY < 0 || boostY > 1.0)
+        {
+            if (unitX > 0.0)
+            {
+                testDist = (1.0 - D65_x) / unitX;
+                if (D65_y + testDist * unitY <= 1.0 && D65_y + testDist * unitY >= 0.0)
+                {
+                    bestDist = std::max(bestDist, testDist);
+                }
+            }
+            else
+            {
+                testDist = (-D65_x) / unitX;
+                if (D65_y + testDist * unitY <= 1.0 && D65_y + testDist * unitY >= 0.0)
+                {
+                    bestDist = std::max(bestDist, testDist);
+                }
+            }
+
+            if (unitY > 0.0)
+            {
+                testDist = (1.0 - D65_y) / unitY;
+                if (D65_x + testDist * unitX <= 1.0 && D65_x + testDist * unitX >= 0.0)
+                {
+                    bestDist = std::max(bestDist, testDist);
+                }
+            }
+            else
+            {
+                testDist = (-D65_y) / unitY;
+                if (D65_x + testDist * unitX <= 1.0 && D65_x + testDist * unitX >= 0.0)
+                {
+                    bestDist = std::max(bestDist, testDist);
+                }
+            }
+
+            boostDist = bestDist;
+            boostX = D65_x + unitX * boostDist;
+            boostY = D65_y + unitY * boostDist;
+        }
+
+        X = boostX;
+        Y = boostY;
+
+        L = L * (getMaxLuminance() - getMinLuminance()) + getMinLuminance();
+
         return true;
     });
 }

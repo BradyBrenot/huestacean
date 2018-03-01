@@ -131,6 +131,10 @@ class Huestacean : public QObject
     Q_PROPERTY(int skip READ getSkip WRITE setSkip NOTIFY captureParamsChanged)
     Q_PROPERTY(int captureInterval READ getCaptureInterval WRITE setCaptureInterval NOTIFY captureParamsChanged)
 
+    Q_PROPERTY(double minLuminance READ getMinLuminance WRITE setMinLuminance NOTIFY syncParamsChanged)
+    Q_PROPERTY(double maxLuminance READ getMaxLuminance WRITE setMaxLuminance NOTIFY syncParamsChanged)
+    Q_PROPERTY(double chromaBoost READ getChromaBoost WRITE setChromaBoost NOTIFY syncParamsChanged)
+
 public:
     explicit Huestacean(QObject *parent = nullptr);
     virtual ~Huestacean();
@@ -165,6 +169,33 @@ public:
 
     void setCaptureInterval(int interval);
 
+    float getMinLuminance() {
+        return minLuminance / 1000.0;
+    }
+
+    void setMinLuminance(double in) {
+        minLuminance = in * 1000.0;
+        emit syncParamsChanged();
+    }
+
+    float getMaxLuminance() {
+        return maxLuminance / 1000.0;
+    }
+
+    void setMaxLuminance(double in) {
+        maxLuminance = in * 1000.0;
+        emit syncParamsChanged();
+    }
+
+    float getChromaBoost() {
+        return chromaBoost / 1000.0;
+    }
+
+    void setChromaBoost(double in) {
+        chromaBoost = in * 1000.0;
+        emit syncParamsChanged();
+    }
+
 public slots:
     void connectBridges();
 
@@ -193,6 +224,7 @@ signals:
     void messageSendElapsedChanged();
 
     void captureParamsChanged();
+    void syncParamsChanged();
 
 public slots:
     void setActiveMonitor(int index);
@@ -215,6 +247,10 @@ private:
 
     QReadWriteLock screenLock;
     ScreenSyncScreen screenSyncScreen;
+
+    QAtomicInteger<qint64> minLuminance;
+    QAtomicInteger<qint64> maxLuminance;
+    QAtomicInteger<qint64> chromaBoost;
 
 private slots:
     void isStreamingChanged(bool isStreaming);
