@@ -5,11 +5,13 @@ Philips Hue screen syncing app for Desktop. Uses Philips' new Entertainment API 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=sPH1u7Z7y9E" target="_blank"><img src="https://i.imgur.com/hICos2X.png" alt="Youtube video demonstrating Huestacean's screen sync feature" border="0" width="350px" /></a>
 <img src="https://i.imgur.com/H67w2ta.png" alt="Youtube video demonstrating Huestacean's screen sync feature" border="0" width="250px" />
 
+## Download
+Downloadable binaries for Windows and macOS are available on the **[Releases](https://github.com/BradyBrenot/huestacean/releases)** page; see [Installing](#installing) for more information. It ought to also be possible to build the source for Linux but this has not yet been tested, see ***Building*** below.
+
 ## Safety notice
 This software can cause rapid flickering of your Hue lights that may trigger photosensitive epileptic seizures in vulnerable individuals. ***DO NOT*** use this if you are or suspect you are affected by photosensitive epilepsy, or are otherwise photosensitive, epileptic, or suffer from seizures generally. Cease use immediately and consult a doctor if you suffer from any seizure symptoms, which may include lightheadedness, altered vision, eye or face twitching, jerking or shaking of arms or legs, disorientation, confusion, or momentary loss of awareness.
 
 ## General notes
-Binaries are available for Windows and macOS (see [Installing](#installing)). It ought to also be possible to build the source for Linux but this has not yet been tested, see ***Building*** below.
 
 ### Hue requirements
 A Gen2 bridge is a **must**. Your bridge and lights should also be using the latest firmware. Use the Philips Hue Android or iOS app to update the firmware.
@@ -33,7 +35,7 @@ Only 64-bit Windows is supported. Only Windows 10 has been tested at this point.
 Download the latest from [releases](https://github.com/BradyBrenot/huestacean/releases). Extract anywhere. Run `huestacean.exe`
 
 ### macOS
-Download the .app and run it. So far it's only been tested on 10.11.6 on an old Macbook Pro.
+Download the .app from [releases](https://github.com/BradyBrenot/huestacean/releases) and run it. So far it's only been tested on 10.11.6 on an old Macbook Pro.
 
 ## Reporting bugs
 Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
