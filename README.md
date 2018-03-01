@@ -55,8 +55,9 @@ git clone --recursive git://github.com/BradyBrenot/huestacean.git
 cd huestacean
 ```
 
-If you've already cloned without the submodules, be sure you
+If you've already cloned without the submodules, or you've synced before I changed one of their paths, you may need to
 ```
+git submodule sync
 git submodule update --init --recursive
 ```
 
