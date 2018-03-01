@@ -34,6 +34,7 @@ Huestacean::Huestacean(QObject *parent)
     setMaxLuminance(1.0);
     setMinLuminance(0.0);
     setChromaBoost(1.0);
+    mipMapGenerationEnabled = false;
 
     qmlRegisterType<EntertainmentGroup>();
 }
@@ -232,6 +233,18 @@ void Huestacean::stopScreenSync()
     }
 }
 
+void Huestacean::refreshGroups()
+{
+    for (QObject* Obj : bridgeDiscovery->getModel())
+    {
+        HueBridge* bridge = qobject_cast<HueBridge*>(Obj);
+        if (bridge != nullptr)
+        {
+            bridge->requestGroups();
+        }
+    }
+}
+
 void Huestacean::setActiveMonitor(int index)
 {
     activeMonitorIndex = index;
@@ -351,7 +364,20 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         std::fill(screen.begin(), screen.end(), PixelBucket());
 
         //no pixel skip if mipmap generation is working on this platform
-        const int s = Width != SL::Screen_Capture::Width(monitor) ? 0 : skip;
+        int s;
+        if (Width != SL::Screen_Capture::Width(monitor))
+        {
+            s = 0;
+            if (!mipMapGenerationEnabled)
+            {
+                mipMapGenerationEnabled = true;
+                emit mipMapChanged();
+            }
+        }
+        else
+        {
+            s = skip;
+        }            
 
         const unsigned char* src = SL::Screen_Capture::StartSrc(img);
         for (int y = 0; y < Height; y += 1 + s)

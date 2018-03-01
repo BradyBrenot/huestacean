@@ -264,7 +264,7 @@ Pane {
 
 							Button {
 								text: "Redetect"
-								onClicked: Huestacean.detectMonitors()
+								onClicked: Huestacean.refreshGroups()
 							}
 						}
 
@@ -344,7 +344,7 @@ Pane {
 						}
 
 						Label {
-							text: Huestacean.skip
+							text: Huestacean.mipMapGenerationEnabled ? "Not needed on this platform" : Huestacean.skip
 						}
 					}
 				}
@@ -459,8 +459,8 @@ Pane {
 
 	Popup {
 		id: linkPopup
-		x: (parent.width - width) / 2
-		y: (parent.height - height) / 2
+		x: (mainColumn.width - width) / 2
+		y: (mainColumn.Window.height - height) / 2
 
 		modal: true
 		focus: true
@@ -494,6 +494,63 @@ Pane {
 					text: "Cancel"
 					onClicked: linkPopup.close()
 				}
+			}
+		}
+	}
+
+	Popup {
+		id: entertainmentGroupsWarningPop
+		x: (mainColumn.width - width) / 2
+		y: (mainColumn.Window.height - height) / 2
+		width: 300
+
+		modal: true
+		focus: true
+		closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+		property var bridge
+
+		Column {
+			spacing: 10
+
+			Label {
+				width: 280
+				text: '<html>
+					  You don\'t seem to have any entertainment groups.
+					  At the moment, Huestacean cannot do this for you.
+					  You need to create an entertainment group in the Hue Android or iOS app.
+					  Philips has a video demonstrating this, <a href="https://www.youtube.com/watch?v=_N7VNJM_8js">here on their Youtube channel</a>
+					  </html>'
+
+				wrapMode: Label.Wrap
+
+				onLinkActivated: Qt.openUrlExternally(link)
+			}
+
+			Row {
+				spacing: 10
+				anchors.horizontalCenter: parent.horizontalCenter
+				Button {
+					text: "Redetect"
+					onClicked: Huestacean.refreshGroups()
+				}
+
+				Button {
+					text: "Close"
+					onClicked: entertainmentGroupsWarningPop.close()
+				}
+			}
+		}
+	}
+
+	Connections { 
+		target: Huestacean
+
+		onEntertainmentGroupsChanged: {
+			if(Huestacean.entertainmentGroupsModel.length == 0) {
+				entertainmentGroupsWarningPop.open()
+			} else {
+				entertainmentGroupsWarningPop.close()
 			}
 		}
 	}

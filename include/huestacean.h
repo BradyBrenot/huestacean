@@ -124,6 +124,7 @@ class Huestacean : public QObject
     Q_PROPERTY(QList<QObject*> monitorsModel READ getMonitorsModel NOTIFY monitorsChanged)
     Q_PROPERTY(QList<QObject*> entertainmentGroupsModel READ getEntertainmentGroupsModel NOTIFY entertainmentGroupsChanged)
     Q_PROPERTY(bool syncing MEMBER syncing NOTIFY syncingChanged)
+    Q_PROPERTY(bool mipMapGenerationEnabled MEMBER mipMapGenerationEnabled NOTIFY mipMapChanged)
 
     Q_PROPERTY(int frameReadElapsed READ getFrameReadElapsed NOTIFY frameReadElapsedChanged)
     Q_PROPERTY(int messageSendElapsed READ getMessageSendElapsed NOTIFY messageSendElapsedChanged)
@@ -214,6 +215,7 @@ public:
     Q_INVOKABLE void detectMonitors();
     Q_INVOKABLE void startScreenSync(EntertainmentGroup* eGroup);
     Q_INVOKABLE void stopScreenSync();
+    Q_INVOKABLE void refreshGroups();
 
 signals:
     void monitorsChanged();
@@ -225,6 +227,7 @@ signals:
 
     void captureParamsChanged();
     void syncParamsChanged();
+    void mipMapChanged();
 
 public slots:
     void setActiveMonitor(int index);
@@ -251,6 +254,7 @@ private:
     QAtomicInteger<qint64> minLuminance;
     QAtomicInteger<qint64> maxLuminance;
     QAtomicInteger<qint64> chromaBoost;
+    QAtomicInteger<bool> mipMapGenerationEnabled;
 
 private slots:
     void isStreamingChanged(bool isStreaming);
