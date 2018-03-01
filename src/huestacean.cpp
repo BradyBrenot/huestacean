@@ -407,7 +407,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
     framegrabber->pause();
     framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
     framegrabber->setMouseChangeInterval(std::chrono::milliseconds(100000));
-    framegrabber->setMipLevel(static_cast<int>(std::max(std::log2(monitors[activeMonitorIndex]->width / WidthBuckets), std::log2(monitors[activeMonitorIndex]->height / HeightBuckets))));
+    framegrabber->setMipLevel(static_cast<int>(std::min(std::log2(monitors[activeMonitorIndex]->width / WidthBuckets), std::log2(monitors[activeMonitorIndex]->height / HeightBuckets))));
 }
 
 void Huestacean::isStreamingChanged(bool isStreaming)
