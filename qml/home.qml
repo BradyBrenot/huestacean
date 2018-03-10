@@ -428,6 +428,16 @@ Pane {
 				y = ((1 - inY) / 2.0) * groupImage.height - height/2
 			}
 
+			function updatePosition(inSave) {
+				var bridgeX = 2 * (lightIcon.x + lightIcon.width/2) / groupImage.width - 1
+				var bridgeZ = 1 - 2 * (lightIcon.y + lightIcon.height/2) / groupImage.height
+
+				entertainmentComboBox.model[entertainmentComboBox.currentIndex].updateLightXZ(index, bridgeX, bridgeZ, true);
+			}
+
+			onXChanged : updatePosition(false);
+			onYChanged : updatePosition(false);
+
 			Label {
 				anchors.centerIn: parent
 				text: lightIcon.name
@@ -450,7 +460,7 @@ Pane {
 						var bridgeX = 2 * (lightIcon.x + lightIcon.width/2) / groupImage.width - 1
 						var bridgeZ = 1 - 2 * (lightIcon.y + lightIcon.height/2) / groupImage.height
 
-						entertainmentComboBox.model[entertainmentComboBox.currentIndex].updateLightXZ(index, bridgeX, bridgeZ);
+						updatePosition(true);
 					}
 				}
 			}

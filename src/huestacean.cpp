@@ -240,6 +240,22 @@ void Huestacean::refreshGroups()
         HueBridge* bridge = qobject_cast<HueBridge*>(Obj);
         if (bridge != nullptr)
         {
+            for (auto& group : bridge->EntertainmentGroups)
+            {
+                if (group->isStreaming)
+                {
+                    //refuse to modify the groups list if one is syncing right now (causes havoc at the moment)
+                    return;
+                }
+            }
+        }
+    }
+
+    for (QObject* Obj : bridgeDiscovery->getModel())
+    {
+        HueBridge* bridge = qobject_cast<HueBridge*>(Obj);
+        if (bridge != nullptr)
+        {
             bridge->requestGroups();
         }
     }

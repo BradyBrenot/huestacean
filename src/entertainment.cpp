@@ -63,10 +63,19 @@ EntertainmentGroup::~EntertainmentGroup()
     }
 }
 
-void EntertainmentGroup::updateLightXZ(int index, float x, float z)
+void EntertainmentGroup::updateLightXZ(int index, float x, float z, bool save)
 {
     lights[index].x = x;
     lights[index].z = z;
+
+    if (eThread != nullptr) {
+        EntertainmentCommThreadEGroupScopedLock g(eThread);
+        g->updateLightXZ(index, x, z, false);
+    }
+
+    if (!save || bridgeParent() == nullptr) {
+        return;
+    }
 
     QNetworkRequest qnr = bridgeParent()->makeRequest(QString("/groups/%1").arg(id));
     qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -382,7 +391,7 @@ void EntertainmentCommThread::run()
     emit connected();
 
     /*
-    * 6. Write the echo request
+    * 6. Send messages repeatedly until we lose connection or are told to stop
     */
 send_request:
     while (true)
@@ -420,6 +429,8 @@ send_request:
         };
 
         QByteArray Msg;
+
+        eGroupMutex.lock();
         Msg.reserve(sizeof(HEADER) + sizeof(PAYLOAD_PER_LIGHT) * eGroup.lights.size());
 
         Msg.append((char*)HEADER, sizeof(HEADER));
@@ -446,6 +457,7 @@ send_request:
 
             Msg.append((char*)payload, sizeof(payload));
         }
+        eGroupMutex.unlock();
 
         int len = Msg.size();
 
@@ -461,7 +473,7 @@ send_request:
         messageSendElapsed = timer.elapsed();
         emit messageSendElapsedChanged();
 
-        //TODO: make this delay customizable
+        //TODO: make this delay customizable?
         QThread::msleep(10);
 
         if (stopRequested)

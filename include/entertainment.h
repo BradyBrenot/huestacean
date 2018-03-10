@@ -93,7 +93,7 @@ public:
 
     Q_INVOKABLE int numLights() { return lights.length(); }
     Q_INVOKABLE QObject* getLight(int index) { return &lights[index]; }
-    Q_INVOKABLE void updateLightXZ(int index, float x, float z);
+    Q_INVOKABLE void updateLightXZ(int index, float x, float z, bool save);
 
     /*
      * Ask the bridge to start streaming.
@@ -153,4 +153,28 @@ private:
     QMutex eGroupMutex;
     EntertainmentGroup eGroup;
     GetColorFunction getColor;
+
+    friend struct EntertainmentCommThreadEGroupScopedLock;
+};
+
+struct EntertainmentCommThreadEGroupScopedLock
+{
+    EntertainmentCommThreadEGroupScopedLock(EntertainmentCommThread* inThread)
+    {
+        eThread = inThread;
+        eThread->eGroupMutex.lock();
+    }
+
+    ~EntertainmentCommThreadEGroupScopedLock()
+    {
+        eThread->eGroupMutex.unlock();
+    }
+
+    EntertainmentGroup* operator-> ()
+    {
+        return &eThread->eGroup;
+    }
+
+private:
+    EntertainmentCommThread * eThread;
 };
