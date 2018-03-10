@@ -437,15 +437,20 @@ send_request:
 
         for (auto& light : eGroup.lights)
         {
-            double X = 0.0;
-            double Y = 0.0;
-            double L = 0.0;
+            double newX = 0.0;
+            double newY = 0.0;
+            double newL = 0.0;
 
-            getColor(light, X, Y, L);
+            if (!getColor(light, light.X, light.Y, light.L, newX, newY, newL))
+                continue;
 
-            quint64 R = X * 0xffff;
-            quint64 G = Y * 0xffff;
-            quint64 B = L * 0xffff;
+            light.X = newX;
+            light.Y = newY;
+            light.L = newL;
+
+            quint64 R = light.X * 0xffff;
+            quint64 G = light.Y * 0xffff;
+            quint64 B = light.L * 0xffff;
 
             const uint8_t payload[] = {
                 0x00, 0x00, ((uint8_t)light.id.toInt()),
@@ -474,7 +479,7 @@ send_request:
         emit messageSendElapsedChanged();
 
         //TODO: make this delay customizable?
-        QThread::msleep(10);
+        QThread::msleep(5);
 
         if (stopRequested)
         {

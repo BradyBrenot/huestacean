@@ -101,9 +101,15 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
     emit syncingChanged();
 
     runSync(eGroup);
-    eGroup->startStreaming([&](const EntertainmentLight& light, double& X, double& Y, double& L)->bool {
+    eGroup->startStreaming([&](const EntertainmentLight& light, double oldX, double oldY, double oldL, double& X, double& Y, double& L)->bool {
 
         screenLock.lockForRead();
+
+        if (screenSyncScreen.width == 0 || screenSyncScreen.height == 0)
+        {
+            screenLock.unlock();
+            return false;
+        }
 
         const double width = std::max(1.0 - std::abs(light.x), 0.3);
         const double height = std::max(1.0 - std::abs(light.z), 0.3);
@@ -136,8 +142,12 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
         if (samples == 0)
         {
             //not ready!
-            return 0;
+            return false;
         }
+
+        //Boost 'saturation' by boosting distance from D65... in a stupid way but what'll you do?
+        static const double D65_x = 0.3128;
+        static const double D65_y = 0.3290;
 
         double dR = (double)R / samples / 255.0;
         double dG = (double)G / samples / 255.0;
@@ -145,9 +155,10 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
         Utility::rgb_to_xy(dR, dG, dB, X, Y, L);
 
-        //Boost 'saturation' by boosting distance from D65... in a stupid way but what'll you do?
-        constexpr double D65_x = 0.3128;
-        constexpr double D65_y = 0.3290;
+        if (R == 0 && G == 0 && B == 0) {
+            X = D65_x;
+            Y = D65_y;
+        }
 
         double chromaBoost = getChromaBoost();
 
@@ -156,8 +167,8 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
         double boostDist = std::pow(dist, 1.0 / chromaBoost);
         double diffX = (X - D65_x);
         double diffY = (Y - D65_y);
-        double unitX = diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
-        double unitY = diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+        double unitX = diffX == 0.0 ? 0.0 : diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+        double unitY = diffY == 0.0 ? 0.0 : diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
 
         double boostX = D65_x + unitX * boostDist;
         double boostY = D65_y + unitY * boostDist;
@@ -210,6 +221,13 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
         Y = boostY;
 
         L = L * (getMaxLuminance() - getMinLuminance()) + getMinLuminance();
+
+        double chromaSlowness = Utility::lerp(6.0, 20.0, std::abs(light.x));
+        double lumaSlowness = Utility::lerp(8.0, 30.0, std::abs(light.x));
+
+        X = (oldX * (chromaSlowness - 1.0) + X) / chromaSlowness;
+        Y = (oldY * (chromaSlowness - 1.0) + Y) / chromaSlowness;
+        L = (oldL * (lumaSlowness - 1.0) + L) / lumaSlowness;
 
         return true;
     });

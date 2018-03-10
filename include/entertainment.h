@@ -17,12 +17,16 @@ public:
     double y;
     double z;
 
+    double X;
+    double Y;
+    double L;
+
     explicit EntertainmentLight() : Light(nullptr)
     {
     }
 
     explicit EntertainmentLight(HueBridge *parent, QString inId, double inX, double inY, double inZ) :
-        Light(parent), x(inX), y(inY), z(inZ)
+        Light(parent), x(inX), y(inY), z(inZ), X(0), Y(0), L(0)
     {
         id = inId;
         emit propertiesChanged();
@@ -42,12 +46,15 @@ inline bool operator==(const EntertainmentLight& a, const EntertainmentLight& b)
  * This WILL be called in a different thread than it was created in.
  * 
  * @param[in] EntertainmentLight    The light that we want to get the color for
+ * @param[in] oldX                  The last x-value of the light
+ * @param[in] oldY                  The last y-value of the light
+ * @param[in] oldL                  The last l-value of the light
  * @param[out] x                    x-value of color to apply to the light
  * @param[out] y                    y-value of color to apply to the light
  * @param[out] l                    brightness to apply to the light
  * @return                          Whether we're ready to send a color to this light. If false, an update for this light is not sent to the Bridge.
  */
-typedef std::function<bool(const EntertainmentLight&, double&, double&, double&)> GetColorFunction;
+typedef std::function<bool(const EntertainmentLight&, double, double, double, double&, double&, double&)> GetColorFunction;
 
 class EntertainmentGroup : public BridgeObject
 {
