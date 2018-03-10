@@ -479,7 +479,7 @@ send_request:
         emit messageSendElapsedChanged();
 
         //TODO: make this delay customizable?
-        QThread::msleep(5);
+        QThread::msleep(10);
 
         if (stopRequested)
         {

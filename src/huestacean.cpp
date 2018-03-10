@@ -164,6 +164,14 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
         double dist = std::sqrt(std::pow(X - D65_x, 2.0) + std::pow(Y - D65_y, 2.0));
 
+        //if brightness is too low and we're very desaturated, use last chroma
+        if (L < 0.1 && dist < 0.1)
+        {
+            X = oldX;
+            Y = oldY;
+            dist = std::sqrt(std::pow(X - D65_x, 2.0) + std::pow(Y - D65_y, 2.0));
+        }
+
         double boostDist = std::pow(dist, 1.0 / chromaBoost);
         double diffX = (X - D65_x);
         double diffY = (Y - D65_y);
