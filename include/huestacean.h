@@ -136,6 +136,9 @@ class Huestacean : public QObject
     Q_PROPERTY(double maxLuminance READ getMaxLuminance WRITE setMaxLuminance NOTIFY syncParamsChanged)
     Q_PROPERTY(double chromaBoost READ getChromaBoost WRITE setChromaBoost NOTIFY syncParamsChanged)
 
+    Q_PROPERTY(double centerSlowness READ getCenterSlowness WRITE setCenterSlowness NOTIFY syncParamsChanged)
+    Q_PROPERTY(double sideSlowness READ getSideSlowness WRITE setSideSlowness NOTIFY syncParamsChanged)
+
 public:
     explicit Huestacean(QObject *parent = nullptr);
     virtual ~Huestacean();
@@ -197,6 +200,24 @@ public:
         emit syncParamsChanged();
     }
 
+    double getCenterSlowness() {
+        return centerSlowness / 1000.0;
+    }
+
+    void setCenterSlowness(double in) {
+        centerSlowness = in * 1000.0;
+        emit syncParamsChanged();
+    }
+
+    double getSideSlowness() {
+        return sideSlowness / 1000.0;
+    }
+
+    void setSideSlowness(double in) {
+        sideSlowness = in * 1000.0;
+        emit syncParamsChanged();
+    }
+
 public slots:
     void connectBridges();
 
@@ -254,6 +275,8 @@ private:
     QAtomicInteger<qint64> minLuminance;
     QAtomicInteger<qint64> maxLuminance;
     QAtomicInteger<qint64> chromaBoost;
+    QAtomicInteger<qint64> centerSlowness;
+    QAtomicInteger<qint64> sideSlowness;
     QAtomicInteger<bool> mipMapGenerationEnabled;
 
 private slots:

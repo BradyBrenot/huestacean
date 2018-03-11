@@ -386,6 +386,7 @@ Pane {
 						}
 					}
 				}
+
 				RowLayout {
 					spacing: 20
 
@@ -406,6 +407,55 @@ Pane {
 						}
 					}
 				}
+
+				RowLayout {
+					spacing: 20
+
+					Column {
+						Label {
+							text: "Center damping"
+						}
+
+						Slider {
+							Component.onCompleted: {
+								var slowness = Huestacean.centerSlowness
+								from = 1.0
+								to = 80.0
+								value = slowness
+							}
+							onValueChanged: {
+								Huestacean.centerSlowness = value
+							}
+						}
+
+						Label {
+							text: Huestacean.centerSlowness
+						}
+					}
+
+					Column {
+						Label {
+							text: "Side damping"
+						}
+
+						Slider {
+							Component.onCompleted: {
+								var slowness = Huestacean.sideSlowness
+								from = 1.0
+								to = 80.0
+								value = slowness
+							}
+							onValueChanged: {
+								Huestacean.sideSlowness = value
+							}
+						}
+
+						Label {
+							text: Huestacean.sideSlowness
+						}
+					}
+				}
+
 			}
 		}
     }

@@ -36,6 +36,9 @@ Huestacean::Huestacean(QObject *parent)
     setChromaBoost(1.0);
     mipMapGenerationEnabled = false;
 
+    setCenterSlowness(8.0);
+    setSideSlowness(30.0);
+
     qmlRegisterType<EntertainmentGroup>();
 }
 
@@ -291,12 +294,11 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
         L = L * (getMaxLuminance() - getMinLuminance()) + getMinLuminance();
 
-        double chromaSlowness = Utility::lerp(6.0, 20.0, std::abs(light.x));
-        double lumaSlowness = Utility::lerp(8.0, 30.0, std::abs(light.x));
+        double slowness = Utility::lerp(getCenterSlowness(), getSideSlowness(), std::abs(light.x));
 
-        X = (oldX * (chromaSlowness - 1.0) + X) / chromaSlowness;
-        Y = (oldY * (chromaSlowness - 1.0) + Y) / chromaSlowness;
-        L = (oldL * (lumaSlowness - 1.0) + L) / lumaSlowness;
+        X = (oldX * (slowness - 1.0) + X) / slowness;
+        Y = (oldY * (slowness - 1.0) + Y) / slowness;
+        L = (oldL * (slowness - 1.0) + L) / slowness;
 
         return true;
     });
