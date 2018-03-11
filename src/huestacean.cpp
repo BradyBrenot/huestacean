@@ -95,8 +95,19 @@ void Huestacean::detectMonitors()
     emit monitorsChanged();
 }
 
+struct xySample
+{
+    double x;
+    double y;
+    double l; //aka "Y", the perceived brightness
+    double err;
+};
+
 void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 {
+    static const double D65_x = 0.3128;
+    static const double D65_y = 0.3290;
+
     syncing = true;
     emit syncingChanged();
 
@@ -120,20 +131,33 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
         const int minY = std::round((std::max(light.z - height, -1.0) + 1.0) * screenSyncScreen.height / 2.0);
         const int maxY = std::round((std::min(light.z + height, 1.0) + 1.0) * screenSyncScreen.height / 2.0);
 
-        quint64 R = 0;
-        quint64 G = 0;
-        quint64 B = 0;
-        quint64 samples = 0;
+        std::vector<xySample> xySamples((maxY-minY)*(maxX-minX));
+
+        qint64 samples = 0;
 
         for (int y = minY; y < maxY; ++y)
         {
             int rowOffset = y * screenSyncScreen.width;
             for (int x = minX; x < maxX; ++x)
             {
-                R += screenSyncScreen.screen[rowOffset + x].R;
-                G += screenSyncScreen.screen[rowOffset + x].G;
-                B += screenSyncScreen.screen[rowOffset + x].B;
+                xySample& sample = xySamples[(y - minY) * (maxX - minX) + (x - minX)];
+
+                double dR = (double)screenSyncScreen.screen[rowOffset + x].R / screenSyncScreen.screen[rowOffset + x].samples / 255.0;
+                double dG = (double)screenSyncScreen.screen[rowOffset + x].G / screenSyncScreen.screen[rowOffset + x].samples / 255.0;
+                double dB = (double)screenSyncScreen.screen[rowOffset + x].B / screenSyncScreen.screen[rowOffset + x].samples / 255.0;
+
                 samples += screenSyncScreen.screen[rowOffset + x].samples;
+
+                Utility::rgb_to_xy(dR, dG, dB, X, Y, L);
+
+                if (dR == 0.0 && dG == 0.0 && dB == 0.0) {
+                    X = D65_x;
+                    Y = D65_y;
+                }
+
+                sample.x = X;
+                sample.y = Y;
+                sample.l = L;
             }
         }
 
@@ -145,88 +169,125 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
             return false;
         }
 
+        //Remove the least-saturated 25% of colors
+        for (xySample& sample : xySamples)
+        {
+            sample.err = std::pow(D65_x - sample.x, 2.0) + std::pow(D65_y - sample.y, 2.0);
+        }
+        std::sort(xySamples.begin(), xySamples.end(), [](const xySample & a, const xySample & b) -> bool {
+            return a.err > b.err;
+        });
+        xySamples.resize(xySamples.size() * (3.0 / 4.0));
+
+        //Determine the mean of the colors
+        auto getMean = [&xySamples](xySample& mean)
+        {
+            mean.x = 0;
+            mean.y = 0;
+            mean.l = 0;
+
+            for (const xySample& sample : xySamples)
+            {
+                mean.x += sample.x;
+                mean.y += sample.y;
+                mean.l += sample.l;
+            }
+
+            mean.x /= (double)xySamples.size();
+            mean.y /= (double)xySamples.size();
+            mean.l /= (double)xySamples.size();
+        };
+
+        xySample mean;
+
+#if 0
+        getMean(mean);
+        //Cut out the most-outlying 25% of colors, then figure out the mean again
+        for (xySample& sample : xySamples)
+        {
+            sample.err = std::pow(mean.x - sample.x, 2.0) + std::pow(mean.y - sample.y, 2.0) + std::pow(mean.l - sample.l, 2.0);
+        }
+        std::sort(xySamples.begin(), xySamples.end(), [](const xySample & a, const xySample & b) -> bool {
+            return a.err < b.err;
+        });
+        xySamples.resize(xySamples.size() * (3.0 / 4.0));
+#endif
+
+        getMean(mean);
+        X = mean.x;
+        Y = mean.y;
+        L = mean.l;
+
         //Boost 'saturation' by boosting distance from D65... in a stupid way but what'll you do?
-        static const double D65_x = 0.3128;
-        static const double D65_y = 0.3290;
-
-        double dR = (double)R / samples / 255.0;
-        double dG = (double)G / samples / 255.0;
-        double dB = (double)B / samples / 255.0;
-
-        Utility::rgb_to_xy(dR, dG, dB, X, Y, L);
-
-        if (R == 0 && G == 0 && B == 0) {
-            X = D65_x;
-            Y = D65_y;
-        }
-
         double chromaBoost = getChromaBoost();
-
-        double dist = std::sqrt(std::pow(X - D65_x, 2.0) + std::pow(Y - D65_y, 2.0));
-
-        //if brightness is too low and we're very desaturated, use last chroma
-        if (L < 0.1 && dist < 0.1)
+        if (chromaBoost > 1.00001)
         {
-            X = oldX;
-            Y = oldY;
-            dist = std::sqrt(std::pow(X - D65_x, 2.0) + std::pow(Y - D65_y, 2.0));
+            double dist = std::sqrt(std::pow(X - D65_x, 2.0) + std::pow(Y - D65_y, 2.0));
+
+            //if brightness is too low and we're very desaturated, use last chroma
+            if (L < 0.1 && dist < 0.1)
+            {
+                X = oldX;
+                Y = oldY;
+                dist = std::sqrt(std::pow(X - D65_x, 2.0) + std::pow(Y - D65_y, 2.0));
+            }
+
+            double boostDist = std::pow(dist, 1.0 / chromaBoost);
+            double diffX = (X - D65_x);
+            double diffY = (Y - D65_y);
+            double unitX = diffX == 0.0 ? 0.0 : diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+            double unitY = diffY == 0.0 ? 0.0 : diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+
+            double boostX = D65_x + unitX * boostDist;
+            double boostY = D65_y + unitY * boostDist;
+
+            double bestDist = 0;
+            double testDist;
+
+            if (boostX < 0 || boostX > 1.0 || boostY < 0 || boostY > 1.0)
+            {
+                if (unitX > 0.0)
+                {
+                    testDist = (1.0 - D65_x) / unitX;
+                    if (D65_y + testDist * unitY <= 1.0 && D65_y + testDist * unitY >= 0.0)
+                    {
+                        bestDist = std::max(bestDist, testDist);
+                    }
+                }
+                else
+                {
+                    testDist = (-D65_x) / unitX;
+                    if (D65_y + testDist * unitY <= 1.0 && D65_y + testDist * unitY >= 0.0)
+                    {
+                        bestDist = std::max(bestDist, testDist);
+                    }
+                }
+
+                if (unitY > 0.0)
+                {
+                    testDist = (1.0 - D65_y) / unitY;
+                    if (D65_x + testDist * unitX <= 1.0 && D65_x + testDist * unitX >= 0.0)
+                    {
+                        bestDist = std::max(bestDist, testDist);
+                    }
+                }
+                else
+                {
+                    testDist = (-D65_y) / unitY;
+                    if (D65_x + testDist * unitX <= 1.0 && D65_x + testDist * unitX >= 0.0)
+                    {
+                        bestDist = std::max(bestDist, testDist);
+                    }
+                }
+
+                boostDist = bestDist;
+                boostX = D65_x + unitX * boostDist;
+                boostY = D65_y + unitY * boostDist;
+            }
+
+            X = boostX;
+            Y = boostY;
         }
-
-        double boostDist = std::pow(dist, 1.0 / chromaBoost);
-        double diffX = (X - D65_x);
-        double diffY = (Y - D65_y);
-        double unitX = diffX == 0.0 ? 0.0 : diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
-        double unitY = diffY == 0.0 ? 0.0 : diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
-
-        double boostX = D65_x + unitX * boostDist;
-        double boostY = D65_y + unitY * boostDist;
-
-        double bestDist = 0;
-        double testDist;
-
-        if (boostX < 0 || boostX > 1.0 || boostY < 0 || boostY > 1.0)
-        {
-            if (unitX > 0.0)
-            {
-                testDist = (1.0 - D65_x) / unitX;
-                if (D65_y + testDist * unitY <= 1.0 && D65_y + testDist * unitY >= 0.0)
-                {
-                    bestDist = std::max(bestDist, testDist);
-                }
-            }
-            else
-            {
-                testDist = (-D65_x) / unitX;
-                if (D65_y + testDist * unitY <= 1.0 && D65_y + testDist * unitY >= 0.0)
-                {
-                    bestDist = std::max(bestDist, testDist);
-                }
-            }
-
-            if (unitY > 0.0)
-            {
-                testDist = (1.0 - D65_y) / unitY;
-                if (D65_x + testDist * unitX <= 1.0 && D65_x + testDist * unitX >= 0.0)
-                {
-                    bestDist = std::max(bestDist, testDist);
-                }
-            }
-            else
-            {
-                testDist = (-D65_y) / unitY;
-                if (D65_x + testDist * unitX <= 1.0 && D65_x + testDist * unitX >= 0.0)
-                {
-                    bestDist = std::max(bestDist, testDist);
-                }
-            }
-
-            boostDist = bestDist;
-            boostX = D65_x + unitX * boostDist;
-            boostY = D65_y + unitY * boostDist;
-        }
-
-        X = boostX;
-        Y = boostY;
 
         L = L * (getMaxLuminance() - getMinLuminance()) + getMinLuminance();
 
