@@ -36,8 +36,8 @@ Huestacean::Huestacean(QObject *parent)
     setChromaBoost(1.0);
     mipMapGenerationEnabled = false;
 
-    setCenterSlowness(8.0);
-    setSideSlowness(30.0);
+    setCenterSlowness(2.0);
+    setSideSlowness(20.0);
 
     qmlRegisterType<EntertainmentGroup>();
 }
