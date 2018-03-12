@@ -1,14 +1,11 @@
 #################
-#################
-# todo:
-# per-OS and/or env-based lib settings, if I decide to care
-# move to cmake?
-#################
+# NB: ONLY used for building Android. Use cmake for everything else
 #################
 
 QT += quick
 QT += network
-CONFIG += c++11
+CONFIG += c++14
+QMAKE_CXXFLAGS += -std=c++14
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -57,22 +54,13 @@ DISTFILES += \
 
 INCLUDEPATH += include
 
-#Advapi32 for crypto requirements for mbedtls
-LIBS +=  -lAdvapi32
-
 #mbedtls
-INCLUDEPATH += C:/mbedtls-mbedtls-2.6.1/include
-
-#screen capture lite
-LIBS += -LC:/hueproj/screen_capture_lite-14.0.7/lib -ldwmapi -lGdi32 -lUser32
-INCLUDEPATH += C:/hueproj/screen_capture_lite-14.0.7/include
+INCLUDEPATH += C:/hueproj/huestacean/mbedtls/include
 
 CONFIG(debug, debug|release) {
-    LIBS += -LC:/mbedtls-mbedtls-2.6.1/visualc/VS2010/x64/Debug/ -lmbedTLS
-    LIBS += -lscreen_capture_lite_d
+    LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/armeabi-v7a/library -lmbedtls -lmbedx509 -lmbedcrypto
 }
 
 CONFIG(release, debug|release) {
-    LIBS += -LC:/mbedtls-mbedtls-2.6.1/visualc/VS2010/x64/Release/ -lmbedTLS
-    LIBS += -lscreen_capture_lite
+    LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/armeabi-v7a/library -lmbedtls -lmbedx509 -lmbedcrypto
 }

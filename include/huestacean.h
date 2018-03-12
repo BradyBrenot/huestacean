@@ -11,7 +11,9 @@
 #include "objectmodel.h"
 #include "bridgediscovery.h"
 
+#if !ANDROID
 #include "screen_capture_lite/include/ScreenCapture.h"
+#endif
 
 extern QNetworkAccessManager qnam;
 
@@ -262,7 +264,10 @@ private:
     QMutex eThreadMutex;
     friend class ScreenSyncImageProvider;
     class ScreenSyncImageProvider* eImageProvider;
+
+#if !ANDROID
     std::shared_ptr<SL::Screen_Capture::IScreenCaptureManager> framegrabber;
+#endif
 
     QAtomicInteger<qint64> frameReadElapsed;
     QAtomicInteger<int> skip;

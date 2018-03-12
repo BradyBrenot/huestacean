@@ -71,16 +71,20 @@ int Huestacean::getMessageSendElapsed()
 void Huestacean::setCaptureInterval(int interval)
 {
     captureInterval = interval;
+#if !ANDROID
     if (framegrabber)
     {
         framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
     }
+#endif
     emit captureParamsChanged();
 }
 
 void Huestacean::detectMonitors()
 {
     activeMonitorIndex = 0;
+
+#if !ANDROID
 
     std::vector<SL::Screen_Capture::Monitor> mons = SL::Screen_Capture::GetMonitors();
     foreach(QObject* monitor, monitors)
@@ -94,6 +98,7 @@ void Huestacean::detectMonitors()
         Monitor* newMonitor = new Monitor(this, mon.Id, mon.Height, mon.Width, mon.OffsetX, mon.OffsetY, QString::fromUtf8(mon.Name, sizeof(mon.Name)), mon.Scaling);
         monitors.push_back(newMonitor);
     }
+#endif
 
     emit monitorsChanged();
 }
@@ -128,11 +133,11 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
         const double width = std::max(1.0 - std::abs(light.x), 0.3);
         const double height = std::max(1.0 - std::abs(light.z), 0.3);
 
-        const int minX = std::round((std::max(light.x - width, -1.0) + 1.0) * screenSyncScreen.width / 2.0);
-        const int maxX = std::round((std::min(light.x + width, 1.0) + 1.0) * screenSyncScreen.width / 2.0);
+        const int minX = round((std::max(light.x - width, -1.0) + 1.0) * screenSyncScreen.width / 2.0);
+        const int maxX = round((std::min(light.x + width, 1.0) + 1.0) * screenSyncScreen.width / 2.0);
 
-        const int minY = std::round((std::max(light.z - height, -1.0) + 1.0) * screenSyncScreen.height / 2.0);
-        const int maxY = std::round((std::min(light.z + height, 1.0) + 1.0) * screenSyncScreen.height / 2.0);
+        const int minY = round((std::max(light.z - height, -1.0) + 1.0) * screenSyncScreen.height / 2.0);
+        const int maxY = round((std::min(light.z + height, 1.0) + 1.0) * screenSyncScreen.height / 2.0);
 
         std::vector<xySample> xySamples((maxY-minY)*(maxX-minX));
 
@@ -415,6 +420,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
 
     int monitorId = monitors[activeMonitorIndex]->id;
 
+#if !ANDROID
     if (framegrabber)
     {
         framegrabber.reset();
@@ -451,7 +457,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         const int ScreenWidth = 16;
         const int ScreenHeight = 9;
 
-        const int numPixels = Height * Width;
+        //const int numPixels = Height * Width;
 
         screenLock.lockForWrite();
         //if (ScreenWidth*ScreenHeight != eScreen.screen.size())
@@ -512,11 +518,13 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
     framegrabber->pause();
     framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
     framegrabber->setMouseChangeInterval(std::chrono::milliseconds(100000));
-    framegrabber->setMipLevel(static_cast<int>(std::min(std::log2(monitors[activeMonitorIndex]->width / WidthBuckets), std::log2(monitors[activeMonitorIndex]->height / HeightBuckets))));
+    framegrabber->setMipLevel(static_cast<int>(std::min(log2(monitors[activeMonitorIndex]->width / WidthBuckets), log2(monitors[activeMonitorIndex]->height / HeightBuckets))));
+#endif
 }
 
 void Huestacean::isStreamingChanged(bool isStreaming)
 {
+#if !ANDROID
     if (isStreaming)
     {
         if (framegrabber)
@@ -531,6 +539,7 @@ void Huestacean::isStreamingChanged(bool isStreaming)
             framegrabber->pause();
         }
     }
+#endif
 
     syncing = isStreaming;
     emit syncingChanged();
