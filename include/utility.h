@@ -1,8 +1,6 @@
 #pragma once
 
-#ifdef ANDROID
 #include <cmath>
-#endif
 
 namespace Utility
 {
