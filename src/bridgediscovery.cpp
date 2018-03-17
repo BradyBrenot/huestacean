@@ -11,7 +11,7 @@ BridgeDiscovery::BridgeDiscovery(QObject *parent)
     : QObject(parent)
     , hasSearched(false)
 {
-    connect(&qnam, SIGNAL(finished(QNetworkReply*)),
+    connect(qnam, SIGNAL(finished(QNetworkReply*)),
         this, SLOT(replied(QNetworkReply*)));
 }
 
@@ -126,7 +126,7 @@ void BridgeDiscovery::processPendingDatagrams()
                 qWarning() << "Bad reply from IpBridge:" << datagram;
             }
 
-            tryDescribeBridge(datagram.mid((start + 7), end - start - 7));
+            QMetaObject::invokeMethod(this, "tryDescribeBridge", Qt::QueuedConnection, Q_ARG(QString, datagram.mid((start + 7), end - start - 7)));
         }
     }
 }
@@ -168,7 +168,7 @@ void BridgeDiscovery::tryDescribeBridge(QString ipAddress)
 
     QNetworkRequest r = QNetworkRequest(QUrl(QString("http://%1/description.xml").arg(ipAddress)));
     r.setOriginatingObject(this);
-    qnam.get(r);
+    qnam->get(r);
 }
 
 void BridgeDiscovery::replied(QNetworkReply *reply)

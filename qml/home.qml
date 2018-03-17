@@ -205,7 +205,7 @@ Pane {
 
 							Timer {
 								interval: 500; 
-								running: entimagepreview.checked && Huestacean.syncing; 
+                                running: entimagepreview.checked;
 								repeat: true;
 								onTriggered: {
                                     entimage.source = entimage.source == "image://entimage/ent" ? "image://entimage/ent1" : "image://entimage/ent"
@@ -606,12 +606,12 @@ Pane {
 	Connections { 
 		target: Huestacean
 
-		onEntertainmentGroupsChanged: {
-			if(Huestacean.entertainmentGroupsModel.length == 0) {
-				entertainmentGroupsWarningPop.open()
-			} else {
-				entertainmentGroupsWarningPop.close()
-			}
-		}
+		//onEntertainmentGroupsChanged: {
+		//	if(Huestacean.entertainmentGroupsModel.length == 0) {
+		//		entertainmentGroupsWarningPop.open()
+		//	} else {
+		//		entertainmentGroupsWarningPop.close()
+		//	}
+		//}
 	}
 }

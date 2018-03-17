@@ -13,9 +13,12 @@
 
 #if !ANDROID
 #include "screen_capture_lite/include/ScreenCapture.h"
+#else
+#include <jni.h>
 #endif
 
-extern QNetworkAccessManager qnam;
+
+extern QNetworkAccessManager* qnam;
 
 //-----------------------------------------------
 //Screen sync -----------------------------------
@@ -239,6 +242,10 @@ public:
     Q_INVOKABLE void startScreenSync(EntertainmentGroup* eGroup);
     Q_INVOKABLE void stopScreenSync();
     Q_INVOKABLE void refreshGroups();
+
+#if ANDROID
+    void androidHandleFrame(int Width, int Height);
+#endif
 
 signals:
     void monitorsChanged();

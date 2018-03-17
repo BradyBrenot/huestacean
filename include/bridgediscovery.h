@@ -37,10 +37,9 @@ signals:
 
  private slots:
     void replied(QNetworkReply *reply);
-
-private:
     void tryDescribeBridge(QString ipAddress);
 
+private:
     QList<HueBridge*> bridges;
     bool hasSearched;
 

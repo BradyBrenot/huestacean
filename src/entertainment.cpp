@@ -1,4 +1,4 @@
-#include <QNetworkReply>
+ï»¿#include <QNetworkReply>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -47,7 +47,7 @@ EntertainmentGroup::EntertainmentGroup(HueBridge *parent)
 {
     emit propertiesChanged();
 
-    connect(&qnam, SIGNAL(finished(QNetworkReply*)),
+    connect(qnam, SIGNAL(finished(QNetworkReply*)),
         this, SLOT(replied(QNetworkReply*)));
 }
 
@@ -93,7 +93,7 @@ void EntertainmentGroup::updateLightXZ(int index, float x, float z, bool save)
     QJsonObject body;
     body.insert("locations", locations);
 
-    qnam.put(qnr, QJsonDocument(body).toJson());
+    qnam->put(qnr, QJsonDocument(body).toJson());
 }
 
 void EntertainmentGroup::startStreaming(GetColorFunction getColorFunc)
@@ -142,7 +142,7 @@ void EntertainmentGroup::askBridgeToToggleStreaming(bool enable)
     QJsonObject body;
     body.insert("stream", stream);
 
-    qnam.put(qnr, QJsonDocument(body).toJson());
+    qnam->put(qnr, QJsonDocument(body).toJson());
 }
 
 void EntertainmentGroup::entertainmentThreadConnected()
@@ -368,6 +368,7 @@ void EntertainmentCommThread::run()
 
     for (int attempt = 0; attempt < 4; ++attempt)
     {
+        qDebug() << "handshake attempt" << attempt;
         mbedtls_ssl_conf_handshake_timeout(&conf, 400, 1000);
         do ret = mbedtls_ssl_handshake(&ssl);
         while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
@@ -379,11 +380,15 @@ void EntertainmentCommThread::run()
         msleep(200);
     }
 
+    qDebug() << "handshake result" << ret;
+
     if (ret != 0)
     {
         qCritical() << "mbedtls_ssl_handshake FAILED" << ret;
         goto exit;
     }
+
+    qDebug() << "Handshake successful. Connected!";
 
     if (stopRequested)
         goto exit;
@@ -406,11 +411,11 @@ send_request:
 
             0x01, //sequence number 1
 
-            0x00, 0x00, //Reserved write 0’s
+            0x00, 0x00, //Reserved write 0â€™s
 
             0x01,
 
-            0x00, // Reserved, write 0’s
+            0x00, // Reserved, write 0â€™s
         };
 
         static const uint8_t PAYLOAD_PER_LIGHT[] =

@@ -4,6 +4,7 @@
 
 QT += quick
 QT += network
+QT += androidextras
 CONFIG += c++14
 QMAKE_CXXFLAGS += -std=c++14
 
@@ -50,7 +51,15 @@ DISTFILES += \
     LICENSE \
     apache-2.0.txt \
     lgpl-3.txt \
-    license-screen_capture_lite.txt
+    license-screen_capture_lite.txt \
+    android/AndroidManifest.xml \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradlew \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew.bat \
+    android/src/com/huestacean/Huestacean.java
 
 INCLUDEPATH += include
 
@@ -64,3 +73,5 @@ CONFIG(debug, debug|release) {
 CONFIG(release, debug|release) {
     LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/armeabi-v7a/library -lmbedtls -lmbedx509 -lmbedcrypto
 }
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android

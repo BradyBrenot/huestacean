@@ -23,7 +23,7 @@ HueBridge::HueBridge(QObject *parent, HueBridgeSavedSettings& SavedSettings, boo
     manuallyAdded(bManuallyAdded),
     wantsLinkButton(false)
 {
-    connect(&qnam, SIGNAL(finished(QNetworkReply*)),
+    connect(qnam, SIGNAL(finished(QNetworkReply*)),
         this, SLOT(replied(QNetworkReply*)));
 
     connect(this, SIGNAL(connectedChanged()),
@@ -63,7 +63,7 @@ void HueBridge::connectToBridge()
     {
         //Verify existing registration
         QNetworkRequest qnr = makeRequest("/config");
-        qnam.get(qnr);
+        qnam->get(qnr);
     }
     else
     {
@@ -75,7 +75,7 @@ void HueBridge::connectToBridge()
         json.insert("devicetype", "huestacean#windows");
         json.insert("generateclientkey", true);
 
-        qnam.post(qnr, QJsonDocument(json).toJson());
+        qnam->post(qnr, QJsonDocument(json).toJson());
     }
 }
 void HueBridge::resetConnection()
@@ -86,10 +86,10 @@ void HueBridge::resetConnection()
 void HueBridge::requestGroups()
 {
     QNetworkRequest qnr = makeRequest("/lights");
-    qnam.get(qnr);
+    qnam->get(qnr);
 
     qnr = makeRequest("/groups");
-    qnam.get(qnr);
+    qnam->get(qnr);
 }
 
 void HueBridge::replied(QNetworkReply *reply)

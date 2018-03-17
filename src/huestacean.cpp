@@ -4,16 +4,23 @@
 
 #include <QQmlApplicationEngine>
 #include <QElapsedTimer>
+#include <QAndroidJniObject>
 
 #include <algorithm>
 #include <cmath>
+#include <GLES2/gl2.h>
 
-QNetworkAccessManager qnam(nullptr);
+QNetworkAccessManager* qnam = nullptr;
+QMutex huestaceanLock;
+Huestacean* huestaceanInstance = nullptr;
 
 Huestacean::Huestacean(QObject *parent) 
     : QObject(parent),
     syncing(false)
 {
+    if(qnam == nullptr)
+        qnam = new QNetworkAccessManager(nullptr);
+
     bridgeDiscovery = new BridgeDiscovery(this);
     bridgeDiscovery->startSearch();
     detectMonitors();
@@ -40,10 +47,21 @@ Huestacean::Huestacean(QObject *parent)
     setSideSlowness(20.0);
 
     qmlRegisterType<EntertainmentGroup>();
+
+    huestaceanLock.lock();
+    huestaceanInstance = this;
+    huestaceanLock.unlock();
 }
 
 Huestacean::~Huestacean()
 {
+    huestaceanLock.lock();
+    if(huestaceanInstance == this)
+    {
+        huestaceanInstance = nullptr;
+    }
+    huestaceanLock.unlock();
+
     for (QObject* Obj : bridgeDiscovery->getModel())
     {
         HueBridge* bridge = qobject_cast<HueBridge*>(Obj);
@@ -59,8 +77,6 @@ Huestacean::~Huestacean()
             }
         }
     }
-
-    
 }
 
 int Huestacean::getMessageSendElapsed()
@@ -113,6 +129,11 @@ struct xySample
 
 void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 {
+    if(eGroup == nullptr) {
+        qWarning() << "null eGroup!!!!!!";
+        return;
+    }
+
     static const double D65_x = 0.3128;
     static const double D65_y = 0.3290;
 
@@ -418,9 +439,9 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
     connect(streamingGroup, &EntertainmentGroup::isStreamingChanged, this, &Huestacean::isStreamingChanged);
     connect(streamingGroup, &EntertainmentGroup::destroyed, this, &Huestacean::streamingGroupDestroyed);
 
+#if !ANDROID
     int monitorId = monitors[activeMonitorIndex]->id;
 
-#if !ANDROID
     if (framegrabber)
     {
         framegrabber.reset();
@@ -511,7 +532,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         screenLock.unlock();
 
         frameReadElapsed = timer.restart();
-        emit frameReadElapsedChanged(); //TODO: make sure this is thread-safe. Pretty sure it is from the docs I'm reading...
+        emit frameReadElapsedChanged();
 
     })->start_capturing();
 
@@ -519,8 +540,79 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
     framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
     framegrabber->setMouseChangeInterval(std::chrono::milliseconds(100000));
     framegrabber->setMipLevel(static_cast<int>(std::min(log2(monitors[activeMonitorIndex]->width / WidthBuckets), log2(monitors[activeMonitorIndex]->height / HeightBuckets))));
+#else
+    QAndroidJniObject::callStaticMethod<void>("com/huestacean/Huestacean", "StartCapture");
 #endif
 }
+
+#if ANDROID
+extern "C" {
+JNIEXPORT void JNICALL
+Java_com_huestacean_Huestacean_handleFrame( JNIEnv* env, jobject thiz, jint Width, jint Height)
+{
+    huestaceanLock.lock();
+    if(huestaceanInstance == nullptr)
+    {
+        huestaceanLock.unlock();
+        return;
+    }
+
+    huestaceanInstance->androidHandleFrame(Width, Height);
+
+    huestaceanLock.unlock();
+}
+
+void Huestacean::androidHandleFrame(int Width, int Height)
+{
+    if(!syncing) return;
+
+    const int ScreenWidth = 16;
+    const int ScreenHeight = 9;
+
+    screenLock.lockForWrite();
+
+    auto& screen = screenSyncScreen.screen;
+    if (screen.size() != ScreenWidth * ScreenHeight)
+    {
+        screen.resize(ScreenWidth * ScreenHeight);
+        screenSyncScreen.width = ScreenWidth;
+        screenSyncScreen.height = ScreenHeight;
+    }
+    std::fill(screen.begin(), screen.end(), PixelBucket());
+
+    static QByteArray buf;
+    buf.resize(Width*Height*3);
+
+    const int RowPadding = 0;
+    const int Pixelstride = 4;
+
+    glReadPixels(0, 0, Width, Height, GL_RGBA, GL_UNSIGNED_BYTE, buf.data());
+
+    const char* src = buf.data();
+    for (int y = 0; y < Height; y += 1)
+    {
+        int screenY = static_cast<int>((static_cast<uint64_t>(y) * static_cast<uint64_t>(ScreenHeight)) / static_cast<uint64_t>(Height));
+
+        for (int x = 0; x < Width; x += 1)
+        {
+            const int screenX = static_cast<int>((static_cast<uint64_t>(x) * static_cast<uint64_t>(ScreenWidth)) / static_cast<uint64_t>(Width));
+            const int screenPos = screenY * screenSyncScreen.width + screenX;
+            screen[screenPos].R += (src[0]);
+            screen[screenPos].G += (src[1]);
+            screen[screenPos].B += (src[2]);
+            ++screen[screenPos].samples;
+            src += Pixelstride;
+        }
+    }
+
+    screenLock.unlock();
+
+    static QElapsedTimer timer;
+    frameReadElapsed = timer.restart();
+    emit frameReadElapsedChanged();
+}
+}
+#endif
 
 void Huestacean::isStreamingChanged(bool isStreaming)
 {
@@ -588,7 +680,7 @@ QImage ScreenSyncImageProvider::requestImage(const QString &id, QSize *size, con
     {
         for (int x = 0; x < screen.width; ++x)
         {
-            if (screen.screen[pixel].samples == 0) 
+            if (screen.screen[pixel].samples == 0)
             {
                 img.setPixelColor(QPoint(x, y), QColor());
             }
