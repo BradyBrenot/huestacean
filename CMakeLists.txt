@@ -46,6 +46,11 @@ set(LIBRARIES
    Qt5::Quick 
    screen_capture_lite
    mbedtls
+   pthread
+   X11
+   Xext
+   Xinerama
+   Xfixes
 )
 
 #screen_capture_lite additional requirements
