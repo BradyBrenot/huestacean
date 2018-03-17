@@ -4,11 +4,14 @@
 
 #include <QQmlApplicationEngine>
 #include <QElapsedTimer>
-#include <QAndroidJniObject>
 
 #include <algorithm>
 #include <cmath>
+
+#if ANDROID
+#include <QAndroidJniObject>
 #include <GLES2/gl2.h>
+#endif
 
 QNetworkAccessManager* qnam = nullptr;
 QMutex huestaceanLock;
