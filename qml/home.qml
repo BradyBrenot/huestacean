@@ -413,7 +413,7 @@ Pane {
 
 					Column {
 						Label {
-							text: "Center damping"
+							text: "Center slowness"
 						}
 
 						Slider {
@@ -435,7 +435,7 @@ Pane {
 
 					Column {
 						Label {
-							text: "Side damping"
+							text: "Side slowness"
 						}
 
 						Slider {
