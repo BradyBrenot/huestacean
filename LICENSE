@@ -199,12 +199,3 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-   
-   ====================================================================================
-   
-   Third-party licenses:
-   
-   Qt: lgpl-3.txt and gpl-3.txt
-   Qt third-party: Qt_ThirdPartySoftware_Listing.txt
-   screen_capture_lite: license-screen_capture_lite.txt
-   mbedtls and grafika: this license (Apache 2.0)
