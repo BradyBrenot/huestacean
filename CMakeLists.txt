@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.9)
 
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTORCC ON)
@@ -46,11 +50,6 @@ set(LIBRARIES
    Qt5::Quick 
    screen_capture_lite
    mbedtls
-   pthread
-   X11
-   Xext
-   Xinerama
-   Xfixes
 )
 
 #screen_capture_lite additional requirements
@@ -66,6 +65,15 @@ elseif(APPLE)
       ${LIBRARIES}
       ${corefoundation_lib}
       ${cocoa_lib}
+   )
+elseif(LINUX)
+	set(LIBRARIES
+      ${LIBRARIES}
+      pthread
+	  X11
+	  Xext
+	  Xinerama
+	  Xfixes
    )
 endif()
 
