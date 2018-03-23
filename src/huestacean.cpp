@@ -4,6 +4,7 @@
 
 #include <QQmlApplicationEngine>
 #include <QElapsedTimer>
+#include <QTimer>
 
 #include <algorithm>
 #include <cmath>
@@ -11,6 +12,10 @@
 #if ANDROID
 #include <QAndroidJniObject>
 #include <GLES2/gl2.h>
+#endif
+
+#if __APPLE__
+#include "mac/screencapture.h"
 #endif
 
 QNetworkAccessManager* qnam = nullptr;
@@ -54,6 +59,10 @@ Huestacean::Huestacean(QObject *parent)
     huestaceanLock.lock();
     huestaceanInstance = this;
     huestaceanLock.unlock();
+    
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SIGNAL(frameReadElapsedChanged()));
+    timer->start(500);
 }
 
 Huestacean::~Huestacean()
@@ -80,6 +89,10 @@ Huestacean::~Huestacean()
             }
         }
     }
+    
+#if __APPLE__
+    macScreenCapture::stop();
+#endif
 }
 
 int Huestacean::getMessageSendElapsed()
@@ -90,7 +103,7 @@ int Huestacean::getMessageSendElapsed()
 void Huestacean::setCaptureInterval(int interval)
 {
     captureInterval = interval;
-#if !ANDROID
+#if !ANDROID && !__APPLE__
     if (framegrabber)
     {
         framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
@@ -442,7 +455,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
     connect(streamingGroup, &EntertainmentGroup::isStreamingChanged, this, &Huestacean::isStreamingChanged);
     connect(streamingGroup, &EntertainmentGroup::destroyed, this, &Huestacean::streamingGroupDestroyed);
 
-#if !ANDROID
+#if !ANDROID && !__APPLE__
     int monitorId = monitors[activeMonitorIndex]->id;
 
     if (framegrabber)
@@ -512,7 +525,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         else
         {
             s = skip;
-        }            
+        }
 
         const unsigned char* src = SL::Screen_Capture::StartSrc(img);
         for (int y = 0; y < Height; y += 1 + s)
@@ -535,7 +548,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         screenLock.unlock();
 
         frameReadElapsed = timer.restart();
-        emit frameReadElapsedChanged();
+        //emit frameReadElapsedChanged();
 
     })->start_capturing();
 
@@ -543,8 +556,72 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
     framegrabber->setFrameChangeInterval(std::chrono::milliseconds(captureInterval));
     framegrabber->setMouseChangeInterval(std::chrono::milliseconds(100000));
     framegrabber->setMipLevel(static_cast<int>(std::min(log2(monitors[activeMonitorIndex]->width / WidthBuckets), log2(monitors[activeMonitorIndex]->height / HeightBuckets))));
-#else
+#elif ANDROID
     QAndroidJniObject::callStaticMethod<void>("com/huestacean/Huestacean", "StartCapture");
+#elif __APPLE__
+    int monitorId = monitors[activeMonitorIndex]->id;
+    macScreenCapture::start(monitorId, [&](void* srcV, int rowStride, int Width, int Height){
+        const int ScreenWidth = 16;
+        const int ScreenHeight = 9;
+        
+        screenLock.lockForWrite();
+        
+        auto& screen = screenSyncScreen.screen;
+        if (screen.size() != ScreenWidth * ScreenHeight)
+        {
+            screen.resize(ScreenWidth * ScreenHeight);
+            screenSyncScreen.width = ScreenWidth;
+            screenSyncScreen.height = ScreenHeight;
+        }
+        std::fill(screen.begin(), screen.end(), PixelBucket());
+        
+        const int Pixelstride = 4;
+        const int padding = rowStride - Pixelstride * Width;
+        
+        /*
+        for(int y = 0; y < ScreenHeight; y++)
+        {
+            for(int x = 0; x < ScreenWidth; x++)
+            {
+                unsigned const char* src = reinterpret_cast<unsigned const char*>(srcV) + rowStride*y*(Height/ScreenHeight) + Pixelstride*x*(Width/ScreenWidth);
+                const int screenPos = y * screenSyncScreen.width + x;
+                screen[screenPos].B += (src[0]);
+                screen[screenPos].G += (src[1]);
+                screen[screenPos].R += (src[2]);
+                ++screen[screenPos].samples;
+            }
+        }*/
+        
+        unsigned const char* src = reinterpret_cast<unsigned const char*>(srcV);
+        for (int y = 0; y < Height; y += 1)
+        {
+            int screenY = static_cast<int>((static_cast<uint64_t>(y) * static_cast<uint64_t>(ScreenHeight)) / static_cast<uint64_t>(Height));
+            
+            for (int x = 0; x < Width; x += 1)
+            {
+                const int screenX = static_cast<int>((static_cast<uint64_t>(x) * static_cast<uint64_t>(ScreenWidth)) / static_cast<uint64_t>(Width));
+                const int screenPos = screenY * screenSyncScreen.width + screenX;
+                screen[screenPos].B += (src[0]);
+                screen[screenPos].G += (src[1]);
+                screen[screenPos].R += (src[2]);
+                ++screen[screenPos].samples;
+                src += Pixelstride;
+                
+                //qDebug() << "R" << src[2];
+                //qDebug() << "G" << src[1];
+                //qDebug() << "B" << src[0];
+            }
+            
+            src += padding;
+        }
+        
+        static QElapsedTimer timer;
+        frameReadElapsed = timer.restart();
+        //emit frameReadElapsedChanged();
+        
+        screenLock.unlock();
+        
+    });
 #endif
 }
 
@@ -612,14 +689,14 @@ void Huestacean::androidHandleFrame(int Width, int Height)
 
     static QElapsedTimer timer;
     frameReadElapsed = timer.restart();
-    emit frameReadElapsedChanged();
+    //emit frameReadElapsedChanged();
 }
 }
 #endif
 
 void Huestacean::isStreamingChanged(bool isStreaming)
 {
-#if !ANDROID
+#if !ANDROID && !__APPLE__
     if (isStreaming)
     {
         if (framegrabber)
@@ -634,6 +711,10 @@ void Huestacean::isStreamingChanged(bool isStreaming)
             framegrabber->pause();
         }
     }
+#endif
+#if __APPLE__
+    if (!isStreaming)
+        macScreenCapture::stop();
 #endif
 
     syncing = isStreaming;
@@ -685,10 +766,17 @@ QImage ScreenSyncImageProvider::requestImage(const QString &id, QSize *size, con
         {
             if (screen.screen[pixel].samples == 0)
             {
-                img.setPixelColor(QPoint(x, y), QColor());
+                img.setPixelColor(QPoint(x, y), QColor(0, 0, 0));
             }
             else
             {
+                /*
+                qDebug() << screen.screen[pixel].samples;
+                qDebug() << "R" << screen.screen[pixel].R / screen.screen[pixel].samples;
+                qDebug() << "G" << screen.screen[pixel].G / screen.screen[pixel].samples;
+                qDebug() << "B" << screen.screen[pixel].B / screen.screen[pixel].samples;
+                 */
+                
                 img.setPixelColor(QPoint(x, y),
                     QColor(
                         screen.screen[pixel].R / screen.screen[pixel].samples,

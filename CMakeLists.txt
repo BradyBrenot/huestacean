@@ -41,8 +41,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_D
 add_subdirectory(screen_capture_lite)
 add_subdirectory(mbedtls)
 
-add_executable(huestacean WIN32 MACOSX_BUNDLE ${SOURCES} ${HEADERS} ${HEADERS_MOC} qml.qrc)
-
 set(LIBRARIES
    ${LIBRARIES}
    Qt5::Core
@@ -61,11 +59,28 @@ if(WIN32)
 elseif(APPLE)
    find_library(corefoundation_lib CoreFoundation)
    find_library(cocoa_lib Cocoa)
+   find_library(coremedia_lib CoreMedia)
+   find_library(avfoundation_lib AVFoundation)
+   find_library(coregraphics_lib CoreGraphics)
+   find_library(corevideo_lib CoreVideo)
+
    set(LIBRARIES
       ${LIBRARIES}
       ${corefoundation_lib}
       ${cocoa_lib}
+      ${coremedia_lib}
+      ${avfoundation_lib}
+      ${coregraphics_lib}
+      ${corevideo_lib}
    )
+    set(SOURCES
+        ${SOURCES}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/screencapture.mm
+    )
+    set(HEADERS
+        ${HEADERS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/mac/screencapture.h
+    )
 elseif(LINUX)
 	set(LIBRARIES
       ${LIBRARIES}
@@ -77,4 +92,5 @@ elseif(LINUX)
    )
 endif()
 
+add_executable(huestacean WIN32 MACOSX_BUNDLE ${SOURCES} ${HEADERS} ${HEADERS_MOC} qml.qrc)
 target_link_libraries(huestacean ${LIBRARIES})
