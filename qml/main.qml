@@ -11,6 +11,17 @@ ApplicationWindow {
 
     readonly property bool inPortrait: window.width < window.height
 
+	onActiveFocusItemChanged: print("activeFocusItem", activeFocusItem)
+
+	Shortcut {
+        sequences: ["Escape", "Menu"]
+		context: Qt.ApplicationShortcut
+        onActivated: {
+			print("f you")
+			drawer.forceActiveFocus()
+		}
+    }
+
     ToolBar {
         id: overlayHeader
         width: parent.width
@@ -53,13 +64,17 @@ ApplicationWindow {
         position: inPortrait ? 0 : 1
         visible: !inPortrait
 
+
         ListView {
             id: listView
             anchors.fill: parent
+			focus: true
+
+			KeyNavigation.right: stackView.currentItem
 
             model: ListModel {
-                ListElement { title: "Home"; source: "qrc:/qml/home.qml" }
-                //ListElement { title: "Bridges"; source: "qrc:/qml/bridges.qml" }
+				ListElement { title: "Bridges"; source: "qrc:/qml/bridges.qml" }
+                ListElement { title: "Screen Sync"; source: "qrc:/qml/screensync.qml" }
 				ListElement { title: "About"; source: "qrc:/qml/about.qml" }
             }
 
@@ -84,6 +99,9 @@ ApplicationWindow {
 	Flickable {
 		id: flick
 
+		KeyNavigation.up: overlayHeader
+		KeyNavigation.left: drawer
+		
 		anchors.fill: parent
 		anchors.topMargin: (inPortrait ? overlayHeader.height : 0)
 		anchors.leftMargin: !inPortrait ? drawer.width : undefined
@@ -101,7 +119,7 @@ ApplicationWindow {
 			topPadding: 20
 			bottomPadding: 20
 
-			initialItem: "qrc:/qml/home.qml"
+			initialItem: "qrc:/qml/bridges.qml"
 		}
 
 		ScrollBar.vertical: ScrollBar { 

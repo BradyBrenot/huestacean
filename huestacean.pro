@@ -66,12 +66,36 @@ INCLUDEPATH += include
 #mbedtls
 INCLUDEPATH += C:/hueproj/huestacean/mbedtls/include
 
-CONFIG(debug, debug|release) {
-    LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/armeabi-v7a/library -lmbedtls -lmbedx509 -lmbedcrypto
+equals(ANDROID_TARGET_ARCH, armeabi-v7a) {
+    CONFIG(debug, debug|release) {
+        LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/armeabi-v7a/library -lmbedtls -lmbedx509 -lmbedcrypto
+    }
+
+    CONFIG(release, debug|release) {
+        LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/armeabi-v7a/library -lmbedtls -lmbedx509 -lmbedcrypto
+    }
 }
 
-CONFIG(release, debug|release) {
-    LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/armeabi-v7a/library -lmbedtls -lmbedx509 -lmbedcrypto
+equals(ANDROID_TARGET_ARCH, armeabi-v7a) {
+    CONFIG(debug, debug|release) {
+        LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/armeabi/library -lmbedtls -lmbedx509 -lmbedcrypto
+    }
+
+    CONFIG(release, debug|release) {
+        LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/armeabi/library -lmbedtls -lmbedx509 -lmbedcrypto
+    }
 }
+
+equals(ANDROID_TARGET_ARCH, x86) {
+    CONFIG(debug, debug|release) {
+        LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/x86/library -lmbedtls -lmbedx509 -lmbedcrypto
+    }
+
+    CONFIG(release, debug|release) {
+        LIBS += -LC:/Users/Brady/AndroidStudioProjects/MyApplication/mbedtls/.externalNativeBuild/cmake/debug/x86/library -lmbedtls -lmbedx509 -lmbedcrypto
+    }
+}
+
+
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
