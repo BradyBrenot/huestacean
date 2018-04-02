@@ -80,3 +80,10 @@ moc_*
 x64
 out
 build
+
+# Android
+android/local.properties
+android/gradle.properties
+
+# Docs
+docs/_site/*
