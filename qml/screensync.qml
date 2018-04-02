@@ -1,3 +1,4 @@
+import QtQml 2.2
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
@@ -60,11 +61,11 @@ Pane {
 						source: "image://entimage/ent"
 							
 						Layout.fillWidth: true
-						Layout.maximumWidth: 400
-						Layout.maximumHeight: 225
+                        Layout.maximumWidth: Qt.platform.os == "android" ? 200 : 400
+                        Layout.maximumHeight: Qt.platform.os == "android" ? 110 : 225
 
-						Layout.preferredWidth: 400
-						Layout.preferredHeight: 225
+                        Layout.preferredWidth: Qt.platform.os == "android" ? 200 : 400
+                        Layout.preferredHeight: Qt.platform.os == "android" ? 110 : 225
 
 						cache: false
 						smooth: false
@@ -142,15 +143,16 @@ Pane {
 
 					Rectangle {
 						color: "black"
-						height: 220; 
-						width: 220; 
+                        height: Qt.platform.os == "android" ? 110 : 220;
+                        width: Qt.platform.os == "android" ? 110 : 220;
 						border.width: 1
 						border.color: "#414141"
 
 						Image { 
 							anchors.centerIn: parent
 							id: groupImage
-							height: 200; width: 200; 
+                            height: Qt.platform.os == "android" ? 100 : 200;
+                            width: Qt.platform.os == "android" ? 100 : 200;
 							source: "qrc:/images/egroup-xy.png"
 						}
 					}						

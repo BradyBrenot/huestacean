@@ -9,6 +9,9 @@
 #include <algorithm>
 #include <cmath>
 
+#include <QKeyEvent>
+#include <QCoreApplication>
+
 #if ANDROID
 #include <QAndroidJniObject>
 #include <GLES2/gl2.h>
@@ -93,6 +96,18 @@ Huestacean::~Huestacean()
 #if __APPLE__
     macScreenCapture::stop();
 #endif
+}
+void Huestacean::pressedEnter()
+{
+	extern QQmlApplicationEngine* engine;
+	QObject* rootObject = engine->rootObjects().first();
+	QObject* qmlObject = rootObject->findChild<QObject*>("window");
+
+	QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier);
+	QCoreApplication::postEvent(rootObject, event);
+
+	event = new QKeyEvent(QEvent::KeyRelease, Qt::Key_Space, Qt::NoModifier);
+	QCoreApplication::postEvent(rootObject, event);
 }
 
 int Huestacean::getMessageSendElapsed()

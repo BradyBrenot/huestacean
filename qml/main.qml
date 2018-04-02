@@ -1,6 +1,7 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.2
+import Huestacean 1.0
 
 ApplicationWindow {
     id: window
@@ -17,8 +18,14 @@ ApplicationWindow {
         sequences: ["Escape", "Menu"]
 		context: Qt.ApplicationShortcut
         onActivated: {
-			print("f you")
 			drawer.forceActiveFocus()
+		}
+    }
+	Shortcut {
+        sequences: ["Enter", "Return"]
+		context: Qt.ApplicationShortcut
+        onActivated: {
+			Huestacean.pressedEnter()
 		}
     }
 

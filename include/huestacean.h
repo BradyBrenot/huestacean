@@ -148,6 +148,8 @@ public:
     explicit Huestacean(QObject *parent = nullptr);
     virtual ~Huestacean();
 
+	Q_INVOKABLE void pressedEnter();
+
     BridgeDiscovery* getBridgeDiscovery() {
         return bridgeDiscovery;
     }
