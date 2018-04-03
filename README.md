@@ -37,6 +37,9 @@ Download the latest from [releases](https://github.com/BradyBrenot/huestacean/re
 ### macOS
 Download the .app from [releases](https://github.com/BradyBrenot/huestacean/releases) and run it. So far it's only been tested on 10.11.6 on an old Macbook Pro.
 
+### Linux
+Build from source.  See relevant section under Building.
+
 ## Reporting bugs
 Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
 
@@ -102,7 +105,7 @@ or set Huestacean as the startup target and start debugging.
 C:\Qt\Qt5.10.0\5.10.0\msvc2017_64\bin\windeployqt.exe huestacean.exe -qmldir=../../qml
 ```
 
-### Linux, Mac
+### Mac
 Set the `CMAKE_PREFIX_PATH` environment variable to point to your Qt install directory. For Mac, this could look like:
 ```
 export CMAKE_PREFIX_PATH=~/Qt/5.10.0/clang_64/lib/cmake
@@ -120,6 +123,26 @@ Use `macdeployqt` to copy in the necessary Frameworks and other files.
 ```
 ~/Qt/5.10.0/clang_64/bin/macdeployqt huestacean.app -qmldir=../qml
 ```
+
+### Linux
+1. Make sure you have Qt5 and cmake installed.  If not, use your package manager to install them, e.g. `yum install cmake` or `pacman -S cmake`
+2. Clone the Huestacean project and make sure all submodules are up to date.
+```
+git clone --recursive git://github.com/BradyBrenot/huestacean.git
+cd huestacean
+# The next two lines should only be necessary if you've previously cloned
+# without the submodules, or you've synced before one of their paths changed
+git submodule sync
+git submodule update --init --recursive
+```
+3. Use cmake to build Huestacean.
+```
+mkdir build
+cd build
+cmake ..
+make huestacean
+```
+Run Huestacean and enjoy!  (`.../huestacean/build/huestacean`)
 
 ## External libraries
 This project is using:
