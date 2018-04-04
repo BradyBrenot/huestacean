@@ -229,51 +229,87 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
             return false;
         }
 
-        //Remove the least-saturated 25% of colors
-        for (xySample& sample : xySamples)
-        {
-            sample.err = std::pow(D65_x - sample.x, 2.0) + std::pow(D65_y - sample.y, 2.0);
-        }
-        std::sort(xySamples.begin(), xySamples.end(), [](const xySample & a, const xySample & b) -> bool {
-            return a.err > b.err;
-        });
-        xySamples.resize(xySamples.size() * (3.0 / 4.0));
+		auto& chromaSamples = xySamples;
+		auto lumaSamples = xySamples;
+
+		//Filter chroma samples
+		{
+			//Remove the least-saturated 25% of colors
+			for (xySample& sample : chromaSamples)
+			{
+				sample.err = std::pow(D65_x - sample.x, 2.0) + std::pow(D65_y - sample.y, 2.0);
+			}
+			std::sort(chromaSamples.begin(), chromaSamples.end(), [](const xySample & a, const xySample & b) -> bool {
+				return a.l < 0.05 ? a.l > b.l : a.err > b.err;
+			});
+
+			//Iterate through samples until we find the first very unsaturated or very dim one, or we reach 75%. Trim the remaining
+			int i;
+			for (i = 0; i < chromaSamples.size(); ++i)
+			{
+				if (chromaSamples[i].l < 0.05 || chromaSamples[i].err < 0.01)
+				{
+					break;
+				}
+			}
+
+			size_t maxLeft = chromaSamples.size() * (3.0 / 4.0);
+			size_t minLeft = chromaSamples.size() * (1.0 / 4.0);
+			size_t finalSize = std::max(std::min(chromaSamples.size() - i, maxLeft), minLeft);
+
+			chromaSamples.resize(finalSize);
+		}
+
+		//Filter luma samples
+		{
+			//Remove the least-bright 75% of colors
+			std::sort(lumaSamples.begin(), lumaSamples.end(), [](const xySample & a, const xySample & b) -> bool {
+				return a.l > b.l;
+			});
+			
+
+			//Iterate through samples until we find the first very unsaturated or very dim one, or we reach 75%. Trim the remaining
+			int i;
+			for (i = 0; i < lumaSamples.size(); ++i)
+			{
+				if (lumaSamples[i].l < 0.05)
+				{
+					break;
+				}
+			}
+
+			size_t maxLeft = lumaSamples.size() * (3.0 / 4.0);
+			size_t minLeft = lumaSamples.size() * (1.0 / 4.0);
+			size_t finalSize = std::max(std::min(lumaSamples.size() - i, maxLeft), minLeft);
+
+			lumaSamples.resize(finalSize);
+		}
 
         //Determine the mean of the colors
-        auto getMean = [&xySamples](xySample& mean)
+        auto getMean = [&chromaSamples, &lumaSamples](xySample& mean)
         {
             mean.x = 0;
             mean.y = 0;
             mean.l = 0;
 
-            for (const xySample& sample : xySamples)
-            {
-                mean.x += sample.x;
-                mean.y += sample.y;
+			for (const xySample& sample : chromaSamples)
+			{
+				mean.x += sample.x;
+				mean.y += sample.y;
+			}
+			for (const xySample& sample : lumaSamples)
+			{
                 mean.l += sample.l;
             }
 
-            mean.x /= (double)xySamples.size();
-            mean.y /= (double)xySamples.size();
-            mean.l /= (double)xySamples.size();
+            mean.x /= (double)chromaSamples.size();
+            mean.y /= (double)chromaSamples.size();
+            mean.l /= (double)lumaSamples.size();
         };
 
-        xySample mean;
-
-#if 0
+		xySample mean;
         getMean(mean);
-        //Cut out the most-outlying 25% of colors, then figure out the mean again
-        for (xySample& sample : xySamples)
-        {
-            sample.err = std::pow(mean.x - sample.x, 2.0) + std::pow(mean.y - sample.y, 2.0) + std::pow(mean.l - sample.l, 2.0);
-        }
-        std::sort(xySamples.begin(), xySamples.end(), [](const xySample & a, const xySample & b) -> bool {
-            return a.err < b.err;
-        });
-        xySamples.resize(xySamples.size() * (3.0 / 4.0));
-#endif
 
-        getMean(mean);
         X = mean.x;
         Y = mean.y;
         L = mean.l;
@@ -478,8 +514,9 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         framegrabber.reset();
     }
 
-    const int WidthBuckets = 16;
-    const int HeightBuckets = 9;
+	const int ResMultiplier = 1;
+    const int WidthBuckets = 16 * ResMultiplier;
+    const int HeightBuckets = 9 * ResMultiplier;
 
     framegrabber = SL::Screen_Capture::CreateCaptureConfiguration([monitorId]() {
         auto allMonitors = SL::Screen_Capture::GetMonitors();
@@ -495,7 +532,7 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         }
         
         return chosenMonitor;
-    })->onNewFrame([&](const SL::Screen_Capture::Image& img, const SL::Screen_Capture::Monitor& monitor) {
+    })->onNewFrame([&, WidthBuckets, HeightBuckets](const SL::Screen_Capture::Image& img, const SL::Screen_Capture::Monitor& monitor) {
         Q_UNUSED(monitor);
 
         static QElapsedTimer timer;
@@ -506,8 +543,8 @@ void Huestacean::runSync(EntertainmentGroup* eGroup)
         const int RowPadding = SL::Screen_Capture::RowPadding(img);
         const int Pixelstride = img.Pixelstride;
 
-        const int ScreenWidth = 16;
-        const int ScreenHeight = 9;
+        const int ScreenWidth = WidthBuckets;
+        const int ScreenHeight = HeightBuckets;
 
         //const int numPixels = Height * Width;
 
