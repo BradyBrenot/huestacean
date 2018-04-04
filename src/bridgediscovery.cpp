@@ -154,14 +154,11 @@ void BridgeDiscovery::saveBridges()
 
 void BridgeDiscovery::tryDescribeBridge(QString ipAddress)
 {
-    qDebug() << "addBridgeByIp" << ipAddress;
-
     //See if bridge already added
     foreach(HueBridge* bridge, bridges)
     {
         if (bridge->address == QHostAddress(ipAddress))
         {
-            qDebug() << "already have that bridge, don't readd";
             return;
         }
     }

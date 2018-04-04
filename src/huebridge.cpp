@@ -103,8 +103,6 @@ void HueBridge::replied(QNetworkReply *reply)
     {
         QByteArray data = reply->readAll();
 
-        qDebug() << "We got: \n" << QString::fromUtf8(data.data());
-
         QJsonDocument replyJson = QJsonDocument::fromJson(data);
         if (!replyJson.isArray() || replyJson.array().size() == 0)
         {
@@ -149,7 +147,6 @@ void HueBridge::replied(QNetworkReply *reply)
         else
         {
             setMessage("Connected! Reused old connection!");
-            qDebug() << "Reply" << replyJson;
             friendlyName = replyJson.object()["name"].toString();
             setConnected(true);
         }
@@ -202,10 +199,9 @@ void HueBridge::replied(QNetworkReply *reply)
     }
     else
     {
-        qCritical() << "Received reply to unknown request" << reply->request().url();
+        qWarning() << "Received reply to unknown request" << reply->request().url();
 
         QByteArray data = reply->readAll();
         QJsonDocument replyJson = QJsonDocument::fromJson(data);
-        qDebug().noquote() << replyJson.toJson(QJsonDocument::Indented);
     }
 }
