@@ -229,7 +229,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 		//Filter chroma samples
 		{
 			//Remove the least-saturated 25% of colors
-			std::sort(chromaSamples.begin(), chromaSamples.end(), [](const LChSample & a, const LChSample & b) -> bool {
+			std::sort(chromaSamples.begin(), chromaSamples.end(), [&CHROMA_L_CUTOFF](const LChSample & a, const LChSample & b) -> bool {
 				return a.L < CHROMA_L_CUTOFF ? a.L > b.L : a.C > b.C;
 			});
 
@@ -276,7 +276,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 		}
 
         //Determine the mean of the colors
-        auto getMean = [&chromaSamples, &lumaSamples](LChSample& mean)
+        auto getMean = [&chromaSamples, &lumaSamples, &CHROMA_L_CUTOFF](LChSample& mean)
         {
             mean.L = 0;
             mean.C = 0;
