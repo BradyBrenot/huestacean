@@ -150,12 +150,12 @@ void Huestacean::detectMonitors()
     emit monitorsChanged();
 }
 
-struct xySample
+//A color sample in CIE L*C*h°
+struct LChSample
 {
-    double x;
-    double y;
-    double l; //aka "Y", the perceived brightness
-    double err;
+    double L; //L*, the lightness
+    double C; //C*, the chromaticity / "saturation"
+    double h; //h°, the hue
 };
 
 void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
@@ -169,7 +169,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
     emit syncingChanged();
 
     runSync(eGroup);
-    eGroup->startStreaming([&](const EntertainmentLight& light, double oldX, double oldY, double oldL, double& X, double& Y, double& L)->bool {
+    eGroup->startStreaming([&](const EntertainmentLight& light, double oldx, double oldy, double oldY, double& x, double& y, double& Y)->bool {
 
         screenLock.lockForRead();
 
@@ -188,7 +188,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
         const int minY = round((std::max(light.z - height, -1.0) + 1.0) * screenSyncScreen.height / 2.0);
         const int maxY = round((std::min(light.z + height, 1.0) + 1.0) * screenSyncScreen.height / 2.0);
 
-        std::vector<xySample> xySamples((maxY-minY)*(maxX-minX));
+        std::vector<LChSample> LChSamples((maxY-minY)*(maxX-minX));
 
         qint64 samples = 0;
 
@@ -197,7 +197,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
             int rowOffset = y * screenSyncScreen.width;
             for (int x = minX; x < maxX; ++x)
             {
-                xySample& sample = xySamples[(y - minY) * (maxX - minX) + (x - minX)];
+				LChSample& sample = LChSamples[(y - minY) * (maxX - minX) + (x - minX)];
 
                 double dR = (double)screenSyncScreen.screen[rowOffset + x].R / screenSyncScreen.screen[rowOffset + x].samples / 255.0;
                 double dG = (double)screenSyncScreen.screen[rowOffset + x].G / screenSyncScreen.screen[rowOffset + x].samples / 255.0;
@@ -205,16 +205,10 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
                 samples += screenSyncScreen.screen[rowOffset + x].samples;
 
-                Color::rgb_to_xy(dR, dG, dB, X, Y, L);
+				double X, Y, Z;
 
-                if (dR == 0.0 && dG == 0.0 && dB == 0.0) {
-                    X = Color::D65_x;
-                    Y = Color::D65_y;
-                }
-
-                sample.x = X;
-                sample.y = Y;
-                sample.l = L;
+				Color::rgb_to_XYZ(dR, dG, dB, X, Y, Z);
+				Color::XYZ_to_LCh(X, Y, Z, sample.L, sample.C, sample.h);
             }
         }
 
@@ -226,25 +220,24 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
             return false;
         }
 
-		auto& chromaSamples = xySamples;
-		auto lumaSamples = xySamples;
+		auto& chromaSamples = LChSamples;
+		auto lumaSamples = LChSamples;
+
+		constexpr double CHROMA_L_CUTOFF = 0.05;
+		constexpr double CHROMA_C_CUTOFF = 0.01;
 
 		//Filter chroma samples
 		{
 			//Remove the least-saturated 25% of colors
-			for (xySample& sample : chromaSamples)
-			{
-				sample.err = std::pow(Color::D65_x - sample.x, 2.0) + std::pow(Color::D65_y - sample.y, 2.0);
-			}
-			std::sort(chromaSamples.begin(), chromaSamples.end(), [](const xySample & a, const xySample & b) -> bool {
-				return a.l < 0.05 ? a.l > b.l : a.err > b.err;
+			std::sort(chromaSamples.begin(), chromaSamples.end(), [](const LChSample & a, const LChSample & b) -> bool {
+				return a.L < CHROMA_L_CUTOFF ? a.L > b.L : a.C > b.C;
 			});
 
 			//Iterate through samples until we find the first very unsaturated or very dim one, or we reach 75%. Trim the remaining
 			int i;
 			for (i = 0; i < chromaSamples.size(); ++i)
 			{
-				if (chromaSamples[i].l < 0.05 || chromaSamples[i].err < 0.01)
+				if (chromaSamples[i].L < CHROMA_L_CUTOFF || chromaSamples[i].C < CHROMA_C_CUTOFF)
 				{
 					break;
 				}
@@ -260,16 +253,16 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 		//Filter luma samples
 		{
 			//Remove the least-bright 75% of colors
-			std::sort(lumaSamples.begin(), lumaSamples.end(), [](const xySample & a, const xySample & b) -> bool {
-				return a.l > b.l;
+			std::sort(lumaSamples.begin(), lumaSamples.end(), [](const LChSample & a, const LChSample & b) -> bool {
+				return a.L > b.L;
 			});
 			
 
-			//Iterate through samples until we find the first very unsaturated or very dim one, or we reach 75%. Trim the remaining
+			//Iterate through samples until we find the first very dim one, or we reach 75%. Trim the remaining
 			int i;
 			for (i = 0; i < lumaSamples.size(); ++i)
 			{
-				if (lumaSamples[i].l < 0.05)
+				if (lumaSamples[i].L < 0.05)
 				{
 					break;
 				}
@@ -283,112 +276,51 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 		}
 
         //Determine the mean of the colors
-        auto getMean = [&chromaSamples, &lumaSamples](xySample& mean)
+        auto getMean = [&chromaSamples, &lumaSamples](LChSample& mean)
         {
-            mean.x = 0;
-            mean.y = 0;
-            mean.l = 0;
+            mean.L = 0;
+            mean.C = 0;
+            mean.h = 0;
 
-			for (const xySample& sample : chromaSamples)
+			for (const LChSample& sample : lumaSamples)
 			{
-				mean.x += sample.x;
-				mean.y += sample.y;
+				mean.L += sample.L;
 			}
-			for (const xySample& sample : lumaSamples)
-			{
-                mean.l += sample.l;
-            }
 
-            mean.x /= (double)chromaSamples.size();
-            mean.y /= (double)chromaSamples.size();
-            mean.l /= (double)lumaSamples.size();
+			double a = 0;
+			double b = 0;
+			for (const LChSample& sample : chromaSamples)
+			{
+				//very dim samples should just be treated as 0 chromaticity,
+				//otherwise we end up with weird color casts on dim colors
+				if(sample.L > CHROMA_L_CUTOFF)
+					mean.C += sample.C;
+
+				a += sin(sample.h);
+				b += cos(sample.h);
+			}
+
+            mean.L /= (double)lumaSamples.size();
+            mean.C /= (double)chromaSamples.size();
+			mean.h = atan2(a, b);
         };
 
-		xySample mean;
+		LChSample mean;
         getMean(mean);
 
-        X = mean.x;
-        Y = mean.y;
-        L = mean.l;
+		mean.C *= getChromaBoost();
 
-        //Boost 'saturation' by boosting distance from D65... in a stupid way but what'll you do?
-        double chromaBoost = getChromaBoost();
-        if (chromaBoost > 1.00001)
-        {
-            double dist = std::sqrt(std::pow(X - Color::D65_x, 2.0) + std::pow(Y - Color::D65_y, 2.0));
+		double X, Z;
+		Color::LCh_to_XYZ(mean.L, mean.C, mean.h, X, Y, Z);
+		Color::XYZ_to_xy(X, Y, Z, x, y);
 
-            //if brightness is too low and we're very desaturated, use last chroma
-            if (L < 0.1 && dist < 0.1)
-            {
-                X = oldX;
-                Y = oldY;
-                dist = std::sqrt(std::pow(X - Color::D65_x, 2.0) + std::pow(Y - Color::D65_y, 2.0));
-            }
-
-            double boostDist = std::pow(dist, 1.0 / chromaBoost);
-            double diffX = (X - Color::D65_x);
-            double diffY = (Y - Color::D65_y);
-            double unitX = diffX == 0.0 ? 0.0 : diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
-            double unitY = diffY == 0.0 ? 0.0 : diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
-
-            double boostX = Color::D65_x + unitX * boostDist;
-            double boostY = Color::D65_y + unitY * boostDist;
-
-            double bestDist = 0;
-            double testDist;
-
-            if (boostX < 0 || boostX > 1.0 || boostY < 0 || boostY > 1.0)
-            {
-                if (unitX > 0.0)
-                {
-                    testDist = (1.0 - Color::D65_x) / unitX;
-                    if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
-                    {
-                        bestDist = std::max(bestDist, testDist);
-                    }
-                }
-                else
-                {
-                    testDist = (-Color::D65_x) / unitX;
-                    if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
-                    {
-                        bestDist = std::max(bestDist, testDist);
-                    }
-                }
-
-                if (unitY > 0.0)
-                {
-                    testDist = (1.0 - Color::D65_y) / unitY;
-                    if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
-                    {
-                        bestDist = std::max(bestDist, testDist);
-                    }
-                }
-                else
-                {
-                    testDist = (-Color::D65_y) / unitY;
-                    if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
-                    {
-                        bestDist = std::max(bestDist, testDist);
-                    }
-                }
-
-                boostDist = bestDist;
-                boostX = Color::D65_x + unitX * boostDist;
-                boostY = Color::D65_y + unitY * boostDist;
-            }
-
-            X = boostX;
-            Y = boostY;
-        }
-
-        L = L * (getMaxLuminance() - getMinLuminance()) + getMinLuminance();
+        Y = Y * (getMaxLuminance() - getMinLuminance()) + getMinLuminance();
 
         double slowness = Utility::lerp(getCenterSlowness(), getSideSlowness(), std::abs(light.x));
 
-        X = (oldX * (slowness - 1.0) + X) / slowness;
+        x = (oldx * (slowness - 1.0) + x) / slowness;
+        y = (oldy * (slowness - 1.0) + y) / slowness;
         Y = (oldY * (slowness - 1.0) + Y) / slowness;
-        L = (oldL * (slowness - 1.0) + L) / slowness;
 
         return true;
     });

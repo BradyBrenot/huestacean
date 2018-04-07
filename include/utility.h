@@ -10,7 +10,7 @@ namespace Color
 
 	//Convert RGB to CIE XYZ, optionally performing gamma correction.
 	//Using formulas from Philips Hue documentation.
-	template<bool doGammaCorrection = false>
+	template<bool doGammaCorrection = true>
 	void rgb_to_XYZ(double& r, double& g, double& b, double& X, double& Y, double& Z)
 	{
 		double R, G, B;
@@ -47,7 +47,7 @@ namespace Color
 	void XYZ_to_xy(double& X, double& Y, double& Z, double& x, double& y);
 
 	//Convert RGB straight to CIE xyY
-	void rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& brightness);
+	void rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& Y);
 
 	//
 	// Color constants

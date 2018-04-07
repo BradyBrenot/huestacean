@@ -24,7 +24,7 @@ void Color::XYZ_to_LCh(double& X, double& Y, double& Z, double& L, double& C, do
 	b = 200.0 * (f(Y / D65_Yn) - f(Z / D65_Zn));
 
 	C = sqrt(pow(a, 2) + pow(b, 2));
-	h = atan(b / a);
+	h = atan2(b, a);
 }
 
 void Color::LCh_to_XYZ(double& L, double& C, double& h, double& X, double& Y, double& Z)
@@ -51,13 +51,21 @@ void Color::LCh_to_XYZ(double& L, double& C, double& h, double& X, double& Y, do
 
 void Color::XYZ_to_xy(double& X, double& Y, double& Z, double& x, double& y)
 {
-	x = X / (X + Y + Z);
-	y = Y / (X + Y + Z);
+	if (X + Y + Z == 0)
+	{
+		x = D65_x;
+		y = D65_y;
+	}
+	else
+	{
+		x = X / (X + Y + Z);
+		y = Y / (X + Y + Z);
+	}
 }
 
-void Color::rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& brightness)
+void Color::rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& Y)
 {
-	double X, Y, Z;
+	double X, Z;
 
 	rgb_to_XYZ<true>(r, g, b, X, Y, Z);
 	XYZ_to_xy(X, Y, Z, x, y);
