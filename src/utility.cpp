@@ -3,24 +3,62 @@
 #include <algorithm>
 #include <cmath>
 
-/*
- * Color conversion per Hue docs, _except_ for brightness.
- * Apparent brightness (Y) seems to generally be too dim.
- */
-void Utility::rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& brightness)
+void Color::XYZ_to_LCh(double& X, double& Y, double& Z, double& L, double& C, double& h)
 {
-    brightness = std::max(std::max(r, g), b);
+	//Intermediate coordinates (a* and b* of L*a*b*)
+	double a, b;
 
-    r = (r > 0.04045f) ? pow((r + 0.055f) / (1.0f + 0.055f), 2.4f) : (r / 12.92f);
-    g = (g > 0.04045f) ? pow((g + 0.055f) / (1.0f + 0.055f), 2.4f) : (g / 12.92f);
-    b = (b > 0.04045f) ? pow((b + 0.055f) / (1.0f + 0.055f), 2.4f) : (b / 12.92f);
+	auto f = [&](double t) -> double {
+		constexpr double δ = 6.0 / 29.0;
+		constexpr double δcubed = δ*δ*δ;
 
-    double X = r * 0.664511f + g * 0.154324f + b * 0.162028f;
-    double Y = r * 0.283881f + g * 0.668433f + b * 0.047685f;
-    double Z = r * 0.000088f + g * 0.072310f + b * 0.986039f;
+		if (t > δcubed)	{
+			return cbrt(t);
+		}
+		
+		return (t / (3.0 * pow(δ, 2))) + (4.0 / 29.0);
+	};
 
-    x = X / (X + Y + Z);
-    y = Y / (X + Y + Z);
+	L = 116.0 * f(Y / D65_Yn) - 16.0;
+	a = 500.0 * (f(X / D65_Xn) - f(Y / D65_Yn));
+	b = 200.0 * (f(Y / D65_Yn) - f(Z / D65_Zn));
 
-    //brightness = Y;
+	C = sqrt(pow(a, 2) + pow(b, 2));
+	h = atan(b / a);
+}
+
+void Color::LCh_to_XYZ(double& L, double& C, double& h, double& X, double& Y, double& Z)
+{
+	//Intermediate coordinates (a* and b* of L*a*b*)
+	double a, b;
+
+	auto f = [&](double t) -> double {
+		constexpr double δ = 6.0 / 29.0;
+		if (t > δ) {
+			return pow(t, 3);
+		}
+
+		return 3 * pow(δ, 2) * (t - 4.0 / 29.0);
+	};
+
+	a = C * cos(h);
+	b = C * sin(h);
+
+	X = D65_Xn * f((L + 16.0) / 116.0 + a / 500.0);
+	Y = D65_Yn * f((L + 16.0) / 116.0);
+	Z = D65_Zn * f((L + 16.0) / 116.0 - b / 200.0);
+}
+
+void Color::XYZ_to_xy(double& X, double& Y, double& Z, double& x, double& y)
+{
+	x = X / (X + Y + Z);
+	y = Y / (X + Y + Z);
+}
+
+void Color::rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& brightness)
+{
+	double X, Y, Z;
+
+	rgb_to_XYZ<true>(r, g, b, X, Y, Z);
+	XYZ_to_xy(X, Y, Z, x, y);
 }

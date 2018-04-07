@@ -165,9 +165,6 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
         return;
     }
 
-    static const double D65_x = 0.3128;
-    static const double D65_y = 0.3290;
-
     syncing = true;
     emit syncingChanged();
 
@@ -208,11 +205,11 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
                 samples += screenSyncScreen.screen[rowOffset + x].samples;
 
-                Utility::rgb_to_xy(dR, dG, dB, X, Y, L);
+                Color::rgb_to_xy(dR, dG, dB, X, Y, L);
 
                 if (dR == 0.0 && dG == 0.0 && dB == 0.0) {
-                    X = D65_x;
-                    Y = D65_y;
+                    X = Color::D65_x;
+                    Y = Color::D65_y;
                 }
 
                 sample.x = X;
@@ -237,7 +234,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 			//Remove the least-saturated 25% of colors
 			for (xySample& sample : chromaSamples)
 			{
-				sample.err = std::pow(D65_x - sample.x, 2.0) + std::pow(D65_y - sample.y, 2.0);
+				sample.err = std::pow(Color::D65_x - sample.x, 2.0) + std::pow(Color::D65_y - sample.y, 2.0);
 			}
 			std::sort(chromaSamples.begin(), chromaSamples.end(), [](const xySample & a, const xySample & b) -> bool {
 				return a.l < 0.05 ? a.l > b.l : a.err > b.err;
@@ -318,24 +315,24 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
         double chromaBoost = getChromaBoost();
         if (chromaBoost > 1.00001)
         {
-            double dist = std::sqrt(std::pow(X - D65_x, 2.0) + std::pow(Y - D65_y, 2.0));
+            double dist = std::sqrt(std::pow(X - Color::D65_x, 2.0) + std::pow(Y - Color::D65_y, 2.0));
 
             //if brightness is too low and we're very desaturated, use last chroma
             if (L < 0.1 && dist < 0.1)
             {
                 X = oldX;
                 Y = oldY;
-                dist = std::sqrt(std::pow(X - D65_x, 2.0) + std::pow(Y - D65_y, 2.0));
+                dist = std::sqrt(std::pow(X - Color::D65_x, 2.0) + std::pow(Y - Color::D65_y, 2.0));
             }
 
             double boostDist = std::pow(dist, 1.0 / chromaBoost);
-            double diffX = (X - D65_x);
-            double diffY = (Y - D65_y);
+            double diffX = (X - Color::D65_x);
+            double diffY = (Y - Color::D65_y);
             double unitX = diffX == 0.0 ? 0.0 : diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
             double unitY = diffY == 0.0 ? 0.0 : diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
 
-            double boostX = D65_x + unitX * boostDist;
-            double boostY = D65_y + unitY * boostDist;
+            double boostX = Color::D65_x + unitX * boostDist;
+            double boostY = Color::D65_y + unitY * boostDist;
 
             double bestDist = 0;
             double testDist;
@@ -344,16 +341,16 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
             {
                 if (unitX > 0.0)
                 {
-                    testDist = (1.0 - D65_x) / unitX;
-                    if (D65_y + testDist * unitY <= 1.0 && D65_y + testDist * unitY >= 0.0)
+                    testDist = (1.0 - Color::D65_x) / unitX;
+                    if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
                     {
                         bestDist = std::max(bestDist, testDist);
                     }
                 }
                 else
                 {
-                    testDist = (-D65_x) / unitX;
-                    if (D65_y + testDist * unitY <= 1.0 && D65_y + testDist * unitY >= 0.0)
+                    testDist = (-Color::D65_x) / unitX;
+                    if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
                     {
                         bestDist = std::max(bestDist, testDist);
                     }
@@ -361,24 +358,24 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
                 if (unitY > 0.0)
                 {
-                    testDist = (1.0 - D65_y) / unitY;
-                    if (D65_x + testDist * unitX <= 1.0 && D65_x + testDist * unitX >= 0.0)
+                    testDist = (1.0 - Color::D65_y) / unitY;
+                    if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
                     {
                         bestDist = std::max(bestDist, testDist);
                     }
                 }
                 else
                 {
-                    testDist = (-D65_y) / unitY;
-                    if (D65_x + testDist * unitX <= 1.0 && D65_x + testDist * unitX >= 0.0)
+                    testDist = (-Color::D65_y) / unitY;
+                    if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
                     {
                         bestDist = std::max(bestDist, testDist);
                     }
                 }
 
                 boostDist = bestDist;
-                boostX = D65_x + unitX * boostDist;
-                boostY = D65_y + unitY * boostDist;
+                boostX = Color::D65_x + unitX * boostDist;
+                boostY = Color::D65_y + unitY * boostDist;
             }
 
             X = boostX;
