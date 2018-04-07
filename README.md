@@ -28,6 +28,8 @@ For the best experience, I'd suggest using or more lights behind or to the side 
 ### Windows
 Only (64-bit) Windows 8 and 10 are fully supported as the application uses the [IDXGIOutputDuplication](https://msdn.microsoft.com/en-us/library/windows/desktop/hh404611(v=vs.85).aspx) API which is only available from Windows 8 onwards. This allows the application to capture almost anything, including fullscreen games, with extremely high performance. If someone else is interested in working on Windows 7 support I'd welcome PRs, though.
 
+If you have a Hybrid GPU setup (some laptops, convertibles, etc.), make sure you run Huestacean on the **Integrated GPU**, not the Discrete GPU.
+
 #### Prerequisites
 * [Visual Studio 2017 redistributable](https://aka.ms/vs/15/release/VC_redist.x64.exe)
 
