@@ -26,7 +26,7 @@ For the best experience, I'd suggest using or more lights behind or to the side 
 
 ## Installing
 ### Windows
-Only 64-bit Windows is supported. Only Windows 10 has been tested at this point.
+Only (64-bit) Windows 8 and 10 are fully supported as the application uses the [IDXGIOutputDuplication](https://msdn.microsoft.com/en-us/library/windows/desktop/hh404611(v=vs.85).aspx) API which is only available from Windows 8 onwards. This allows the application to capture almost anything, including fullscreen games, with extremely high performance. If someone else is interested in working on Windows 7 support I'd welcome PRs, though.
 
 #### Prerequisites
 * [Visual Studio 2017 redistributable](https://aka.ms/vs/15/release/VC_redist.x64.exe)
@@ -35,10 +35,17 @@ Only 64-bit Windows is supported. Only Windows 10 has been tested at this point.
 Download the latest from [releases](https://github.com/BradyBrenot/huestacean/releases). Extract anywhere. Run `huestacean.exe`
 
 ### macOS
-Download the .app from [releases](https://github.com/BradyBrenot/huestacean/releases) and run it. So far it's only been tested on 10.11.6 on an old Macbook Pro.
+Only supported on macOS 10.7+ (uses [https://developer.apple.com/documentation/avfoundation/avcapturescreeninput](AVCaptureScreenInput))
+
+Download the .app from [releases](https://github.com/BradyBrenot/huestacean/releases) and run it.
+
+So far it's only been tested on 10.11.6 on an old Macbook Pro.
 
 ### Linux
 Build from source.  See relevant section under Building.
+
+### Android
+This is still **experimental**, and is known to crash. Side-load the APK and run it. It does not currently run as a service so Android will kill it to save resources if it thinks it needs to. Requires Android 5.0 (uses [MediaProjection](https://developer.android.com/reference/android/media/projection/package-summary.html))
 
 ## Reporting bugs
 Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
