@@ -80,9 +80,9 @@ ApplicationWindow {
 			KeyNavigation.right: stackView.currentItem
 
             model: ListModel {
-				ListElement { title: "Bridges"; source: "qrc:/qml/bridges.qml" }
-                ListElement { title: "Screen Sync"; source: "qrc:/qml/screensync.qml" }
-				ListElement { title: "About"; source: "qrc:/qml/about.qml" }
+				ListElement { title: "Screen Sync"; source: "qrc:/qml/Screensync.qml" }
+				ListElement { title: "Bridges"; source: "qrc:/qml/Bridges.qml" }
+				ListElement { title: "About"; source: "qrc:/qml/About.qml" }
             }
 
             delegate: ItemDelegate {
@@ -126,7 +126,7 @@ ApplicationWindow {
 			topPadding: 20
 			bottomPadding: 20
 
-			initialItem: "qrc:/qml/bridges.qml"
+			initialItem: "qrc:/qml/Screensync.qml"
 		}
 
 		ScrollBar.vertical: ScrollBar { 

@@ -4,6 +4,7 @@ import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
 import QtQuick.Window 2.2
 import Huestacean 1.0
+import "qrc:/qml"
 
 Pane {
     id: home
@@ -14,6 +15,10 @@ Pane {
     ColumnLayout {
 		id: mainColumn
 		spacing: 10
+
+		Bridges {
+			visible: !hasAtLeastOneConnection
+		}
 
 		ColumnLayout {
 			spacing: 10

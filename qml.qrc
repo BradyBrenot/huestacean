@@ -3,9 +3,9 @@
         <file>qml/main.qml</file>
         <file>qtquickcontrols2.conf</file>
         <file>images/hamburger.png</file>
-        <file>qml/bridges.qml</file>
         <file>images/egroup-xy.png</file>
-        <file>qml/about.qml</file>
-        <file>qml/screensync.qml</file>
+        <file>qml/Bridges.qml</file>
+        <file>qml/About.qml</file>
+        <file>qml/Screensync.qml</file>
     </qresource>
 </RCC>

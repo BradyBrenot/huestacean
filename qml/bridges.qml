@@ -4,57 +4,35 @@ import QtQuick.Layouts 1.3
 import QtQuick.Window 2.2
 import Huestacean 1.0
 
-Pane {
+GroupBox {
     id: bridges
+	title: "Bridges"
+	property var hasAtLeastOneConnection: false
 	 
-    ColumnLayout
-	{
-		id: mainColumn
-		anchors.fill: parent
-
-		spacing: 10
-
-		Row {
-			spacing: 10
-
-			Button {
-				id: searchButton
-				focus: true
-				text: qsTr("Search")
-				onClicked: {
-					searchIndicator.searching = true
-					searchTimer.start()
-					Huestacean.bridgeDiscovery.startSearch()
-				}
-
-				Keys.onPressed: {
-					console.log("event.key" + event.key);
-				}
-
-				KeyNavigation.down: bridgesGrid
-			}
-
-			BusyIndicator {
-				id: searchIndicator
-				property bool searching
-				visible: searching
-			}
-
-			Timer {
-				id: searchTimer
-				interval: 5000;
-				repeat: false
-				onTriggered: searchIndicator.searching = false
-			}
-		}
-
+	RowLayout{
 		Component {
 			id: bridgeDelegate
 
 			FocusScope {
+				Component.onCompleted: {
+					if(modelData.connected) {
+						hasAtLeastOneConnection = true
+					}
+				}
+
+				Connections { 
+					target: modelData
+
+					onConnectedChanged: {
+						if(modelData.connected) {
+							hasAtLeastOneConnection = true
+						}
+					}
+				}
+
 				Item {
-					width: bridgesGrid.cellWidth
-					height: bridgesGrid.cellHeight
+					width: bridgesGrid.width
+					height: 50
 
 					Rectangle {
 						color: "#0FFFFFFF"
@@ -67,24 +45,35 @@ Pane {
 							anchors.fill: parent
 							anchors.margins: 5
 
-							Column {
+							GridLayout {
 								Layout.column: 0
+								columnSpacing: 20
+								columns: 3
+								rows: 1
 
 								Label {
+									id: friendlyNameLabel
+									Layout.column: 0
 									font.bold: true
-									text: modelData.friendlyName
+									text: modelData.friendlyName != "" ? modelData.friendlyName : "Unknown bridge"
 								}
 
 								Label {
-									text: modelData.address
+									Layout.column: 1
+									text: modelData.connected ? "Connected" : "NOT connected!"
 								}
+								
+								Column {
+									Layout.column: 2
+									Label {
+										text: modelData.address
+										font.pointSize: friendlyNameLabel.font.pointSize * 0.8
+									}
 						
-								Label {
-									text: modelData.id
-								}
-
-								Label {
-									text: "Connected: " + modelData.connected
+									Label {
+										text: modelData.id
+										font.pointSize: friendlyNameLabel.font.pointSize * 0.8
+									}
 								}
 							}
 
@@ -128,42 +117,76 @@ Pane {
 			}
 		}
 
-		GridView {
+		ListView {
 			id: bridgesGrid
 			clip: true
-			Layout.fillWidth: true
-			Layout.minimumHeight: 200
+			Layout.minimumHeight: 100
+			Layout.minimumWidth: 400
 
-			cellWidth: 200; cellHeight: 100
 			model: Huestacean.bridgeDiscovery.model
 			delegate: bridgeDelegate
 
-			KeyNavigation.down: manualIP
+			KeyNavigation.down: searchButton
 		}
 
-		Row {
+		ColumnLayout {
 			spacing: 10
-			TextField {
-				id: manualIP
-				focus: true
-				width: 150
-				placeholderText: "0.0.0.0"
 
-				KeyNavigation.right: manuallyAdd
+			Row {
+				Button {
+					id: searchButton
+					focus: true
+					text: qsTr("Search")
+					onClicked: {
+						searchIndicator.searching = true
+						searchTimer.start()
+						Huestacean.bridgeDiscovery.startSearch()
+					}
+
+					Keys.onPressed: {
+						console.log("event.key" + event.key);
+					}
+
+					KeyNavigation.right: manualIP
+				}
+
+				BusyIndicator {
+					id: searchIndicator
+					property bool searching
+					visible: searching
+				}
+				Timer {
+					id: searchTimer
+					interval: 5000;
+					repeat: false
+					onTriggered: searchIndicator.searching = false
+				}
 			}
-			Button {
-				id: manuallyAdd
-				text: "Manually add IP"
-				onClicked: Huestacean.bridgeDiscovery.manuallyAddIp(manualIP.text)
-				KeyNavigation.up: manualIP
+			
+			Row {
+				TextField {
+					id: manualIP
+					focus: true
+					width: 150
+					placeholderText: "0.0.0.0"
+
+					KeyNavigation.right: manuallyAdd
+				}
+				Button {
+					id: manuallyAdd
+					text: "Manually add IP"
+					onClicked: Huestacean.bridgeDiscovery.manuallyAddIp(manualIP.text)
+					KeyNavigation.up: manualIP
+				}
 			}
 		}
 	}
 
 	Popup {
 		id: linkPopup
-		x: (mainColumn.Window.width - width) / 2
-		y: (mainColumn.Window.height - height) / 2
+		parent: ApplicationWindow.contentItem
+		x: (ApplicationWindow.contentItem.width - width) / 2
+		y: (ApplicationWindow.contentItem.height - height) / 2
 
 		modal: true
 		focus: true
@@ -213,6 +236,7 @@ Pane {
 				onConnectedChanged: {
 					if(linkPopup.bridge.connected) {
 						linkPopup.close()
+						hasAtLeastOneConnection = true
 					}
 				}
 			}
@@ -227,8 +251,8 @@ Pane {
 
 	Popup {
 		id: entertainmentGroupsWarningPop
-		x: (mainColumn.width - width) / 2
-		y: (mainColumn.Window.height - height) / 2
+		x: (bridges.Window.width - width) / 2
+		y: (bridges.Window.height - height) / 2
 		width: 300
 
 		modal: true
