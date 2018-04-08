@@ -205,6 +205,8 @@ struct LChSample
     double L; //L*, the lightness
     double C; //C*, the chromaticity / "saturation"
     double h; //h°, the hue
+
+	double maxRGB; //highest R,G,B value
 };
 
 void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
@@ -256,6 +258,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
 				double X, Y, Z;
 
+				sample.maxRGB = std::max(dR, std::max(dG, dB));
 				Color::rgb_to_XYZ(dR, dG, dB, X, Y, Z);
 				Color::XYZ_to_LCh(X, Y, Z, sample.L, sample.C, sample.h);
             }
@@ -334,6 +337,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 			for (const LChSample& sample : lumaSamples)
 			{
 				mean.L += sample.L;
+				mean.maxRGB += sample.maxRGB;
 			}
 
 			double a = 0;
@@ -352,6 +356,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
             mean.L /= (double)lumaSamples.size();
             mean.C /= (double)chromaSamples.size();
 			mean.h = atan2(a, b);
+			mean.maxRGB /= (double)lumaSamples.size();
         };
 
 		LChSample mean;
@@ -363,6 +368,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 		Color::LCh_to_XYZ(mean.L, mean.C, mean.h, X, Y, Z);
 		Color::XYZ_to_xy(X, Y, Z, x, y);
 
+		Y = mean.maxRGB;
 		Y = std::min(1.0, Y * getLumaBoost());
         Y = Y * (getMaxLuminance() - getMinLuminance()) + getMinLuminance();
 
