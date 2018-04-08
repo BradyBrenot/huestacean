@@ -1,3 +1,4 @@
 qml/about.qml linguist-documentation
+qml/About.qml linguist-documentation
 docs/* linguist-documentation
 android/src/com/android/grafika/gles/* linguist-vendored

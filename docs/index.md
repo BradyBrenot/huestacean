@@ -35,7 +35,7 @@ If you have a Hybrid GPU setup (some laptops, convertibles, etc.), make sure you
 Download the latest from [releases](https://github.com/BradyBrenot/huestacean/releases). Extract anywhere. Run `huestacean.exe`
 
 ## macOS
-Only supported on macOS 10.7+ (uses [https://developer.apple.com/documentation/avfoundation/avcapturescreeninput](AVCaptureScreenInput)). Performance may be worse than Windows and Android.
+Only supported on macOS 10.7+ (uses [AVCaptureScreenInput](https://developer.apple.com/documentation/avfoundation/avcapturescreeninput)). Performance may be worse than Windows and Android.
 
 Download the .app from [releases](https://github.com/BradyBrenot/huestacean/releases) and run it.
 
