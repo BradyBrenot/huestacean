@@ -44,7 +44,7 @@ So far it's only been tested on 10.11.6 on an old Macbook Pro.
 ## Linux
 Build from source. See the [README](https://github.com/BradyBrenot/huestacean/blob/master/README.md) for more information. Performance may be worse than other platforms.
 
-### Android
+## Android
 This is still **experimental**, and is known to crash. Side-load the APK and run it. It does not currently run as a service so Android will kill it to save resources if it thinks it needs to. Requires Android 5.0 (uses [MediaProjection](https://developer.android.com/reference/android/media/projection/package-summary.html))
 
 ## Reporting bugs
