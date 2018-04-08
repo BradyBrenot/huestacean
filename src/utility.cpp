@@ -1,8 +1,5 @@
 #include "utility.h"
 
-#include <algorithm>
-#include <cmath>
-
 void Color::XYZ_to_LCh(double& X, double& Y, double& Z, double& L, double& C, double& h)
 {
 	//Intermediate coordinates (a* and b* of L*a*b*)

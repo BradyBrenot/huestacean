@@ -1,4 +1,4 @@
-﻿#include <QNetworkReply>
+#include <QNetworkReply>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -37,6 +37,7 @@
 #include "huestacean.h"
 #include "huebridge.h"
 #include "entertainment.h"
+#include "utility.h"
 
 EntertainmentGroup::EntertainmentGroup(HueBridge *parent)
     : BridgeObject(parent),
@@ -442,20 +443,78 @@ send_request:
 
         for (auto& light : eGroup.lights)
         {
-            double newX = 0.0;
-            double newY = 0.0;
             double newL = 0.0;
+            double newC = 0.0;
+            double newh = 0.0;
 
-            if (!getColor(light, light.X, light.Y, light.L, newX, newY, newL))
+			double minBrightness, maxBrightness, brightnessBoost;
+
+            if (!getColor(light, light.L, light.C, light.h, newL, newC, newh, minBrightness, maxBrightness, brightnessBoost))
                 continue;
 
-            light.X = newX;
-            light.Y = newY;
-            light.L = newL;
+			light.L = newL;
+			light.C = newC;
+			light.h = newh;
 
-            quint64 R = light.X * 0xffff;
-            quint64 G = light.Y * 0xffff;
-            quint64 B = light.L * 0xffff;
+			double X, Y, Z, x, y;
+			Color::LCh_to_XYZ(newL, newC, newh, X, Y, Z);
+			Color::XYZ_to_xy(X, Y, Z, x, y);
+
+			double dist = std::sqrt(std::pow(X - Color::D65_x, 2.0) + std::pow(Y - Color::D65_y, 2.0));
+
+			if (x < 0 || x > 1.0 || y < 0 || y > 1.0)
+			{
+				double diffX = (x - Color::D65_x);
+				double diffY = (y - Color::D65_y);
+				double unitX = diffX == 0.0 ? 0.0 : diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+				double unitY = diffY == 0.0 ? 0.0 : diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+				double testDist;
+				double bestDist = 0;
+
+				if (unitX > 0.0)
+				{
+					testDist = (1.0 - Color::D65_x) / unitX;
+					if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
+					{
+						bestDist = std::max(bestDist, testDist);
+					}
+				}
+				else
+				{
+					testDist = (-Color::D65_x) / unitX;
+					if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
+					{
+						bestDist = std::max(bestDist, testDist);
+					}
+				}
+
+				if (unitY > 0.0)
+				{
+					testDist = (1.0 - Color::D65_y) / unitY;
+					if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
+					{
+						bestDist = std::max(bestDist, testDist);
+					}
+				}
+				else
+				{
+					testDist = (-Color::D65_y) / unitY;
+					if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
+					{
+						bestDist = std::max(bestDist, testDist);
+					}
+				}
+
+				x = Color::D65_x + unitX * bestDist;
+				y = Color::D65_y + unitY * bestDist;
+			}
+
+            quint64 R = x * 0xffff;
+            quint64 G = y * 0xffff;
+
+			double brightness = std::min(1.0, Y * brightnessBoost);
+			brightness = brightness * (maxBrightness - minBrightness) + minBrightness;
+            quint64 B = brightness * 0xffff;
 
             const uint8_t payload[] = {
                 0x00, 0x00, ((uint8_t)light.id.toInt()),

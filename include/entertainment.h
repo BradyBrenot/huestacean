@@ -17,16 +17,16 @@ public:
     double y;
     double z;
 
-    double X;
-    double Y;
     double L;
+    double C;
+    double h;
 
     explicit EntertainmentLight() : Light(nullptr)
     {
     }
 
     explicit EntertainmentLight(HueBridge *parent, QString inId, double inX, double inY, double inZ) :
-        Light(parent), x(inX), y(inY), z(inZ), X(0), Y(0), L(0)
+        Light(parent), x(inX), y(inY), z(inZ), L(0), C(0), h(0)
     {
         id = inId;
         emit propertiesChanged();
@@ -44,17 +44,21 @@ inline bool operator==(const EntertainmentLight& a, const EntertainmentLight& b)
 
 /*
  * This WILL be called in a different thread than it was created in.
+ * Light will be in L*C*h color space
  * 
  * @param[in] EntertainmentLight    The light that we want to get the color for
- * @param[in] oldX                  The last x-value of the light
- * @param[in] oldY                  The last y-value of the light
- * @param[in] oldL                  The last l-value of the light
- * @param[out] x                    x-value of color to apply to the light
- * @param[out] y                    y-value of color to apply to the light
- * @param[out] l                    brightness to apply to the light
+ * @param[in] oldL                  The last L-value of the light
+ * @param[in] oldC                  The last C-value of the light
+ * @param[in] oldh                  The last h-value of the light
+ * @param[out] L                    L-value of color to apply to the light
+ * @param[out] C                    C-value of color to apply to the light
+ * @param[out] h                    h-value to apply to the light
+ * @param[out] minBrightness        brightness value to apply to the light
+ * @param[out] maxBrightness        brightness value to apply to the light
+ * @param[out] brightnessBoost      brightness value to apply to the light
  * @return                          Whether we're ready to send a color to this light. If false, an update for this light is not sent to the Bridge.
  */
-typedef std::function<bool(const EntertainmentLight&, double, double, double, double&, double&, double&)> GetColorFunction;
+typedef std::function<bool(const EntertainmentLight&, double, double, double, double&, double&, double&, double&, double&, double&)> GetColorFunction;
 
 class EntertainmentGroup : public BridgeObject
 {

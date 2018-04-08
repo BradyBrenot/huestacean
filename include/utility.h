@@ -1,40 +1,13 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 
 namespace Color
 {
 	//
 	// Color space conversions
 	//
-
-	//Convert RGB to CIE XYZ, optionally performing gamma correction.
-	//Using formulas from Philips Hue documentation.
-	template<bool doGammaCorrection = true>
-	void rgb_to_XYZ(double& r, double& g, double& b, double& X, double& Y, double& Z)
-	{
-		double R, G, B;
-
-#if __cplusplus >= 201703L
-		if constexpr(doGammaCorrection)
-#else
-		if(doGammaCorrection)
-#endif
-		{
-			//Gamma correction, per hue docs
-			R = (r > 0.04045f) ? pow((r + 0.055f) / (1.0f + 0.055f), 2.4f) : (r / 12.92f);
-			G = (g > 0.04045f) ? pow((g + 0.055f) / (1.0f + 0.055f), 2.4f) : (g / 12.92f);
-			B = (b > 0.04045f) ? pow((b + 0.055f) / (1.0f + 0.055f), 2.4f) : (b / 12.92f);
-		}
-		else
-		{
-			R = r; G = g; B = b;
-		}
-
-		X = R * 0.664511f + G * 0.154324f + B * 0.162028f;
-		Y = R * 0.283881f + G * 0.668433f + B * 0.047685f;
-		Z = R * 0.000088f + G * 0.072310f + B * 0.986039f;
-	}
 
 	//Convert CIE XYZ to to CIE LCh (expensive)
 	// (cylindrical coordinate conversion of CIE L*a*b*, where L* is unchanged, C* is chromaticity, and h° is hue)
@@ -49,6 +22,48 @@ namespace Color
 	//Convert RGB straight to CIE xyY
 	void rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& Y);
 
+	//Convert RGB to CIE XYZ, optionally performing gamma correction.
+	//Using formulas from Philips Hue documentation.
+	template<bool doGammaCorrection = true>
+	void rgb_to_XYZ(double& r, double& g, double& b, double& X, double& Y, double& Z)
+	{
+		double R, G, B;
+
+#if __cplusplus >= 201703L
+		if constexpr(doGammaCorrection)
+#else
+		if (doGammaCorrection)
+#endif
+		{
+			//Gamma correction, per hue docs
+			R = (r > 0.04045f) ? pow((r + 0.055f) / (1.0f + 0.055f), 2.4f) : (r / 12.92f);
+			G = (g > 0.04045f) ? pow((g + 0.055f) / (1.0f + 0.055f), 2.4f) : (g / 12.92f);
+			B = (b > 0.04045f) ? pow((b + 0.055f) / (1.0f + 0.055f), 2.4f) : (b / 12.92f);
+		}
+		else
+		{
+			R = r; G = g; B = b;
+		}
+
+		double rawX = R * 0.664511f + G * 0.154324f + B * 0.162028f;
+		double rawY = R * 0.283881f + G * 0.668433f + B * 0.047685f;
+		double rawZ = R * 0.000088f + G * 0.072310f + B * 0.986039f;
+
+		if (rawX + rawY + rawZ == 0)
+		{
+			X = rawX; Y = rawY; Z = rawZ;
+			return;
+		}
+
+		//Renormalize so that Y is the max of R, G, B
+		Y = std::max(R, std::max(G, B));
+
+		double x, y;
+		XYZ_to_xy(rawX, rawY, rawZ, x, y);
+		X = x * Y / y;
+		Z = (1 - x - y) * Y / y;
+	}
+
 	//
 	// Color constants
 	//
@@ -61,6 +76,8 @@ namespace Color
 	constexpr double D65_Xn = 95.047;
 	constexpr double D65_Yn = 100.0;
 	constexpr double D65_Zn = 108.883;
+
+	constexpr double PI = 3.14159265359;
 }
 
 namespace Utility
