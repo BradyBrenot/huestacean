@@ -165,10 +165,10 @@ Refer to the [LICENSE](LICENSE) file for license info.
 
 ### Third-party licenses
 
-This software makes use of open source software under various licenses.
+This software makes use of open source software under various licenses, which may be found in the **third_party_licenses** directory.
 
 * Qt: lgpl-3.txt, gpl-3.txt, Qt_ThirdPartySoftware_Listing.txt
 * screen_capture_lite: license-screen_capture_lite.txt
 * mbedtls and grafika: apache-2.0.txt
 
-This software uses Qt 5, which is licensed under the GNU Lesser General Public License v3.0. The text of the license can be found in [lgpl-3.txt](lgpl-3.txt). The corresponding source code for Qt can be found [on their website](https://www.qt.io/download), or at https://s3.us-east-2.amazonaws.com/bbrenot-thirdparty-sourcecode/qt-everywhere-src-5.10.0.tar.xz ; the end user can provide their own Qt5 and modifications by replacing the distributed Qt shared library files (Qt* .dll, .so, .dylib, etc.)
+This software uses Qt 5, which is licensed under the GNU Lesser General Public License v3.0. The text of the license can be found in [lgpl-3.txt](third_party_licenses/lgpl-3.txt). The corresponding source code for Qt can be found [on their website](https://www.qt.io/download), or at https://s3.us-east-2.amazonaws.com/bbrenot-thirdparty-sourcecode/qt-everywhere-src-5.10.0.tar.xz ; the end user can provide their own Qt5 and modifications by replacing the distributed Qt shared library files (Qt* .dll, .so, .dylib, etc.)
