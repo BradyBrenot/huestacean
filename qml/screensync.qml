@@ -216,6 +216,8 @@ Pane {
 				}
 
 				Column {
+					visible: !Huestacean.mipMapGenerationEnabled
+
 					Label {
 						text: "Skip pixels"
 					}
@@ -257,7 +259,7 @@ Pane {
 					}
 
 					Label {
-						text: Huestacean.minLuminance
+						text: Huestacean.minLuminance.toFixed(2)
 					}
 				}
 
@@ -276,7 +278,7 @@ Pane {
 					}
 
 					Label {
-						text: Huestacean.maxLuminance
+						text: Huestacean.maxLuminance.toFixed(2)
 					}
 				}
 			}
@@ -297,11 +299,33 @@ Pane {
 							Huestacean.chromaBoost = value * 3
 						}
 
+						KeyNavigation.right: lumaBoostSlider
 						KeyNavigation.down: centerSlownessSlider
 					}
 
 					Label {
-						text: Huestacean.chromaBoost
+						text: Huestacean.chromaBoost.toFixed(2)
+					}
+				}
+
+				Column {
+					Label {
+						text: "Brightness boost"
+					}
+
+					Slider {
+						id: lumaBoostSlider
+
+						Component.onCompleted: value = Huestacean.lumaBoost / 10
+						onValueChanged: {
+							Huestacean.lumaBoost = value * 10
+						}
+
+						KeyNavigation.down: centerSlownessSlider
+					}
+
+					Label {
+						text: Huestacean.lumaBoost.toFixed(2)
 					}
 				}
 			}
@@ -328,10 +352,11 @@ Pane {
 						}
 
 						KeyNavigation.right: sideSlownessSlider
+						KeyNavigation.down: resetButton
 					}
 
 					Label {
-						text: Huestacean.centerSlowness
+						text: Huestacean.centerSlowness.toFixed(2)
 					}
 				}
 
@@ -352,11 +377,21 @@ Pane {
 						onValueChanged: {
 							Huestacean.sideSlowness = value
 						}
+
+						KeyNavigation.down: resetButton
 					}
 
 					Label {
-						text: Huestacean.sideSlowness
+						text: Huestacean.sideSlowness.toFixed(2)
 					}
+				}
+			}
+
+			Column {
+				Button {
+					id:resetButton
+					text: "Reset settings"
+					onClicked: Huestacean.ResetSettings()
 				}
 			}
 

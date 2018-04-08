@@ -2,13 +2,13 @@
 #include "entertainment.h"
 #include "utility.h"
 
-#include <QQmlApplicationEngine>
-#include <QElapsedTimer>
-#include <QTimer>
-
 #include <algorithm>
 #include <cmath>
 
+#include <QQmlApplicationEngine>
+#include <QElapsedTimer>
+#include <QTimer>
+#include <QSettings>
 #include <QKeyEvent>
 #include <QCoreApplication>
 
@@ -45,17 +45,16 @@ Huestacean::Huestacean(QObject *parent)
 
     emit hueInit();
 
-    //ENTERTAINMENT
-    skip = 32;
-    captureInterval = 25;
-    streamingGroup = nullptr;
-    setMaxLuminance(1.0);
-    setMinLuminance(0.0);
-    setChromaBoost(1.0);
-    mipMapGenerationEnabled = false;
+	ReadSettings();
 
-    setCenterSlowness(10.0);
-    setSideSlowness(20.0);
+    //ENTERTAINMENT
+	streamingGroup = nullptr;
+
+#if defined(__linux__) || defined(Q_OS_LINUX)
+	mipMapGenerationEnabled = false;
+#else
+    mipMapGenerationEnabled = true;
+#endif
 
     qmlRegisterType<EntertainmentGroup>();
 
@@ -70,6 +69,8 @@ Huestacean::Huestacean(QObject *parent)
 
 Huestacean::~Huestacean()
 {
+	WriteSettings();
+
     huestaceanLock.lock();
     if(huestaceanInstance == this)
     {
@@ -97,6 +98,51 @@ Huestacean::~Huestacean()
     macScreenCapture::stop();
 #endif
 }
+
+void Huestacean::ReadSettings()
+{
+	QSettings settings;
+	settings.beginGroup("entertainment");
+
+	skip = settings.value("skip", 32).toInt();
+	captureInterval =	settings.value("captureInterval",	25).toInt();
+	setMaxLuminance(	settings.value("maxLuminance",		1.0).toDouble());
+	setMinLuminance(	settings.value("minLuminance",		0.0).toDouble());
+	setChromaBoost(		settings.value("chromaBoost",		1.0).toDouble());
+	setLumaBoost(		settings.value("lumaBoost",			1.2).toDouble());
+	setCenterSlowness(	settings.value("centerSlowness",	8.0).toDouble());
+	setSideSlowness(	settings.value("sideSlowness",		15.0).toDouble());
+	
+	settings.endGroup();
+}
+
+void Huestacean::WriteSettings()
+{
+	QSettings settings;
+	settings.beginGroup("entertainment");
+
+	settings.setValue("skip",				(int) skip);
+	settings.setValue("captureInterval",	captureInterval);
+	settings.setValue("maxLuminance",		getMaxLuminance());
+	settings.setValue("minLuminance",		getMinLuminance());
+	settings.setValue("chromaBoost",		getChromaBoost());
+	settings.setValue("lumaBoost",			getLumaBoost());
+	settings.setValue("centerSlowness",		getCenterSlowness());
+	settings.setValue("sideSlowness",		getSideSlowness());
+
+	settings.endGroup();
+}
+
+void Huestacean::ResetSettings()
+{
+	QSettings settings;
+	settings.beginGroup("entertainment");
+	settings.remove("");
+	settings.endGroup();
+
+	ReadSettings();
+}
+
 void Huestacean::pressedEnter()
 {
 	extern QQmlApplicationEngine* engine;
@@ -314,6 +360,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 		Color::LCh_to_XYZ(mean.L, mean.C, mean.h, X, Y, Z);
 		Color::XYZ_to_xy(X, Y, Z, x, y);
 
+		Y *= getLumaBoost();
         Y = Y * (getMaxLuminance() - getMinLuminance()) + getMinLuminance();
 
         double slowness = Utility::lerp(getCenterSlowness(), getSideSlowness(), std::abs(light.x));

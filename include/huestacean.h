@@ -140,6 +140,7 @@ class Huestacean : public QObject
     Q_PROPERTY(double minLuminance READ getMinLuminance WRITE setMinLuminance NOTIFY syncParamsChanged)
     Q_PROPERTY(double maxLuminance READ getMaxLuminance WRITE setMaxLuminance NOTIFY syncParamsChanged)
     Q_PROPERTY(double chromaBoost READ getChromaBoost WRITE setChromaBoost NOTIFY syncParamsChanged)
+	Q_PROPERTY(double lumaBoost READ getLumaBoost WRITE setLumaBoost NOTIFY syncParamsChanged)
 
     Q_PROPERTY(double centerSlowness READ getCenterSlowness WRITE setCenterSlowness NOTIFY syncParamsChanged)
     Q_PROPERTY(double sideSlowness READ getSideSlowness WRITE setSideSlowness NOTIFY syncParamsChanged)
@@ -147,6 +148,10 @@ class Huestacean : public QObject
 public:
     explicit Huestacean(QObject *parent = nullptr);
     virtual ~Huestacean();
+
+	void ReadSettings();
+	void WriteSettings();
+	Q_INVOKABLE void ResetSettings();
 
 	Q_INVOKABLE void pressedEnter();
 
@@ -206,6 +211,15 @@ public:
         chromaBoost = in * 1000.0;
         emit syncParamsChanged();
     }
+
+	float getLumaBoost() {
+		return lumaBoost / 1000.0;
+	}
+
+	void setLumaBoost(double in) {
+		lumaBoost = in * 1000.0;
+		emit syncParamsChanged();
+	}
 
     double getCenterSlowness() {
         return centerSlowness / 1000.0;
@@ -289,6 +303,7 @@ private:
     QAtomicInteger<qint64> minLuminance;
     QAtomicInteger<qint64> maxLuminance;
     QAtomicInteger<qint64> chromaBoost;
+	QAtomicInteger<qint64> lumaBoost;
     QAtomicInteger<qint64> centerSlowness;
     QAtomicInteger<qint64> sideSlowness;
     QAtomicInteger<bool> mipMapGenerationEnabled;
