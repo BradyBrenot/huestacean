@@ -50,7 +50,7 @@ Huestacean::Huestacean(QObject *parent)
     //ENTERTAINMENT
 	streamingGroup = nullptr;
 
-#if defined(__linux__) || defined(Q_OS_LINUX)
+#if !ANDROID && (defined(__linux__) || defined(Q_OS_LINUX))
 	mipMapGenerationEnabled = false;
 #else
     mipMapGenerationEnabled = true;
@@ -114,6 +114,9 @@ void Huestacean::ReadSettings()
 	setSideSlowness(	settings.value("sideSlowness",		15.0).toDouble());
 	
 	settings.endGroup();
+
+	emit syncParamsChanged();
+	emit captureParamsChanged();
 }
 
 void Huestacean::WriteSettings()
@@ -360,7 +363,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 		Color::LCh_to_XYZ(mean.L, mean.C, mean.h, X, Y, Z);
 		Color::XYZ_to_xy(X, Y, Z, x, y);
 
-		Y *= getLumaBoost();
+		Y = std::min(1.0, Y * getLumaBoost());
         Y = Y * (getMaxLuminance() - getMinLuminance()) + getMinLuminance();
 
         double slowness = Utility::lerp(getCenterSlowness(), getSideSlowness(), std::abs(light.x));

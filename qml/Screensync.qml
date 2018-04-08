@@ -199,6 +199,8 @@ Pane {
 				}
 
 				Column {
+					visible: (Qt.platform.os != "android" && Qt.platform.os != "osx")
+
 					Label {
 						text: "Capture interval"
 					}
@@ -396,7 +398,18 @@ Pane {
 				Button {
 					id:resetButton
 					text: "Reset settings"
-					onClicked: Huestacean.ResetSettings()
+					onClicked: {
+						Huestacean.ResetSettings()
+
+						centerSlownessSlider.value = Huestacean.centerSlowness
+						sideSlownessSlider.value = Huestacean.sideSlowness
+						lumaBoostSlider.value = Huestacean.lumaBoost / 10
+						chromaBoostSlider.value = Huestacean.chromaBoost / 3
+						minLumaSlider.value = Huestacean.minLuminance
+						maxLumaSlider.value = Huestacean.maxLuminance
+						skipslider.value = Huestacean.skip / 128
+						frameslider.value = Huestacean.captureInterval / 100
+					}
 				}
 			}
 
