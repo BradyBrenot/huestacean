@@ -9,14 +9,14 @@ void Color::XYZ_to_LCh(double& X, double& Y, double& Z, double& L, double& C, do
 	double a, b;
 
 	auto f = [&](double t) -> double {
-		constexpr double δ = 6.0 / 29.0;
-		constexpr double δcubed = δ*δ*δ;
+		constexpr double d = 6.0 / 29.0;
+		constexpr double dcubed = d*d*d;
 
-		if (t > δcubed)	{
+		if (t > dcubed)	{
 			return cbrt(t);
 		}
 		
-		return (t / (3.0 * pow(δ, 2))) + (4.0 / 29.0);
+		return (t / (3.0 * pow(d, 2))) + (4.0 / 29.0);
 	};
 
 	L = 116.0 * f(Y / D65_Yn) - 16.0;
@@ -33,12 +33,12 @@ void Color::LCh_to_XYZ(double& L, double& C, double& h, double& X, double& Y, do
 	double a, b;
 
 	auto f = [&](double t) -> double {
-		constexpr double δ = 6.0 / 29.0;
-		if (t > δ) {
+		constexpr double d = 6.0 / 29.0;
+		if (t > d) {
 			return pow(t, 3);
 		}
 
-		return 3 * pow(δ, 2) * (t - 4.0 / 29.0);
+		return 3 * pow(d, 2) * (t - 4.0 / 29.0);
 	};
 
 	a = C * cos(h);
