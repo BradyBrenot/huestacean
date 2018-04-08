@@ -44,8 +44,16 @@ So far it's only been tested on 10.11.6 on an old Macbook Pro.
 ## Linux
 Build from source. See the [README](https://github.com/BradyBrenot/huestacean/blob/master/README.md) for more information. Performance may be worse than other platforms.
 
-### Android
+## Android
 This is still **experimental**, and is known to crash. Side-load the APK and run it. It does not currently run as a service so Android will kill it to save resources if it thinks it needs to. Requires Android 5.0 (uses [MediaProjection](https://developer.android.com/reference/android/media/projection/package-summary.html))
+
+The apk should work for most modern **ARM**-based Android devices with at least **Android 5**
+
+ - Has not been tested on any real hardware older than Android 7.0, although it has been tested on 5.1 on an emulator.
+ - [Turn off battery optimization](https://www.google.ca/search?q=android+turn+off+battery+optimization+for+app) on the app or Android will eventually suspend it while it's in the background!
+ - Works just great on my old Galaxy Note 3 (with Lineage OS), which is more than four years old; I can streami Youtube and you couldn't tell the difference from when I run it on my PC.
+ - Will **not** work in Netflix and other video apps that tell Android they're showing "secure" content.
+   - Xposed's DisableSecureFlag module can bypass this but _don't install that_ unless you actually know what you're doing and how to recover from a boot loop. You could hose your device, do this **at your own risk**. Also mind that this allows other screen recording software to record other "secure" apps like banking apps.
 
 ## Reporting bugs
 Use the repository's [Issues](https://github.com/BradyBrenot/huestacean/issues) to report bugs or other problems.
