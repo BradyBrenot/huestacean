@@ -109,9 +109,9 @@ void Huestacean::ReadSettings()
 	setMaxLuminance(	settings.value("maxLuminance",		1.0).toDouble());
 	setMinLuminance(	settings.value("minLuminance",		0.0).toDouble());
 	setChromaBoost(		settings.value("chromaBoost",		1.0).toDouble());
-	setLumaBoost(		settings.value("lumaBoost",			1.2).toDouble());
-	setCenterSlowness(	settings.value("centerSlowness",	5.0).toDouble());
-	setSideSlowness(	settings.value("sideSlowness",		8.0).toDouble());
+	setLumaBoost(		settings.value("lumaBoost",			1.5).toDouble());
+	setCenterSlowness(	settings.value("centerSlowness",	8.9).toDouble());
+	setSideSlowness(	settings.value("sideSlowness",		10.0).toDouble());
 	
 	settings.endGroup();
 
@@ -297,7 +297,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
 			size_t maxLeft = chromaSamples.size() * (3.0 / 4.0);
 			size_t minLeft = chromaSamples.size() * (1.0 / 4.0);
-			size_t finalSize = std::max(std::min(chromaSamples.size() - i, maxLeft), minLeft);
+			size_t finalSize = std::max(std::min((size_t) i, maxLeft), minLeft);
 
 			chromaSamples.resize(finalSize);
 		}
@@ -314,7 +314,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 			int i;
 			for (i = 0; i < lumaSamples.size(); ++i)
 			{
-				if (lumaSamples[i].L < 0.05)
+				if (lumaSamples[i].L < 0.5)
 				{
 					break;
 				}
@@ -322,7 +322,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
 			size_t maxLeft = lumaSamples.size() * (3.0 / 4.0);
 			size_t minLeft = lumaSamples.size() * (1.0 / 4.0);
-			size_t finalSize = std::max(std::min(lumaSamples.size() - i, maxLeft), minLeft);
+			size_t finalSize = std::max(std::min((size_t) i, maxLeft), minLeft);
 
 			lumaSamples.resize(finalSize);
 		}
@@ -369,7 +369,9 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
 		double slowness = Utility::lerp(getCenterSlowness(), getSideSlowness(), std::abs(light.x));
 
-		L = (oldL * (slowness - 1.0) + mean.L) / slowness;
+		L = (oldL * (slowness - 1.0) + mean.L) / (slowness);
+
+		slowness *= 2;
 		C = (oldC * (slowness - 1.0) + mean.C) / slowness;
 
 		constexpr double WHITE_C_CUTOFF = 1.5;

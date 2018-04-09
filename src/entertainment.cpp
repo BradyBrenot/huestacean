@@ -459,55 +459,7 @@ send_request:
 			double X, Y, Z, x, y;
 			Color::LCh_to_XYZ(newL, newC, newh, X, Y, Z);
 			Color::XYZ_to_xy(X, Y, Z, x, y);
-
-			double dist = std::sqrt(std::pow(X - Color::D65_x, 2.0) + std::pow(Y - Color::D65_y, 2.0));
-
-			if (x < 0 || x > 1.0 || y < 0 || y > 1.0)
-			{
-				double diffX = (x - Color::D65_x);
-				double diffY = (y - Color::D65_y);
-				double unitX = diffX == 0.0 ? 0.0 : diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
-				double unitY = diffY == 0.0 ? 0.0 : diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
-				double testDist;
-				double bestDist = 0;
-
-				if (unitX > 0.0)
-				{
-					testDist = (1.0 - Color::D65_x) / unitX;
-					if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
-					{
-						bestDist = std::max(bestDist, testDist);
-					}
-				}
-				else
-				{
-					testDist = (-Color::D65_x) / unitX;
-					if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
-					{
-						bestDist = std::max(bestDist, testDist);
-					}
-				}
-
-				if (unitY > 0.0)
-				{
-					testDist = (1.0 - Color::D65_y) / unitY;
-					if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
-					{
-						bestDist = std::max(bestDist, testDist);
-					}
-				}
-				else
-				{
-					testDist = (-Color::D65_y) / unitY;
-					if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
-					{
-						bestDist = std::max(bestDist, testDist);
-					}
-				}
-
-				x = Color::D65_x + unitX * bestDist;
-				y = Color::D65_y + unitY * bestDist;
-			}
+			Color::FitInGamut(x, y);
 
             quint64 R = x * 0xffff;
             quint64 G = y * 0xffff;
