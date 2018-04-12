@@ -49,5 +49,7 @@ int main(int argc, char *argv[])
     if (theEngine.rootObjects().isEmpty())
         return -1;
 
+	theEngine.rootContext()->setContextProperty("mainWindow", theEngine.rootObjects().first());
+
     return app.exec();
 }

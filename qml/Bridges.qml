@@ -10,6 +10,7 @@ GroupBox {
 	property var hasAtLeastOneConnection: false
 	 
 	RowLayout{
+		spacing: 20
 		Component {
 			id: bridgeDelegate
 
@@ -51,20 +52,56 @@ GroupBox {
 								columns: 3
 								rows: 1
 
+								Button {
+									focus: visible
+									anchors.top: parent.top
+									anchors.bottom: parent.bottom
+									Layout.column: 0
+									text: "Connect"
+									visible: !modelData.connected && !modelData.wantsLinkButton
+
+									onClicked: modelData.connectToBridge()
+								}
+
+								Button {
+									focus: visible
+									anchors.top: parent.top
+									anchors.bottom: parent.bottom
+									Layout.column: 0
+									text: "Link"
+									visible: !modelData.connected && modelData.wantsLinkButton
+
+									onClicked: {
+										linkPopup.bridge = modelData
+										linkPopup.open()
+									}
+								}
+
+								Button {
+									focus: visible
+									anchors.top: parent.top
+									anchors.bottom: parent.bottom
+									Layout.column: 0
+									text: "Forget"
+									visible: modelData.connected
+
+									onClicked: modelData.resetConnection()
+								}
+
 								Label {
 									id: friendlyNameLabel
-									Layout.column: 0
+									Layout.column: 1
 									font.bold: true
 									text: modelData.friendlyName != "" ? modelData.friendlyName : "Unknown bridge"
 								}
 
 								Label {
-									Layout.column: 1
+									Layout.column: 2
 									text: modelData.connected ? "Connected" : "NOT connected!"
 								}
 								
 								Column {
-									Layout.column: 2
+									Layout.column: 3
 									Label {
 										text: modelData.address
 										font.pointSize: friendlyNameLabel.font.pointSize * 0.8
@@ -76,57 +113,25 @@ GroupBox {
 									}
 								}
 							}
-
-							Button {
-								focus: visible
-								anchors.top: parent.top
-								anchors.bottom: parent.bottom
-								Layout.column: 1
-								text: "Connect"
-								visible: !modelData.connected && !modelData.wantsLinkButton
-
-								onClicked: modelData.connectToBridge()
-							}
-
-							Button {
-								focus: visible
-								anchors.top: parent.top
-								anchors.bottom: parent.bottom
-								Layout.column: 1
-								text: "Link"
-								visible: !modelData.connected && modelData.wantsLinkButton
-
-								onClicked: {
-									linkPopup.bridge = modelData
-									linkPopup.open()
-								}
-							}
-
-							Button {
-								anchors.top: parent.top
-								anchors.bottom: parent.bottom
-								Layout.column: 1
-								text: "Forget"
-								visible: modelData.connected
-
-								onClicked: modelData.resetConnection()
-							}
 						}
 					}
 				}
 			}
 		}
 
-		ListView {
+		GridView {
 			id: bridgesGrid
 			clip: true
-			Layout.minimumHeight: 100
+			Layout.minimumHeight: 200
 			Layout.minimumWidth: 400
+
+			cellWidth: 400
+			cellHeight: 50
 
 			model: Huestacean.bridgeDiscovery.model
 			delegate: bridgeDelegate
 
-			KeyNavigation.down: searchButton
+			KeyNavigation.right: searchButton
 		}
 
 		ColumnLayout {

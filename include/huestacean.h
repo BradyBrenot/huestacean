@@ -114,6 +114,7 @@ class ScreenSyncImageProvider : public QQuickImageProvider
 public:
     ScreenSyncImageProvider(class Huestacean* parent);
     QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
+	QImage img;
 
 private:
     Huestacean * huestaceanParent;

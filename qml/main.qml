@@ -81,7 +81,7 @@ ApplicationWindow {
 
             model: ListModel {
 				ListElement { title: "Screen Sync"; source: "qrc:/qml/Screensync.qml" }
-				ListElement { title: "Bridges"; source: "qrc:/qml/Bridges.qml" }
+				ListElement { title: "Bridges"; source: "qrc:/qml/BridgesTab.qml" }
 				ListElement { title: "About"; source: "qrc:/qml/About.qml" }
             }
 

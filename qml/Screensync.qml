@@ -73,11 +73,12 @@ Pane {
                         Layout.preferredHeight: Qt.platform.os == "android" ? 110 : 225
 
 						cache: false
+						asynchronous: true
 						smooth: false
 
 						Timer {
-							interval: 500; 
-                            running: entimagepreview.checked;
+							interval: entimagepreview.checked ? 20 : 200; 
+                            running: Huestacean.syncing && mainWindow.visibility != Window.Minimized && mainWindow.visible != Window.Hidden;
 							repeat: true;
 							onTriggered: {
                                 entimage.source = entimage.source == "image://entimage/ent" ? "image://entimage/ent1" : "image://entimage/ent"
@@ -101,6 +102,7 @@ Pane {
 							text: "Redetect"
 							onClicked: Huestacean.refreshGroups()
 
+							KeyNavigation.right: entertainmentComboBox
 							KeyNavigation.down: entimagepreview
 						}
 
@@ -169,8 +171,8 @@ Pane {
 
 				CheckBox {
 					id:entimagepreview
-					text: "Visualize"
-					checked: true
+					text: "Fast visualizer"
+					checked: false
 
 					KeyNavigation.down: startSyncButton
 
@@ -323,9 +325,9 @@ Pane {
 					Slider {
 						id: lumaBoostSlider
 
-						Component.onCompleted: value = Huestacean.lumaBoost / 10
+						Component.onCompleted: value = Huestacean.lumaBoost / 5
 						onValueChanged: {
-							Huestacean.lumaBoost = value * 10
+							Huestacean.lumaBoost = value * 5
 						}
 
 						KeyNavigation.down: centerSlownessSlider
@@ -351,7 +353,7 @@ Pane {
 						Component.onCompleted: {
 							var slowness = Huestacean.centerSlowness
 							from = 1.0
-							to = 80.0
+							to = 20.0
 							value = slowness
 						}
 						onValueChanged: {
@@ -378,7 +380,7 @@ Pane {
 						Component.onCompleted: {
 							var slowness = Huestacean.sideSlowness
 							from = 1.0
-							to = 80.0
+							to = 20.0
 							value = slowness
 						}
 						onValueChanged: {
@@ -403,7 +405,7 @@ Pane {
 
 						centerSlownessSlider.value = Huestacean.centerSlowness
 						sideSlownessSlider.value = Huestacean.sideSlowness
-						lumaBoostSlider.value = Huestacean.lumaBoost / 10
+						lumaBoostSlider.value = Huestacean.lumaBoost / 5
 						chromaBoostSlider.value = Huestacean.chromaBoost / 3
 						minLumaSlider.value = Huestacean.minLuminance
 						maxLumaSlider.value = Huestacean.maxLuminance

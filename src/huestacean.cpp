@@ -368,11 +368,23 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 		mean.C *= getChromaBoost();
 
 		double slowness = Utility::lerp(getCenterSlowness(), getSideSlowness(), std::abs(light.x));
+		slowness *= 8;
 
-		L = (oldL * (slowness - 1.0) + mean.L) / (slowness);
+		static QElapsedTimer timer;
+		double deltaTime = timer.restart() / 1000.0;
+		if (deltaTime > 1.0 || deltaTime <= 0.0 || std::isnan(deltaTime)) {
+			deltaTime = 1.0;
+		}
 
-		slowness *= 2;
-		C = (oldC * (slowness - 1.0) + mean.C) / slowness;
+		double lumarate = std::exp2(log2(slowness));
+		double lumaalpha = std::exp2(-lumarate * deltaTime);
+
+		double colorrate = std::exp2(log2(slowness));
+		double coloralpha = std::exp2(-colorrate * deltaTime);
+
+		L = Utility::lerp(oldL, mean.L, lumaalpha);
+
+		C = Utility::lerp(oldC, mean.C, coloralpha);
 
 		constexpr double WHITE_C_CUTOFF = 1.5;
 		constexpr double WHITE_L_CUTOFF = 8.0;
@@ -398,7 +410,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 				}
 			}
 
-			h = (tempOldh * (slowness - 1.0) + mean.h) / slowness;
+			h = Utility::lerp(tempOldh, mean.h, coloralpha);
 			h = std::fmod(h + 2 * Color::PI, 2 * Color::PI);
 		}
 
@@ -814,7 +826,9 @@ QImage ScreenSyncImageProvider::requestImage(const QString &id, QSize *size, con
             size->setHeight(1);
         }
 
-        return QImage(1, 1, QImage::Format_RGB16);
+        img = QImage(1, 1, QImage::Format_RGB16);
+		img.setPixelColor(QPoint(0, 0), QColor(0, 0, 0));
+		return img;
     }
 
     if (size)
@@ -823,7 +837,10 @@ QImage ScreenSyncImageProvider::requestImage(const QString &id, QSize *size, con
         size->setHeight(screen.height);
     }
 
-    QImage img = QImage(screen.width, screen.height, QImage::Format_RGB16);
+	if (img.size() != QSize(screen.width, screen.height)) {
+		img = QImage(screen.width, screen.height, QImage::Format_RGB16);
+	}
+
     int pixel = 0;
     for (int y = 0; y < screen.height; ++y)
     {
@@ -834,14 +851,7 @@ QImage ScreenSyncImageProvider::requestImage(const QString &id, QSize *size, con
                 img.setPixelColor(QPoint(x, y), QColor(0, 0, 0));
             }
             else
-            {
-                /*
-                qDebug() << screen.screen[pixel].samples;
-                qDebug() << "R" << screen.screen[pixel].R / screen.screen[pixel].samples;
-                qDebug() << "G" << screen.screen[pixel].G / screen.screen[pixel].samples;
-                qDebug() << "B" << screen.screen[pixel].B / screen.screen[pixel].samples;
-                 */
-                
+            {                
                 img.setPixelColor(QPoint(x, y),
                     QColor(
                         screen.screen[pixel].R / screen.screen[pixel].samples,

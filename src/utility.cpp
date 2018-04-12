@@ -30,6 +30,9 @@ void Color::LCh_to_XYZ(double& L, double& C, double& h, double& X, double& Y, do
 	//Intermediate coordinates (a* and b* of L*a*b*)
 	double a, b;
 
+	a = C * cos(h);
+	b = C * sin(h);
+
 	auto f = [&](double t) -> double {
 		constexpr double d = 6.0 / 29.0;
 		if (t > d) {
@@ -39,12 +42,51 @@ void Color::LCh_to_XYZ(double& L, double& C, double& h, double& X, double& Y, do
 		return 3 * pow(d, 2) * (t - 4.0 / 29.0);
 	};
 
-	a = C * cos(h);
-	b = C * sin(h);
+	auto c = [&]() {
+		X = D65_Xn * f((L + 16.0) / 116.0 + a / 500.0);
+		Y = D65_Yn * f((L + 16.0) / 116.0);
+		Z = D65_Zn * f((L + 16.0) / 116.0 - b / 200.0);
+	};
 
-	X = D65_Xn * f((L + 16.0) / 116.0 + a / 500.0);
-	Y = D65_Yn * f((L + 16.0) / 116.0);
-	Z = D65_Zn * f((L + 16.0) / 116.0 - b / 200.0);
+	c();
+
+	//stupid method to brute force us out of bad C values
+	if (X + Y + Z < 0)
+	{
+		double oa = a;
+		double ob = b;
+
+		for (double i = 1.2; i < 3 && (X + Y + Z < 0); i += 0.2)
+		{
+			a = oa / (i);
+			b = ob / (i);
+			c();
+		}
+	}
+
+#if 0
+	double fY = (L + 16.0) / 116.0;
+	double fX = a / 500.0 + fY;
+	double fZ = fY - b / 200.0;
+
+	double e = 0.008856;
+	double k = 903.3;
+
+	X = D65_Xn * [&]() -> double {
+		double fX3 = std::pow(fX, 3);
+		//return fX3 > e ? fX3 : (116.0 * fX - 16.0) / k;
+		return fX3 > e ? fX3 : (fX - 16.0 / 116.0) / 7.787;
+	}();
+
+	Y = D65_Yn * [&]() -> double {
+		return L > k*e ? std::pow(((L + 16.0) / 116.0), 3) : L / k;
+	}();
+
+	Z = D65_Zn * [&]() -> double {
+		double fZ3 = std::pow(fZ, 3);
+		return fZ3 > e ? fZ3 : (fZ - 16.0 / 116.0) / 7.787;
+	}();
+#endif
 
 #if 0
 	//Suppress yellow, the LED is too bright
@@ -134,6 +176,58 @@ vector2d getClosestPointToPoints(vector2d A, vector2d B, vector2d P) {
 
 void Color::FitInGamut(double &x, double& y)
 {
+	//This doesn't actually fit it in the gamut, it just keeps it in (0,0) to (1,1)
+	//The lights are expected to correct this themselves, which they seem to do just fine
+
+	if (x < 0 || x > 1.0 || y < 0 || y > 1.0)
+	{
+		double diffX = (x - Color::D65_x);
+		double diffY = (y - Color::D65_y);
+		double unitX = diffX == 0.0 ? 0.0 : diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+		double unitY = diffY == 0.0 ? 0.0 : diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
+
+		double bestDist = 0;
+		double testDist;
+
+		if (unitX > 0.0)
+		{
+			testDist = (1.0 - Color::D65_x) / unitX;
+			if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
+			{
+				bestDist = std::max(bestDist, testDist);
+			}
+		}
+		else
+		{
+			testDist = (-Color::D65_x) / unitX;
+			if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
+			{
+				bestDist = std::max(bestDist, testDist);
+			}
+		}
+
+		if (unitY > 0.0)
+		{
+			testDist = (1.0 - Color::D65_y) / unitY;
+			if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
+			{
+				bestDist = std::max(bestDist, testDist);
+			}
+		}
+		else
+		{
+			testDist = (-Color::D65_y) / unitY;
+			if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
+			{
+				bestDist = std::max(bestDist, testDist);
+			}
+		}
+
+		x = Color::D65_x + unitX * bestDist;
+		y = Color::D65_y + unitY * bestDist;
+	}
+
+#if 0
 	//gamut C
 	vector2d red(0.692, 0.308);
 	vector2d green(0.17, 0.7);
@@ -144,6 +238,14 @@ void Color::FitInGamut(double &x, double& y)
 	bool inGamut = InGamut(v);
 	if (!inGamut)
 	{
+		//fit to gamut
+		// draw a line between (x,y) and D65
+		// find intersects between this line and the edges of the gamut triangle
+		// select closest intersect
+
+
+		//philips' recommended method of snapping to gamut. It snaps to the corners too readily
+
 		//Find the closest point on each line in the triangle.
 		vector2d pAB = getClosestPointToPoints(red, green, v);
 		vector2d pAC = getClosestPointToPoints(blue, red, v);
@@ -170,6 +272,7 @@ void Color::FitInGamut(double &x, double& y)
 		x = closestPoint.x;
 		y = closestPoint.y;
 	}
+#endif
 }
 
 void Color::XYZ_to_xy(double& X, double& Y, double& Z, double& x, double& y)

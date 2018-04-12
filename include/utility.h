@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <QDebug>
 
 namespace Color
 {
@@ -51,6 +52,13 @@ namespace Color
 		double rawX = R * 0.664511f + G * 0.154324f + B * 0.162028f;
 		double rawY = R * 0.283881f + G * 0.668433f + B * 0.047685f;
 		double rawZ = R * 0.000088f + G * 0.072310f + B * 0.986039f;
+
+#if 0
+		//IEC 61966-2-1:1999
+		X = R * 0.4124 + G * 0.3576 + B * 0.1805;
+		Y = R * 0.2126 + G * 0.7125 + B * 0.0722;
+		Z = R * 0.0193 + G * 0.1192 + B * 0.9505;
+#endif
 
 		if (rawX + rawY + rawZ == 0)
 		{
