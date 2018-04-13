@@ -376,11 +376,11 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 			deltaTime = 1.0;
 		}
 
-		double lumarate = std::exp2(log2(slowness));
-		double lumaalpha = std::exp2(-lumarate * deltaTime);
+		double lumarate = exp2(log2(slowness));
+		double lumaalpha = exp2(-lumarate * deltaTime);
 
-		double colorrate = std::exp2(log2(slowness));
-		double coloralpha = std::exp2(-colorrate * deltaTime);
+		double colorrate = exp2(log2(slowness));
+		double coloralpha = exp2(-colorrate * deltaTime);
 
 		L = Utility::lerp(oldL, mean.L, lumaalpha);
 

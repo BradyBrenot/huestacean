@@ -11,7 +11,7 @@ namespace Color
 	//
 
 	//Convert CIE XYZ to to CIE LCh (expensive)
-	// (cylindrical coordinate conversion of CIE L*a*b*, where L* is unchanged, C* is chromaticity, and h° is hue)
+	// (cylindrical coordinate conversion of CIE L*a*b*, where L* is unchanged, C* is chromaticity, and hÂ° is hue)
 	void XYZ_to_LCh(double& X, double& Y, double& Z, double& L, double& C, double& h);
 
 	//Convert CIE LCh to CIE XYZ (expensive)
@@ -102,6 +102,7 @@ namespace Utility
 #ifdef ANDROID
 #define round _huemath::_round
 #define log2 _huemath::_log2
+#define exp2 _huemath::_exp2
 
 namespace _huemath
 {
@@ -113,6 +114,11 @@ namespace _huemath
     inline double _log2(double a)
     {
         return log(a) / log(2);
+    }
+
+    inline double _exp2(double a)
+    {
+        return pow(2, a);
     }
 }
 #endif
