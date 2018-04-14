@@ -1,6 +1,6 @@
 [submodule "mbedtls"]
-	path = mbedtls
+	path = huestaceand/mbedtls
 	url = https://github.com/ARMmbed/mbedtls
 [submodule "screen_capture_lite"]
-	path = screen_capture_lite
+	path = huestaceand/screen_capture_lite
 	url = https://github.com/BradyBrenot/screen_capture_lite
