@@ -402,9 +402,6 @@ void EntertainmentCommThread::run()
 send_request:
     while (true)
     {
-        static QElapsedTimer timer;
-        timer.restart();
-
         static const uint8_t HEADER[] = {
             'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
 
@@ -441,6 +438,12 @@ send_request:
 
         Msg.append((char*)HEADER, sizeof(HEADER));
 
+		static QElapsedTimer timer;
+		double deltaTime = timer.restart() / 1000.0;
+		if (deltaTime > 1.0 || deltaTime <= 0.0 || std::isnan(deltaTime)) {
+			deltaTime = 1.0;
+		}
+
         for (auto& light : eGroup.lights)
         {
             double newL = 0.0;
@@ -449,7 +452,7 @@ send_request:
 
 			double minBrightness, maxBrightness, brightnessBoost;
 
-            if (!getColor(light, light.L, light.C, light.h, newL, newC, newh, minBrightness, maxBrightness, brightnessBoost))
+            if (!getColor(light, light.L, light.C, light.h, newL, newC, newh, minBrightness, maxBrightness, brightnessBoost, deltaTime))
                 continue;
 
 			light.L = newL;
@@ -490,9 +493,6 @@ send_request:
         {
             break;
         }
-
-        messageSendElapsed = timer.elapsed();
-        emit messageSendElapsedChanged();
 
         //TODO: make this delay customizable?
         QThread::msleep(30);

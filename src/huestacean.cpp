@@ -220,7 +220,7 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
     emit syncingChanged();
 
     runSync(eGroup);
-	eGroup->startStreaming([&](const EntertainmentLight& light, double oldL, double oldC, double oldh, double& L, double& C, double& h, double& minBrightness, double& maxBrightness, double& brightnessBoost)->bool {
+	eGroup->startStreaming([&](const EntertainmentLight& light, double oldL, double oldC, double oldh, double& L, double& C, double& h, double& minBrightness, double& maxBrightness, double& brightnessBoost, double deltaTime)->bool {
 
 		screenLock.lockForRead();
 
@@ -369,12 +369,6 @@ void Huestacean::startScreenSync(EntertainmentGroup* eGroup)
 
 		double slowness = Utility::lerp(getCenterSlowness(), getSideSlowness(), std::abs(light.x));
 		slowness *= 8;
-
-		static QElapsedTimer timer;
-		double deltaTime = timer.restart() / 1000.0;
-		if (deltaTime > 1.0 || deltaTime <= 0.0 || std::isnan(deltaTime)) {
-			deltaTime = 1.0;
-		}
 
 		double lumarate = exp2(log2(slowness));
 		double lumaalpha = exp2(-lumarate * deltaTime);

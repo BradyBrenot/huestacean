@@ -56,9 +56,10 @@ inline bool operator==(const EntertainmentLight& a, const EntertainmentLight& b)
  * @param[out] minBrightness        brightness value to apply to the light
  * @param[out] maxBrightness        brightness value to apply to the light
  * @param[out] brightnessBoost      brightness value to apply to the light
+ * @param[in]  deltaTime            time since last update
  * @return                          Whether we're ready to send a color to this light. If false, an update for this light is not sent to the Bridge.
  */
-typedef std::function<bool(const EntertainmentLight&, double, double, double, double&, double&, double&, double&, double&, double&)> GetColorFunction;
+typedef std::function<bool(const EntertainmentLight&, double, double, double, double&, double&, double&, double&, double&, double&, double)> GetColorFunction;
 
 class EntertainmentGroup : public BridgeObject
 {
