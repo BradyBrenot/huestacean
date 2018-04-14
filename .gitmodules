@@ -1,0 +1,6 @@
+[submodule "huestaceand"]
+	path = huestaceand
+	url = https://github.com/BradyBrenot/huestaceand
+[submodule "libhuestacean"]
+	path = libhuestacean
+	url = https://github.com/BradyBrenot/libhuestacean
