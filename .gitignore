@@ -87,3 +87,6 @@ android/gradle.properties
 
 # Docs
 docs/_site/*
+
+# Do not submit
+*.dns.cmd
