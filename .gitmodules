@@ -4,3 +4,6 @@
 [submodule "libhuestacean"]
 	path = libhuestacean
 	url = https://github.com/BradyBrenot/libhuestacean
+[submodule "huestacean-gui/libhuestacean"]
+	path = huestacean-gui/libhuestacean
+	url = https://github.com/BradyBrenot/libhuestacean.git
