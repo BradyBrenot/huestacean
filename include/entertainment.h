@@ -12,6 +12,9 @@ class EntertainmentLight : public Light
     Q_PROPERTY(double y MEMBER y NOTIFY propertiesChanged)
     Q_PROPERTY(double z MEMBER z NOTIFY propertiesChanged)
 
+signals:
+    void propertiesChanged();
+
 public:
     double x;
     double y;
@@ -69,6 +72,9 @@ class EntertainmentGroup : public BridgeObject
     Q_PROPERTY(bool isStreaming MEMBER isStreaming NOTIFY isStreamingChanged)
     Q_PROPERTY(QList<EntertainmentLight> lights MEMBER lights NOTIFY propertiesChanged)
     Q_PROPERTY(QString asString READ toString NOTIFY propertiesChanged)
+
+signals:
+    void propertiesChanged();
 
 public:
     explicit EntertainmentGroup(HueBridge *parent);

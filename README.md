@@ -142,7 +142,7 @@ Use `macdeployqt` to copy in the necessary Frameworks and other files.
 ```
 
 ### Linux
-1. Make sure you have Qt5 and cmake installed.  If not, use your package manager to install them, e.g. `yum install cmake` or `pacman -S cmake`
+1. Make sure you have Qt5 >= 5.10.0 and cmake installed.  If not, use your package manager to install them, e.g. `yum install cmake` or `pacman -S cmake`. You can also install Qt5 from the [offical website](http://download.qt.io/official_releases/qt/) if the correct version is not available in your package manager.
 2. Clone the Huestacean project and make sure all submodules are up to date.
 ```
 git clone --recursive git://github.com/BradyBrenot/huestacean.git
@@ -152,7 +152,7 @@ cd huestacean
 git submodule sync
 git submodule update --init --recursive
 ```
-3. Use cmake to build Huestacean.
+3. Use cmake to build Huestacean, or build it with QtCreator.
 ```
 mkdir build
 cd build

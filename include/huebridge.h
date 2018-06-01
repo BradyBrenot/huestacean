@@ -137,6 +137,9 @@ class Light : public BridgeObject
 
     Q_PROPERTY(QString name MEMBER name NOTIFY propertiesChanged)
 
+signals:
+    void propertiesChanged();
+
 public:
     explicit Light() : BridgeObject(nullptr)
     {
