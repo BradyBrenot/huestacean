@@ -1,5 +1,5 @@
 import QtQuick 2.9
-import QtQuick.Controls 2.3
+import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.2
 import Huestacean 1.0
 
@@ -50,13 +50,15 @@ ApplicationWindow {
             y: 0
             width: 58
             height: 48
-            display: AbstractButton.IconOnly
             anchors.left: parent.left
             anchors.leftMargin: 13
             onClicked: drawer.visible ? drawer.close() : drawer.open()
             visible: inPortrait
 
-            icon.source: "qrc:/images/hamburger.png"
+	    /* Introduced in Qt 5.10 https://doc.qt.io/qt-5/qtquickcontrols2-icons.html 
+	    display: AbstractButton.IconOnly
+	    icon.source: "qrc:/images/hamburger.png"
+	    */
         }
     }
 
