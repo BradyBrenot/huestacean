@@ -38,8 +38,8 @@ QT5_WRAP_CPP(HEADERS_MOC ${HEADERS})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/mbedtls/include ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_subdirectory(screen_capture_lite)
-add_subdirectory(mbedtls)
+add_subdirectory(thirdparty/screen_capture_lite)
+add_subdirectory(thirdparty/mbedtls)
 
 set(LIBRARIES
    ${LIBRARIES}

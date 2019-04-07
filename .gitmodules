@@ -4,3 +4,9 @@
 [submodule "screen_capture_lite"]
 	path = screen_capture_lite
 	url = https://github.com/BradyBrenot/screen_capture_lite
+[submodule "thirdparty/mbedtls"]
+	path = thirdparty/mbedtls
+	url = https://github.com/ARMmbed/mbedtls
+[submodule "thirdparty/screen_capture_lite"]
+	path = thirdparty/screen_capture_lite
+	url = https://github.com/BradyBrenot/screen_capture_lite
