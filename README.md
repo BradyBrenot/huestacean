@@ -173,7 +173,7 @@ Refer to the [LICENSE](LICENSE) file for license info.
 
 ### Third-party licenses
 
-This software makes use of open source software under various licenses, which may be found in the **third_party_licenses** directory.
+This software makes use of open source software under various licenses, which may be found in the **thirdparty/licenses** directory.
 
 * Qt: lgpl-3.txt, gpl-3.txt, Qt_ThirdPartySoftware_Listing.txt
 * screen_capture_lite: license-screen_capture_lite.txt
