@@ -3,7 +3,7 @@
 #include <cmath>
 #include <algorithm>
 
-namespace Color
+namespace Utility
 {
 	//
 	// Color space conversions
@@ -33,7 +33,7 @@ namespace Color
 		double R, G, B;
 
 #if __cplusplus >= 201703L
-		if constexpr(doGammaCorrection)
+		if constexpr (doGammaCorrection)
 #else
 		if (doGammaCorrection)
 #endif
@@ -88,10 +88,7 @@ namespace Color
 	constexpr double D65_Zn = 108.883;
 
 	constexpr double PI = 3.14159265359;
-}
 
-namespace Utility
-{
     template <typename T>
         inline T lerp(T v0, T v1, T t) {
         return fma(t, v1, fma(-t, v0, v0));
