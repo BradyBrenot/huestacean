@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.10)
 project(Huestacean)
 
 if(UNIX AND NOT APPLE)
@@ -72,3 +72,40 @@ endif()
 
 add_executable(huestacean WIN32 ${MAIN_SOURCE} ${SOURCES} ${HEADERS} ${HEADERS_MOC} resources/qml.qrc)
 target_link_libraries(huestacean ${LIBRARIES})
+
+### Tests
+
+enable_testing()
+
+find_package(Qt5Test REQUIRED)
+include_directories(
+	${Qt5Test_INCLUDES}
+)
+
+# Prepare "Catch" library for other executables
+set(CATCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests/catch)
+add_library(Catch INTERFACE)
+target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
+
+set(TEST_SOURCES
+	${SOURCES}
+	${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
+)
+
+set(TEST_HEADERS
+	${HEADERS}
+	${HEADERS_MOC}
+)
+
+set(TEST_LIBRARIES
+   ${LIBRARIES}
+   Catch
+   Qt5::Test
+)
+
+# Make test executable
+add_executable(huestaceand_tests ${TEST_SOURCES} ${TEST_HEADERS})
+target_link_libraries(huestaceand_tests ${TEST_LIBRARIES})
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/tests/catch/cmake/Catch.cmake)
+catch_discover_tests(huestaceand_tests)

@@ -39,6 +39,11 @@
 #    PARSE_CATCH_TESTS_ADD_TO_CONFIGURE_DEPENDS (Default OFF)                                      #
 #    -- causes CMake to rerun when file with tests changes so that new tests will be discovered    #
 #                                                                                                  #
+# One can also set (locally) the optional variable OptionalCatchTestLauncher to precise the way    #
+# a test should be run. For instance to use test MPI, one can write                                #
+#     set(OptionalCatchTestLauncher ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${NUMPROC})                 #
+# just before calling this ParseAndAddCatchTests function                                          #
+#                                                                                                  #
 #==================================================================================================#
 
 cmake_minimum_required(VERSION 2.8.8)
@@ -104,7 +109,7 @@ function(ParseFile SourceFile TestTarget)
         # Get test type and fixture if applicable
         string(REGEX MATCH "(CATCH_)?(TEST_CASE_METHOD|SCENARIO|TEST_CASE)[ \t]*\\([^,^\"]*" TestTypeAndFixture "${TestName}")
         string(REGEX MATCH "(CATCH_)?(TEST_CASE_METHOD|SCENARIO|TEST_CASE)" TestType "${TestTypeAndFixture}")
-        string(REPLACE "${TestType}(" "" TestFixture "${TestTypeAndFixture}")
+        string(REGEX REPLACE "${TestType}\\([ \t]*" "" TestFixture "${TestTypeAndFixture}")
 
         # Get string parts of test definition
         string(REGEX MATCHALL "\"+([^\\^\"]|\\\\\")+\"+" TestStrings "${TestName}")
@@ -143,6 +148,9 @@ function(ParseFile SourceFile TestTarget)
             endif()
             string(REPLACE "]" ";" Tags "${Tags}")
             string(REPLACE "[" "" Tags "${Tags}")
+        else()
+          # unset tags variable from previous loop
+          unset(Tags)
         endif()
 
         list(APPEND Labels ${Tags})
@@ -156,7 +164,7 @@ function(ParseFile SourceFile TestTarget)
                 break()
             endif(result)
         endforeach(label)
-        if(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS AND ${HiddenTagFound})
+        if(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS AND ${HiddenTagFound} AND ${CMAKE_VERSION} VERSION_LESS "3.9")
             PrintDebugMessage("Skipping test \"${CTestName}\" as it has [!hide], [.] or [.foo] label")
         else()
             PrintDebugMessage("Adding test \"${CTestName}\"")
@@ -164,11 +172,21 @@ function(ParseFile SourceFile TestTarget)
                 PrintDebugMessage("Setting labels to ${Labels}")
             endif()
 
+            # Escape commas in the test spec
+            string(REPLACE "," "\\," Name ${Name})
+
             # Add the test and set its properties
-            add_test(NAME "\"${CTestName}\"" COMMAND ${TestTarget} ${Name} ${AdditionalCatchParameters})
-            set_tests_properties("\"${CTestName}\"" PROPERTIES FAIL_REGULAR_EXPRESSION "No tests ran"
-                                                    LABELS "${Labels}")
+            add_test(NAME "\"${CTestName}\"" COMMAND ${OptionalCatchTestLauncher} ${TestTarget} ${Name} ${AdditionalCatchParameters})
+            # Old CMake versions do not document VERSION_GREATER_EQUAL, so we use VERSION_GREATER with 3.8 instead
+            if(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS AND ${HiddenTagFound} AND ${CMAKE_VERSION} VERSION_GREATER "3.8")
+                PrintDebugMessage("Setting DISABLED test property")
+                set_tests_properties("\"${CTestName}\"" PROPERTIES DISABLED ON)
+            else()
+                set_tests_properties("\"${CTestName}\"" PROPERTIES FAIL_REGULAR_EXPRESSION "No tests ran"
+                                                        LABELS "${Labels}")
+            endif()
         endif()
+
 
     endforeach()
 endfunction()
