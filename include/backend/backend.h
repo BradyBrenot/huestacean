@@ -19,7 +19,7 @@ public:
 	~Backend();
 
 	void Start();
-	bool IsThreadRunning();
+	bool IsRunning();
 	void Stop();
 
 	std::vector<std::unique_ptr<class Room> > GetRooms();

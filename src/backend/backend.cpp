@@ -23,7 +23,7 @@ Backend::~Backend()
 
 void Backend::Start()
 {
-	if (thread.joinable()) {
+	if (IsRunning()) {
 		return;
 	}
 
@@ -44,14 +44,14 @@ void Backend::Start()
 	});
 }
 
-bool Backend::IsThreadRunning()
+bool Backend::IsRunning()
 {
 	return thread.joinable();
 }
 
 void Backend::Stop()
 {
-	if (!IsThreadRunning()) {
+	if (!IsRunning()) {
 		return;
 	}
 
