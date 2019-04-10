@@ -117,8 +117,8 @@ set(TEST_LIBRARIES
 )
 
 # Make test executable
-add_executable(huestaceand_tests ${TEST_SOURCES} ${TEST_HEADERS})
-target_link_libraries(huestaceand_tests ${TEST_LIBRARIES})
+add_executable(huestacean_tests ${TEST_SOURCES} ${TEST_HEADERS})
+target_link_libraries(huestacean_tests ${TEST_LIBRARIES})
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/tests/catch/cmake/Catch.cmake)
-catch_discover_tests(huestaceand_tests)
+catch_discover_tests(huestacean_tests)
