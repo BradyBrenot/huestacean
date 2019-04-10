@@ -9,6 +9,6 @@ class Transform
 
 class Box
 {
-	QVector3D location;
-	QVector3D scale;
+	QVector3D center;
+	QVector3D halfSize;
 };
