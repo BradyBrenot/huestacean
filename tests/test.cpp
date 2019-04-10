@@ -18,7 +18,6 @@ TEST_CASE("can start and stop Backend", "") {
 	Backend b;
 
 	b.Start();
-	REQUIRE(b.HasThreadStarted());
 
 	std::this_thread::sleep_for(500ms);
 	REQUIRE(b.IsThreadRunning());
