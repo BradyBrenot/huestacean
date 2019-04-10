@@ -2,7 +2,7 @@
 
 struct ProviderType
 {
-	enum class Type : uint8
+	enum class Type : uint8_t
 	{
 		Hue,
 		Razer

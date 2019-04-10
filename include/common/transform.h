@@ -1,5 +1,8 @@
 #pragma once
 
+#include <QVector3D>
+#include <QQuaternion>
+
 class Transform
 {
 	QVector3D location;

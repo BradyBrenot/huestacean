@@ -1,5 +1,9 @@
 #pragma once
 
+struct RgbColor;
+struct HsluvColor;
+struct XyzColor;
+
 struct HsluvColor
 {
 	float h;
@@ -16,8 +20,8 @@ struct RgbColor
 	float g;
 	float b;
 
-	HsluvColor(HsluvColor from);
-	HsluvColor(XyzColor from);
+	RgbColor(HsluvColor from);
+	RgbColor(XyzColor from);
 };
 
 struct XyzColor
@@ -26,6 +30,6 @@ struct XyzColor
 	float g;
 	float b;
 
-	HsluvColor(RgbColor from);
-	HsluvColor(HsluvColor from);
+	XyzColor(RgbColor from);
+	XyzColor(HsluvColor from);
 };

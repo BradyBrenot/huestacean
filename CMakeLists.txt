@@ -30,6 +30,7 @@ set(SOURCES
 )
 set(HEADERS
    ${HEADERS}
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/providertype.h
 )
 
 QT5_WRAP_CPP(HEADERS_MOC ${HEADERS})

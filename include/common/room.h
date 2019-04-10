@@ -2,14 +2,20 @@
 
 #include "device.h"
 #include "transform.h"
+#include "effect.h"
+
+#include <vector>
+#include <tuple>
+#include <string>
+#include <memory>
 
 struct DeviceInRoom
 {
 	Transform transform;
 	std::unique_ptr<Device> device;
 
-	String Serialize();
-	static DeviceInRoom Deserialize(String);
+	std::string Serialize();
+	static DeviceInRoom Deserialize(std::string in);
 };
 
 class Room
@@ -24,7 +30,7 @@ public:
 
 	void AddEffect(std::unique_ptr<Effect> effect);
 	void ModifyEffect(std::unique_ptr<Effect> effect);
-	std::vector<Effect>[] GetEffects();
+	std::vector<Effect> GetEffects();
 
 private:
 	std::mutex lock;

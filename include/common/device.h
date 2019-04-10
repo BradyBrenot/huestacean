@@ -2,6 +2,8 @@
 #include "transform.h"
 
 #include <tuple>
+#include <string>
+#include <memory>
 
 struct Device
 {
@@ -9,12 +11,12 @@ struct Device
 	Device();
 
 	virtual std::tuple<std::unique_ptr<class DeviceData>, ProviderType> getLightData(Transform transform) = 0;
-	string serialize();
+	std::string serialize();
 
-	virtual bool operator==(const unique_ptr<Device>& other) = 0;
-	bool operator!=(const unique_ptr<Device>& other)
+	virtual bool operator==(const std::unique_ptr<Device>& other) const = 0;
+	bool operator!=(const std::unique_ptr<Device>& other) const
 	{
-		return !(this == other);
+		return !(*this == other);
 	}
 
 protected:
