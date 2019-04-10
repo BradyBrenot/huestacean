@@ -23,14 +23,26 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5Network REQUIRED)
 find_package(Qt5Quick REQUIRED)
 
-set(MAIN_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+set(MAIN_SOURCE 
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+)
 
 set(SOURCES
    ${SOURCES}
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/backend.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/common/utility.cpp
 )
 set(HEADERS
    ${HEADERS}
+
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/color.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/device.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/effect.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/lightupdate.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/providertype.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/room.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/transform.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/utility.h
 )
 
 QT5_WRAP_CPP(HEADERS_MOC ${HEADERS})

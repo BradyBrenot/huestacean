@@ -1,6 +1,6 @@
-#include "utility.h"
+#include "common/utility.h"
 
-void Color::XYZ_to_LCh(double& X, double& Y, double& Z, double& L, double& C, double& h)
+void ColorSpace::XYZ_to_LCh(double& X, double& Y, double& Z, double& L, double& C, double& h)
 {
 	//Intermediate coordinates (a* and b* of L*a*b*)
 	double a, b;
@@ -24,7 +24,7 @@ void Color::XYZ_to_LCh(double& X, double& Y, double& Z, double& L, double& C, do
 	h = atan2(b, a);
 }
 
-void Color::LCh_to_XYZ(double& L, double& C, double& h, double& X, double& Y, double& Z)
+void ColorSpace::LCh_to_XYZ(double& L, double& C, double& h, double& X, double& Y, double& Z)
 {
 	//Intermediate coordinates (a* and b* of L*a*b*)
 	double a, b;
@@ -109,15 +109,15 @@ void Color::LCh_to_XYZ(double& L, double& C, double& h, double& X, double& Y, do
 }
 
 struct vector2d {
-	double x;
-	double y;
+	float x;
+	float y;
 
 	vector2d(double inx, double iny) : x(inx), y(iny) {
 
 	}
 };
 
-float dist(vector2d v1, vector2d v2)
+double dist(vector2d v1, vector2d v2)
 {
 	float dx = v1.x - v2.x;
 	float dy = v1.y - v2.y;
@@ -173,15 +173,15 @@ vector2d getClosestPointToPoints(vector2d A, vector2d B, vector2d P) {
 	return newPoint;
 }
 
-void Color::FitInGamut(double &x, double& y)
+void ColorSpace::FitInGamut(double &x, double& y)
 {
 	//This doesn't actually fit it in the gamut, it just keeps it in (0,0) to (1,1)
 	//The lights are expected to correct this themselves, which they seem to do just fine
 
 	if (x < 0 || x > 1.0 || y < 0 || y > 1.0)
 	{
-		double diffX = (x - Color::D65_x);
-		double diffY = (y - Color::D65_y);
+		double diffX = (x - ColorSpace::D65_x);
+		double diffY = (y - ColorSpace::D65_y);
 		double unitX = diffX == 0.0 ? 0.0 : diffX / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
 		double unitY = diffY == 0.0 ? 0.0 : diffY / std::sqrt(std::pow(diffX, 2.0) + std::pow(diffY, 2.0));
 
@@ -190,16 +190,16 @@ void Color::FitInGamut(double &x, double& y)
 
 		if (unitX > 0.0)
 		{
-			testDist = (1.0 - Color::D65_x) / unitX;
-			if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
+			testDist = (1.0 - ColorSpace::D65_x) / unitX;
+			if (ColorSpace::D65_y + testDist * unitY <= 1.0 && ColorSpace::D65_y + testDist * unitY >= 0.0)
 			{
 				bestDist = std::max(bestDist, testDist);
 			}
 		}
 		else
 		{
-			testDist = (-Color::D65_x) / unitX;
-			if (Color::D65_y + testDist * unitY <= 1.0 && Color::D65_y + testDist * unitY >= 0.0)
+			testDist = (-ColorSpace::D65_x) / unitX;
+			if (ColorSpace::D65_y + testDist * unitY <= 1.0 && ColorSpace::D65_y + testDist * unitY >= 0.0)
 			{
 				bestDist = std::max(bestDist, testDist);
 			}
@@ -207,23 +207,23 @@ void Color::FitInGamut(double &x, double& y)
 
 		if (unitY > 0.0)
 		{
-			testDist = (1.0 - Color::D65_y) / unitY;
-			if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
+			testDist = (1.0 - ColorSpace::D65_y) / unitY;
+			if (ColorSpace::D65_x + testDist * unitX <= 1.0 && ColorSpace::D65_x + testDist * unitX >= 0.0)
 			{
 				bestDist = std::max(bestDist, testDist);
 			}
 		}
 		else
 		{
-			testDist = (-Color::D65_y) / unitY;
-			if (Color::D65_x + testDist * unitX <= 1.0 && Color::D65_x + testDist * unitX >= 0.0)
+			testDist = (-ColorSpace::D65_y) / unitY;
+			if (ColorSpace::D65_x + testDist * unitX <= 1.0 && ColorSpace::D65_x + testDist * unitX >= 0.0)
 			{
 				bestDist = std::max(bestDist, testDist);
 			}
 		}
 
-		x = Color::D65_x + unitX * bestDist;
-		y = Color::D65_y + unitY * bestDist;
+		x = ColorSpace::D65_x + unitX * bestDist;
+		y = ColorSpace::D65_y + unitY * bestDist;
 	}
 
 #if 0
@@ -274,7 +274,7 @@ void Color::FitInGamut(double &x, double& y)
 #endif
 }
 
-void Color::XYZ_to_xy(double& X, double& Y, double& Z, double& x, double& y)
+void ColorSpace::XYZ_to_xy(double& X, double& Y, double& Z, double& x, double& y)
 {
 	if (X + Y + Z == 0)
 	{
@@ -288,7 +288,7 @@ void Color::XYZ_to_xy(double& X, double& Y, double& Z, double& x, double& y)
 	}
 }
 
-void Color::rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& Y)
+void ColorSpace::rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& Y)
 {
 	double X, Z;
 

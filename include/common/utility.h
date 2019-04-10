@@ -3,7 +3,7 @@
 #include <cmath>
 #include <algorithm>
 
-namespace Utility
+namespace ColorSpace
 {
 	//
 	// Color space conversions
@@ -88,7 +88,10 @@ namespace Utility
 	constexpr double D65_Zn = 108.883;
 
 	constexpr double PI = 3.14159265359;
+}
 
+namespace Utility
+{
     template <typename T>
         inline T lerp(T v0, T v1, T t) {
         return fma(t, v1, fma(-t, v0, v0));

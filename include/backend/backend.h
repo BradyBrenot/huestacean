@@ -15,14 +15,19 @@
 class Backend
 {
 public:
+	Backend();
+
 	void Start();
+	bool HasThreadStarted();
+	bool IsThreadRunning();
 	void Stop();
 
 	std::vector<std::unique_ptr<class Room> > GetRooms();
 
 private:
 	std::atomic_bool stopRequested;
-	std::atomic_bool isRunning;
+	std::atomic_bool threadStarted;
+	std::atomic_bool threadIsRunning;
 	std::thread thread;
 	std::shared_mutex lock;
 
