@@ -86,6 +86,7 @@ void Backend::Start()
 
 			auto start = std::chrono::high_resolution_clock::now();
 			float deltaTime = std::chrono::duration<float>{ start - lastStart }.count();
+			lastStart = start;
 
 			tick(deltaTime);
 
