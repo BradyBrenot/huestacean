@@ -40,5 +40,15 @@ struct Room
 		devices = std::move(r.devices);
 		effects = std::move(r.effects);
 	}
+
+	Room& operator=(const Room& r)
+	{
+		devices = r.devices;
+		for (const auto& effect : r.effects)
+		{
+			effects.push_back(effect->clone());
+		}
+		return *this;
+	}
 };
 

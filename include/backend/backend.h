@@ -23,8 +23,31 @@ public:
 	void Stop();
 
 	std::vector<Room>& GetRooms() const;
-	std::vector<Room>& GetRoomsMutable();
 	void SetActiveRoom(int roomIndex);
+
+	class RoomsWriter
+	{
+	public:
+		RoomsWriter() = delete;
+		RoomsWriter(const RoomsWriter& x) = delete;
+		RoomsWriter(RoomsWriter&& x) = delete;
+
+		explicit RoomsWriter(Backend* inBackend) : b(inBackend), lock(inBackend->roomsMutex)
+		{
+
+		}
+		
+		std::vector<Room>& GetRoomsMutable()
+		{
+			return b->rooms;
+		};
+
+	private:
+		std::scoped_lock<std::shared_mutex> lock;
+		Backend* b;
+	};
+
+	RoomsWriter GetRoomsWriter();
 
 private:
 	std::atomic_bool stopRequested;
