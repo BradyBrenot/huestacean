@@ -1,16 +1,24 @@
 #pragma once
 
-struct ProviderType
+class ProviderType
 {
-	enum class Type : uint8_t
+public:
+	enum Type : uint8_t
 	{
-		Hue,
-		Razer
+		Unknown = 0,
+		Hue = 1,
+		Razer = 2,
+		Max = 2
 	};
 
 	Type type;
+
+	ProviderType() = delete;
 	ProviderType(Type inType) : type(inType)
 	{
 
 	};
+
+	bool operator==(ProviderType a) const { return type == a.type; }
+	bool operator!=(ProviderType a) const { return type != a.type; }
 };

@@ -1,25 +1,19 @@
 #pragma once
 #include "transform.h"
-
-#include <tuple>
+#include "providertype.h"
+#include <vector>
 #include <string>
-#include <memory>
 
-struct Device
+class Device
 {
-	explicit Device(std::vector<Box>&& inLights);
-	Device();
+	Device() = delete;
+	explicit Device(ProviderType inType);
 
-	virtual std::tuple<std::unique_ptr<class DeviceData>, ProviderType> getLightData(Transform transform) = 0;
-	std::string serialize();
+	ProviderType type;
+	std::string Serialize() const;
 
-	virtual bool operator==(const std::unique_ptr<Device>& other) const = 0;
-	bool operator!=(const std::unique_ptr<Device>& other) const
-	{
-		return !(*this == other);
-	}
+	virtual std::vector<Box> GetLightLocations() const = 0;
 
 protected:
-	std::vector<Box> lights;
-	std::vector<Box> transformLights(Transform transform);
+	virtual std::string Serialize_Internal() = 0;
 };

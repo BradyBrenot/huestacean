@@ -12,29 +12,33 @@
 struct DeviceInRoom
 {
 	Transform transform;
-	std::unique_ptr<Device> device;
+	std::shared_ptr<Device> device;
+	std::vector<Box> lightLocations;
 
 	std::string Serialize();
 	static DeviceInRoom Deserialize(std::string in);
 };
 
-class Room
+struct Room
 {
-public:
-
-	void Tick(float DeltaTime);
-
-	void AddDevice(std::unique_ptr<Device> device, Transform transform);
-	void MoveDevice(std::unique_ptr<Device> device, Transform transform);
-	void RemoveDevice(std::unique_ptr<Device> device);
-
-	void AddEffect(std::unique_ptr<Effect> effect);
-	void ModifyEffect(std::unique_ptr<Effect> effect);
-	std::vector<Effect> GetEffects();
-
-private:
-	std::mutex lock;
 	std::vector< DeviceInRoom > devices;
-	std::vector< Effect > effects;
+	std::vector< std::unique_ptr<Effect> > effects;
+
+	Room() : devices(), effects() {}
+
+	Room(const Room& r)
+	{
+		devices = r.devices;
+		for (const auto& effect : r.effects)
+		{
+			effects.push_back(effect->clone());
+		}
+	}
+
+	Room(Room&& r)
+	{
+		devices = std::move(r.devices);
+		effects = std::move(r.effects);
+	}
 };
 

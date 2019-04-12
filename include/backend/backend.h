@@ -22,13 +22,19 @@ public:
 	bool IsRunning();
 	void Stop();
 
-	std::vector<std::unique_ptr<class Room> > GetRooms();
+	std::vector<Room>& GetRooms() const;
+	std::vector<Room>& GetRoomsMutable();
+	void SetActiveRoom(int roomIndex);
 
 private:
 	std::atomic_bool stopRequested;
 	std::thread thread;
-	std::shared_mutex lock;
 
-	std::vector<std::unique_ptr<Room> > rooms;
-	std::vector<std::unique_ptr<DeviceProvider> > deviceProviders;
+	std::shared_mutex roomsMutex;
+	std::vector<Room> rooms;
+
+	std::atomic_int activeRoomIndex;
+	std::atomic_bool roomsAreDirty;
+
+	std::unique_ptr<DeviceProvider> deviceProviders[ProviderType::Max];
 };

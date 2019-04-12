@@ -3,12 +3,9 @@
 #include "transform.h"
 #include "color.h"
 
+#include <memory>
 #include <vector>
 
-struct DeviceData
-{
-
-};
 
 struct LightUpdateParams
 {
@@ -20,7 +17,7 @@ struct LightUpdateParams
 	std::vector<Box>::iterator positionsEnd;
 	bool positionsDirty;
 
-	std::vector<unique_ptr<struct DeviceData> >::iterator dataBegin;
-	std::vector<unique_ptr<struct DeviceData>>::iterator dataEnd;
-	bool dataDirty;
+	std::vector<std::unique_ptr<Device> >::iterator devicesBegin;
+	std::vector<std::unique_ptr<Device> >::iterator devicesEnd;
+	bool devicesDirty;
 };
