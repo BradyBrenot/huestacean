@@ -22,7 +22,7 @@ public:
 	bool IsRunning();
 	void Stop();
 
-	std::vector<Room>& GetRooms() const;
+	const std::vector<Room>& GetRooms() const;
 	void SetActiveRoom(int roomIndex);
 
 	class RoomsWriter
@@ -31,12 +31,13 @@ public:
 		RoomsWriter() = delete;
 		RoomsWriter(const RoomsWriter& x) = delete;
 		RoomsWriter(RoomsWriter&& x) = delete;
-		~RoomsWriter() { b->roomsAreDirty = true; }
 
 		explicit RoomsWriter(Backend* inBackend) : b(inBackend), lock(inBackend->roomsMutex)
 		{
 
 		}
+
+		~RoomsWriter() { b->roomsAreDirty = true; }
 		
 		std::vector<Room>& GetRoomsMutable()
 		{

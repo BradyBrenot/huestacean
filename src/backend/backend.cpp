@@ -115,6 +115,11 @@ void Backend::Stop()
 	thread.join();
 }
 
+const std::vector<Room>& Backend::GetRooms() const
+{
+	return rooms;
+}
+
 Backend::RoomsWriter Backend::GetRoomsWriter()
 {
 	return RoomsWriter(this);
