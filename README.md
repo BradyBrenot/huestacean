@@ -63,6 +63,8 @@ Use this repository's [Issues](https://github.com/BradyBrenot/huestacean/issues)
 ----
 
 ## Building
+Major development is presently active on the master branch, you'll need to use a previous [Release](https://github.com/BradyBrenot/huestacean/releases) to build a working copy of Huestacean at the moment.
+
 ### Dependencies
 * Qt 5.10
 * CMake 3.9
