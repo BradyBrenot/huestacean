@@ -1,11 +1,13 @@
 #include "backend/backend.h"
 #include "common/lightupdate.h"
+#include "common/math.h"
 
 #include <chrono>
 #include <thread>
 #include <algorithm>
 
 using namespace std::chrono_literals;
+using namespace Math;
 
 Backend::Backend() :
 	stopRequested(false),
@@ -37,9 +39,9 @@ void Backend::Start()
 		Room renderRoom = rooms.size() > activeRoomIndex ? rooms[activeRoomIndex] : Room();
 
 		LightUpdateParams lightUpdate;
-		std::vector<HsluvColor> Colors;
-		std::vector<Box> Positions;
-		std::vector<Device> Devices;
+		std::vector<HsluvColor> colors;
+		std::vector<Box> positions;
+		std::vector<Device> devices;
 
 		auto tick = [&](float deltaTime)
 		{
@@ -57,6 +59,7 @@ void Backend::Start()
 				lightUpdate.positionsDirty = true;
 				lightUpdate.devicesDirty = true;
 
+				//Sort devices by ProviderType     
 				//Query every device to fetch positions off it
 				//Fill in big dumb non-sparse Devices array
 				//Blank out Colors
@@ -68,7 +71,7 @@ void Backend::Start()
 			for (auto& effect : renderRoom.effects)
 			{
 				effect->Tick(deltaTime);
-				effect->Update(Positions, Colors);
+				effect->Update(positions, colors);
 			}
 			lightUpdate.colorsDirty = true;
 

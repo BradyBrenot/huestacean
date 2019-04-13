@@ -1,7 +1,6 @@
 #pragma once
 
-#include "common/color.h"
-#include "common/transform.h"
+#include "common/math.h"
 
 #include <vector>
 #include <memory>
@@ -10,7 +9,7 @@ class Effect
 {
 public:
 	virtual void Tick(float deltaTime) {}
-	virtual void Update(const std::vector<Box>& positions, std::vector<HsluvColor>& outColors) = 0;
+	virtual void Update(const std::vector<Math::Box>& positions, std::vector<Math::HsluvColor>& outColors) = 0;
 
 
 	std::unique_ptr<Effect> clone() const { return std::unique_ptr<Effect>(clone_impl()); }
@@ -22,7 +21,7 @@ protected:
 class DerivedEffect : public Effect
 {
 public:
-	virtual void Update(const std::vector<Box>& positions, std::vector<HsluvColor>& outColors) override {}
+	virtual void Update(const std::vector<Math::Box>& positions, std::vector<Math::HsluvColor>& outColors) override {}
 
 protected:
 	virtual Effect* clone_impl() const override

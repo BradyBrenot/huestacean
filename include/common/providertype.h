@@ -21,4 +21,6 @@ public:
 
 	bool operator==(ProviderType a) const { return type == a.type; }
 	bool operator!=(ProviderType a) const { return type != a.type; }
+	bool operator>(ProviderType a) const { return type > a.type; }
+	bool operator<(ProviderType a) const { return type < a.type; }
 };

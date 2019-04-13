@@ -30,22 +30,25 @@ set(MAIN_SOURCE
 set(SOURCES
    ${SOURCES}
    ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/backend.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/common/utility.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/common/math.cpp
 )
 set(HEADERS
    ${HEADERS}
 
-   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/color.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/device.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/effect.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/lightupdate.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/providertype.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/room.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/transform.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/utility.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/math.h
 )
 
-QT5_WRAP_CPP(HEADERS_MOC ${HEADERS})
+#headers with Qt-relevant types (for moc)
+set(QT_HEADERS
+
+)
+
+QT5_WRAP_CPP(HEADERS_MOC ${QT_HEADERS})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/mbedtls/include ${CMAKE_CURRENT_SOURCE_DIR})
 

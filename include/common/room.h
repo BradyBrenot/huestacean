@@ -1,7 +1,7 @@
 #pragma once
 
 #include "device.h"
-#include "transform.h"
+#include "common/math.h"
 #include "effect.h"
 
 #include <vector>
@@ -11,12 +11,9 @@
 
 struct DeviceInRoom
 {
-	Transform transform;
-	std::shared_ptr<Device> device;
-	std::vector<Box> lightLocations;
-
-	std::string Serialize();
-	static DeviceInRoom Deserialize(std::string in);
+	Math::Transform transform;
+	DevicePtr device;
+	std::vector<Math::Box> lightLocations;
 };
 
 struct Room

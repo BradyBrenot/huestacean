@@ -1,7 +1,7 @@
 #pragma once
 
-#include "transform.h"
-#include "color.h"
+#include "common/math.h"
+#include "device.h"
 
 #include <memory>
 #include <vector>
@@ -9,15 +9,16 @@
 
 struct LightUpdateParams
 {
-	std::vector<HsluvColor>::iterator colorsBegin;
-	std::vector<HsluvColor>::iterator colorsEnd;
+	//is std::span a better fit? It's a C++20 feature, so eh
+	std::vector<Math::HsluvColor>::iterator colorsBegin;
+	std::vector<Math::HsluvColor>::iterator colorsEnd;
 	bool colorsDirty;
 
-	std::vector<Box>::iterator positionsBegin;
-	std::vector<Box>::iterator positionsEnd;
+	std::vector<Math::Box>::iterator positionsBegin;
+	std::vector<Math::Box>::iterator positionsEnd;
 	bool positionsDirty;
 
-	std::vector<std::unique_ptr<Device> >::iterator devicesBegin;
-	std::vector<std::unique_ptr<Device> >::iterator devicesEnd;
+	std::vector<DevicePtr>::iterator devicesBegin;
+	std::vector<DevicePtr>::iterator devicesEnd;
 	bool devicesDirty;
 };
