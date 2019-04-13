@@ -193,7 +193,7 @@ namespace Math
 		Vector3d scale;
 		Rotator rotation;
 
-		Box transformBox(Box b);
+		Box transformBox(const Box& b) const;
 	};
 };
 

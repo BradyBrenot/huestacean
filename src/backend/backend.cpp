@@ -40,12 +40,13 @@ void Backend::Start()
 
 		LightUpdateParams lightUpdate;
 		std::vector<HsluvColor> colors;
-		std::vector<Box> positions;
-		std::vector<Device> devices;
+		std::vector<Box> boundingBoxes;
+		std::vector<DevicePtr> devices;
 
 		auto tick = [&](float deltaTime)
 		{
 			//Copy the new room if necessary
+			// @TODO multiple active rooms
 			if (roomsAreDirty)
 			{
 				{
@@ -60,9 +61,36 @@ void Backend::Start()
 				lightUpdate.devicesDirty = true;
 
 				//Sort devices by ProviderType     
-				//Query every device to fetch positions off it
-				//Fill in big dumb non-sparse Devices array
+				std::sort(renderRoom.devices.begin(), renderRoom.devices.end(),
+					[&](const DeviceInRoom & a, const DeviceInRoom & b) {
+						if (a.device->GetType() == b.device->GetType())
+						{
+							return deviceProviders[a.device->GetType()]->compare(a, b);
+						}
+						else
+						{
+							return compare(a.device, b.device);
+						}
+					});
+
+				//Query every device to fetch positions off it 
+				//	+ Fill in big dumb non-sparse Devices array
+				boundingBoxes.clear();
+				devices.clear();
+
+				for (const auto& d : renderRoom.devices)
+				{
+					auto boxesToAppend = d.GetLightBoundingBoxes();
+					auto devicesToAppend = std::vector<DevicePtr>(boxesToAppend.size(), d.device);
+
+					boundingBoxes.insert(boundingBoxes.end(), boxesToAppend.begin(), boxesToAppend.end());
+					devices.insert(devices.end(), devicesToAppend.begin(), devicesToAppend.end());
+				}
+
+
 				//Blank out Colors
+				colors.clear();
+				colors = { boundingBoxes.size() };
 
 				//@TODO
 			}
@@ -71,7 +99,7 @@ void Backend::Start()
 			for (auto& effect : renderRoom.effects)
 			{
 				effect->Tick(deltaTime);
-				effect->Update(positions, colors);
+				effect->Update(boundingBoxes, colors);
 			}
 			lightUpdate.colorsDirty = true;
 

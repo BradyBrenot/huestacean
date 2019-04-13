@@ -5,6 +5,7 @@
 #include <shared_mutex>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 #include "common/providertype.h"
 #include "deviceprovider.h"
@@ -61,5 +62,5 @@ private:
 	std::atomic_int activeRoomIndex;
 	std::atomic_bool roomsAreDirty;
 
-	std::unique_ptr<DeviceProvider> deviceProviders[ProviderType::Max];
+	std::unordered_map<ProviderType, std::unique_ptr<DeviceProvider> > deviceProviders;
 };

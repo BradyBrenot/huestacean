@@ -24,12 +24,13 @@ public:
 		isConnected = in;
 	}
 
-	virtual std::vector<Math::Box> GetLightLocations() const = 0;
+	virtual std::vector<Math::Box> GetLightBoundingBoxes() const = 0;
 
 protected:
 	Device() = delete;
 	explicit Device(ProviderType inType);
 
+private:
 	ProviderType type;
 	std::atomic_bool isConnected;
 };

@@ -41,6 +41,7 @@ set(SOURCES
 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/backend.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/math.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/common/room.cpp
 )
 set(HEADERS
    ${HEADERS}

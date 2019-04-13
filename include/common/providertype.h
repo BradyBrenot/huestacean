@@ -1,14 +1,15 @@
 #pragma once
 
+#include <functional>
+
 class ProviderType
 {
 public:
 	enum Type : uint8_t
 	{
-		Unknown = 0,
+		Invalid = 0,
 		Hue = 1,
-		Razer = 2,
-		Max = 2
+		Razer = 2
 	};
 
 	Type type;
@@ -24,3 +25,15 @@ public:
 	bool operator>(ProviderType a) const { return type > a.type; }
 	bool operator<(ProviderType a) const { return type < a.type; }
 };
+
+namespace std
+{
+	template <>
+	struct hash<ProviderType>
+	{
+		std::size_t operator()(const ProviderType& x) const
+		{
+			return hash<uint8_t>()(x.type);
+		}
+	};
+}

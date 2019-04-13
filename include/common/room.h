@@ -13,7 +13,8 @@ struct DeviceInRoom
 {
 	Math::Transform transform;
 	DevicePtr device;
-	std::vector<Math::Box> lightLocations;
+
+	std::vector<Math::Box> GetLightBoundingBoxes() const;
 };
 
 struct Room
