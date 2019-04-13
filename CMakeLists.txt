@@ -27,13 +27,24 @@ set(MAIN_SOURCE
    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
 )
 
+SET(THIRD_PARTY_SOURCE
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/hsluv-c/src/hsluv.c
+)
+
+SET(THIRD_PARTY_HEADERS
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/hsluv-c/src/hsluv.h
+)
+
 set(SOURCES
    ${SOURCES}
+   ${THIRD_PARTY_SOURCE}
+
    ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/backend.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/math.cpp
 )
 set(HEADERS
    ${HEADERS}
+   ${THIRD_PARTY_HEADERS}
 
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/device.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/effect.h
@@ -50,7 +61,15 @@ set(QT_HEADERS
 
 QT5_WRAP_CPP(HEADERS_MOC ${QT_HEADERS})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/mbedtls/include ${CMAKE_CURRENT_SOURCE_DIR})
+set(INCLUDE_PATHS
+	${INCLUDE_PATHS}
+
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/include
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/mbedtls/include
+)
+
+include_directories(${INCLUDE_PATHS})
 
 add_subdirectory(thirdparty/screen_capture_lite EXCLUDE_FROM_ALL)
 add_subdirectory(thirdparty/mbedtls EXCLUDE_FROM_ALL)

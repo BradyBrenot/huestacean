@@ -77,32 +77,33 @@ namespace Math
 
 	struct HsluvColor
 	{
-		float h;
-		float s;
-		float l;
+		double h;
+		double s;
+		double l;
 
-		HsluvColor(RgbColor from);
-		HsluvColor(XyzColor from);
+		HsluvColor();
+		HsluvColor(const RgbColor& from);
 	};
 
 	struct RgbColor
 	{
-		float r;
-		float g;
-		float b;
+		double r;
+		double g;
+		double b;
 
-		RgbColor(HsluvColor from);
-		RgbColor(XyzColor from);
+		RgbColor();
+		RgbColor(const HsluvColor& from);
 	};
 
 	struct XyzColor
 	{
-		float r;
-		float g;
-		float b;
+		double x;
+		double y;
+		double z;
 
-		XyzColor(RgbColor from);
-		XyzColor(HsluvColor from);
+		XyzColor();
+		XyzColor(const RgbColor& from);
+		XyzColor(const HsluvColor& from);
 	};
 
 	// Coordinate / angle types

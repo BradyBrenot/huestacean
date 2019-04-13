@@ -1,6 +1,8 @@
 #include "common/math.h"
+#include "thirdparty/hsluv-c/src/hsluv.h"
 
 #include <cmath>
+
 
 using namespace Math;
 
@@ -208,7 +210,7 @@ void FitInGamut(double &x, double& y)
 	}
 }
 
-void XYZ_to_xy(double& X, double& Y, double& Z, double& x, double& y)
+void XYZ_to_xy(const double& X, const double& Y, const double& Z, double& x, double& y)
 {
 	if (X + Y + Z == 0)
 	{
@@ -229,7 +231,7 @@ void XYZ_to_xy(double& X, double& Y, double& Z, double& x, double& y)
 //Convert RGB to CIE XYZ, optionally performing gamma correction.
 //Using formulas from Philips Hue documentation.
 template<bool doGammaCorrection = true>
-void rgb_to_XYZ(double& r, double& g, double& b, double& X, double& Y, double& Z)
+void rgb_to_XYZ(const double& r, const double& g, const double& b, double& X, double& Y, double& Z)
 {
 	double R, G, B;
 
@@ -240,18 +242,18 @@ void rgb_to_XYZ(double& r, double& g, double& b, double& X, double& Y, double& Z
 #endif
 	{
 		//Gamma correction, per hue docs
-		R = (r > 0.04045f) ? pow((r + 0.055f) / (1.0f + 0.055f), 2.4f) : (r / 12.92f);
-		G = (g > 0.04045f) ? pow((g + 0.055f) / (1.0f + 0.055f), 2.4f) : (g / 12.92f);
-		B = (b > 0.04045f) ? pow((b + 0.055f) / (1.0f + 0.055f), 2.4f) : (b / 12.92f);
+		R = (r > 0.04045f) ? pow((r + 0.055f) / (1.0 + 0.055), 2.4f) : (r / 12.92);
+		G = (g > 0.04045f) ? pow((g + 0.055f) / (1.0 + 0.055), 2.4f) : (g / 12.92);
+		B = (b > 0.04045f) ? pow((b + 0.055f) / (1.0 + 0.055), 2.4f) : (b / 12.92);
 	}
 	else
 	{
 		R = r; G = g; B = b;
 	}
 
-	double rawX = R * 0.664511f + G * 0.154324f + B * 0.162028f;
-	double rawY = R * 0.283881f + G * 0.668433f + B * 0.047685f;
-	double rawZ = R * 0.000088f + G * 0.072310f + B * 0.986039f;
+	double rawX = R * 0.664511 + G * 0.154324 + B * 0.162028;
+	double rawY = R * 0.283881 + G * 0.668433 + B * 0.047685;
+	double rawZ = R * 0.000088 + G * 0.072310 + B * 0.986039;
 
 #if 0
 	//IEC 61966-2-1:1999
@@ -281,4 +283,43 @@ void rgb_to_xy(double& r, double& g, double& b, double& x, double& y, double& Y)
 
 	rgb_to_XYZ<true>(r, g, b, X, Y, Z);
 	XYZ_to_xy(X, Y, Z, x, y);
+}
+
+HsluvColor::HsluvColor()
+	: h(0), s(0), l(0)
+{
+
+}
+
+HsluvColor::HsluvColor(const RgbColor& from)
+{
+	rgb2hsluv(from.r, from.g, from.b, &h, &s, &l);
+}
+
+RgbColor::RgbColor() 
+	: r(0), g(0), b(0)
+{
+
+}
+
+RgbColor::RgbColor(const HsluvColor& from)
+{
+	hsluv2rgb(from.h, from.s, from.l, &r, &g, &b);
+}
+
+XyzColor::XyzColor()
+	: x(0), y(0), z(0)
+{
+
+}
+
+XyzColor::XyzColor(const RgbColor& from)
+{
+	rgb_to_XYZ(from.r, from.g, from.b, x, y, z);
+}
+
+XyzColor::XyzColor(const HsluvColor& from)
+{
+	auto rgb = RgbColor{ from };
+	rgb_to_XYZ(rgb.r, rgb.g, rgb.b, x, y, z);
 }
