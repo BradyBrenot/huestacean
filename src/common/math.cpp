@@ -291,6 +291,12 @@ HsluvColor::HsluvColor()
 
 }
 
+HsluvColor::HsluvColor(double inH, double inS, double inL)
+	: h(inH), s(inS), l(inL)
+{
+
+}
+
 HsluvColor::HsluvColor(const RgbColor& from)
 {
 	rgb2hsluv(from.r, from.g, from.b, &h, &s, &l);
@@ -302,6 +308,12 @@ RgbColor::RgbColor()
 
 }
 
+RgbColor::RgbColor(double inR, double inG, double inB)
+	: r(inR), g(inG), b(inB)
+{
+
+}
+
 RgbColor::RgbColor(const HsluvColor& from)
 {
 	hsluv2rgb(from.h, from.s, from.l, &r, &g, &b);
@@ -309,6 +321,12 @@ RgbColor::RgbColor(const HsluvColor& from)
 
 XyzColor::XyzColor()
 	: x(0), y(0), z(0)
+{
+
+}
+
+XyzColor::XyzColor(double inX, double inY, double inZ)
+	: x(inX), y(inY), z(inZ)
 {
 
 }

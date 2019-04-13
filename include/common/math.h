@@ -82,6 +82,7 @@ namespace Math
 		double l;
 
 		HsluvColor();
+		HsluvColor(double inH, double inS, double inL);
 		HsluvColor(const RgbColor& from);
 	};
 
@@ -92,6 +93,7 @@ namespace Math
 		double b;
 
 		RgbColor();
+		RgbColor(double inR, double inG, double inB);
 		RgbColor(const HsluvColor& from);
 	};
 
@@ -102,6 +104,7 @@ namespace Math
 		double z;
 
 		XyzColor();
+		XyzColor(double inX, double inY, double inZ);
 		XyzColor(const RgbColor& from);
 		XyzColor(const HsluvColor& from);
 	};
@@ -192,6 +195,17 @@ namespace Math
 		Vector3d location;
 		Vector3d scale;
 		Rotator rotation;
+
+		Transform()
+			: location(), scale(), rotation()
+		{
+		}
+
+		Transform(Vector3d inLocation, Vector3d inScale, Rotator inRotation)
+			: location(inLocation), scale(inScale), rotation(inRotation)
+		{
+
+		}
 
 		Box transformBox(const Box& b) const;
 	};
