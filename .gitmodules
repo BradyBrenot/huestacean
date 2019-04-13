@@ -13,3 +13,6 @@
 [submodule "thirdparty/libstringintern"]
 	path = thirdparty/libstringintern
 	url = https://github.com/RipcordSoftware/libstringintern
+[submodule "thirdparty/hsluv-c"]
+	path = thirdparty/hsluv-c
+	url = https://github.com/hsluv/hsluv-c
