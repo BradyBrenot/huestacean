@@ -341,3 +341,11 @@ XyzColor::XyzColor(const HsluvColor& from)
 	auto rgb = RgbColor{ from };
 	rgb_to_XYZ(rgb.r, rgb.g, rgb.b, x, y, z);
 }
+
+/////////////////////////////////////////////////////////////////
+// 3D
+
+Box Transform::transformBox(const Box& b) const
+{
+	return b;
+}

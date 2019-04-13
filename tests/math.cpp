@@ -54,7 +54,20 @@ TEST_CASE("Transform Box", "") {
 	};
 
 	auto testCases = {
-		TransformTestCase{ {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, { {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}} }
+		// start.center, start.halfsize
+		// TransformTestCase{ {start.center, start.halfsize}, {goal.center, goal.halfsize}, { location, scale, rotation } }
+
+		// Zero transform
+		TransformTestCase{ {{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}}, {{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}}, { {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}} },
+
+		// Zero transform, off-center box
+		TransformTestCase{ {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}}, {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}}, { {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}} },
+
+		// Scale, centered box
+		TransformTestCase{ {{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}}, {{0.0, 0.0, 0.0}, {5.0, 5.0, 5.0}}, { {0.0, 0.0, 0.0}, {5.0, 5.0, 5.0}, {0.0, 0.0, 0.0}} },
+
+		// Scale, off-center box
+		TransformTestCase{ {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}}, {{0.0, 0.0, 0.0}, {5.0, 5.0, 5.0}}, { {0.0, 0.0, 0.0}, {5.0, 5.0, 5.0}, {0.0, 0.0, 0.0}} },
 	};
 
 	for (const auto& test: testCases)
