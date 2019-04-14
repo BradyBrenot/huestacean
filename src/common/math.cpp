@@ -347,7 +347,41 @@ XyzColor::XyzColor(const HsluvColor& from)
 
 Box Transform::transformBox(const Box& b) const
 {
-	return b;
+	auto rotateVector = [&](const Vector3d & v) {
+		using namespace std;
+		auto out = Vector3d();
+		out.x = v.x * cos(-rotation.pitch) * cos(rotation.yaw) + v.y * (-sin(rotation.yaw) * cos(-rotation.pitch)) + v.z * sin(-rotation.pitch);
+		out.y = v.x * (sin(rotation.roll) * sin(-rotation.pitch) * cos(rotation.yaw) + cos(rotation.roll) * sin(rotation.yaw)) + v.y * (-sin(rotation.roll) * sin(-rotation.pitch) * sin(rotation.yaw) + cos(rotation.roll) * cos(rotation.yaw)) + v.z * (-sin(rotation.roll) * cos(-rotation.pitch));
+		out.z = v.x * (-cos(rotation.roll) * sin(-rotation.pitch) * cos(rotation.yaw) + sin(rotation.roll) * sin(rotation.yaw)) + v.y * (cos(rotation.roll) * sin(-rotation.pitch) * sin(rotation.yaw) + sin(rotation.roll) * cos(rotation.yaw)) + v.z * (cos(rotation.roll) * cos(-rotation.pitch));
+		return out;
+	};
+	
+	auto scaleVector = [&](const Vector3d & v) {
+		auto out = Vector3d{};
+		out.x = v.x * scale.x;
+		out.y = v.y * scale.y;
+		out.z = v.z * scale.z;
+		return out;
+	};
+	
+	auto translateVector = [&](const Vector3d & v) {
+		auto out = Vector3d{};
+		out.x = v.x + location.x;
+		out.y = v.y + location.y;
+		out.z = v.z + location.z;
+		return out;
+	};
+
+	auto out = Box{b};
+	
+	out.center = rotateVector(out.center);
+	out.center = scaleVector(out.center);
+	out.center = translateVector(out.center);
+
+	out.halfSize = rotateVector(out.halfSize);
+	out.halfSize = scaleVector(out.halfSize);
+
+	return out;
 }
 
 std::string Vector3d::ToString() const
@@ -365,7 +399,7 @@ std::string Rotator::ToString() const
 std::string Box::ToString() const
 {
 	std::stringstream s;
-	s << "Rotator{ " << center.ToString() << ", " << halfSize.ToString() << "}";
+	s << "Box{ " << center.ToString() << ", " << halfSize.ToString() << "}";
 	return s.str();
 }
 std::string Transform::ToString() const
