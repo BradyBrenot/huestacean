@@ -38,7 +38,7 @@ void Backend::Start()
 	thread = std::thread([this] {
 		Room renderRoom = rooms.size() > activeRoomIndex ? rooms[activeRoomIndex] : Room();
 
-		LightUpdateParams lightUpdate;
+		std::unordered_map<ProviderType, LightUpdateParams> lightUpdates;
 		std::vector<HsluvColor> colors;
 		std::vector<Box> boundingBoxes;
 		std::vector<DevicePtr> devices;
@@ -54,11 +54,6 @@ void Backend::Start()
 					int updateThreadRoomIndex = activeRoomIndex;
 					renderRoom = rooms.size() > updateThreadRoomIndex ? rooms[updateThreadRoomIndex] : Room();
 				}
-
-				//Update and dirty Positions and Devices
-				lightUpdate.colorsDirty = true;
-				lightUpdate.positionsDirty = true;
-				lightUpdate.devicesDirty = true;
 
 				//Sort devices by ProviderType     
 				std::sort(renderRoom.devices.begin(), renderRoom.devices.end(),
@@ -88,11 +83,38 @@ void Backend::Start()
 				}
 
 
-				//Blank out Colors
-				colors.clear();
-				colors = { boundingBoxes.size() };
+				//Resize Colors
+				colors.resize( boundingBoxes.size() );
 
-				//@TODO
+				for (const auto& dp : deviceProviders)
+				{
+					auto update = lightUpdates[dp.first];
+					update.boundingBoxesDirty = true;
+					update.colorsDirty = true;
+					update.devicesDirty = true;
+
+					update.colorsBegin = colors.begin();
+					update.devicesBegin = devices.begin();
+					update.boundingBoxesBegin = boundingBoxes.begin();
+
+					while (update.devicesBegin != devices.end() && (*update.devicesBegin)->GetType() != dp.first)
+					{
+						update.colorsBegin++;
+						update.devicesBegin++;
+						update.boundingBoxesBegin++;
+					}
+
+					update.colorsEnd = update.colorsBegin;
+					update.devicesEnd = update.devicesBegin;
+					update.boundingBoxesEnd = update.boundingBoxesBegin;
+
+					while (update.devicesEnd != devices.end() && (*update.devicesEnd)->GetType() == dp.first)
+					{
+						update.colorsEnd++;
+						update.devicesEnd++;
+						update.boundingBoxesEnd++;
+					}
+				}
 			}
 
 			//Run effects
@@ -101,11 +123,12 @@ void Backend::Start()
 				effect->Tick(deltaTime);
 				effect->Update(boundingBoxes, colors);
 			}
-			lightUpdate.colorsDirty = true;
 
 			//Send light data to device providers
-
-			//@TODO
+			for (const auto& dp : deviceProviders)
+			{
+				dp.second->Update(lightUpdates[dp.first]);
+			}
 
 			//DONE
 		};

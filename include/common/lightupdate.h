@@ -14,9 +14,9 @@ struct LightUpdateParams
 	std::vector<Math::HsluvColor>::iterator colorsEnd;
 	bool colorsDirty;
 
-	std::vector<Math::Box>::iterator positionsBegin;
-	std::vector<Math::Box>::iterator positionsEnd;
-	bool positionsDirty;
+	std::vector<Math::Box>::iterator boundingBoxesBegin;
+	std::vector<Math::Box>::iterator boundingBoxesEnd;
+	bool boundingBoxesDirty;
 
 	std::vector<DevicePtr>::iterator devicesBegin;
 	std::vector<DevicePtr>::iterator devicesEnd;
