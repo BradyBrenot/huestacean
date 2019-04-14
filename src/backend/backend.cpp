@@ -178,3 +178,8 @@ Backend::RoomsWriter Backend::GetRoomsWriter()
 {
 	return RoomsWriter(this);
 }
+
+std::unique_ptr<DeviceProvider>& Backend::GetDeviceProvider(ProviderType type)
+{
+	return deviceProviders[type];
+}

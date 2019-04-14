@@ -52,6 +52,8 @@ public:
 
 	RoomsWriter GetRoomsWriter();
 
+	std::unique_ptr<DeviceProvider>& GetDeviceProvider(ProviderType type);
+
 private:
 	std::atomic_bool stopRequested;
 	std::thread thread;

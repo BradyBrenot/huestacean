@@ -23,3 +23,26 @@ TEST_CASE("can start and stop Backend", "") {
 	b.Stop();
 	REQUIRE(!b.IsRunning());
 }
+
+TEST_CASE("a Backend has a Hue device provider", "[hue]") {
+	Backend b;
+
+	auto& hue = b.GetDeviceProvider(ProviderType::Hue);
+	REQUIRE(hue.get() != nullptr);
+
+	SECTION("Hue's ProviderType is right") {
+		REQUIRE(hue->GetType() == ProviderType::Hue);
+	}
+}
+
+TEST_CASE("the Hue device provider can connect with bridges", "[hue]") {
+	Backend b;
+
+	auto& hue = b.GetDeviceProvider(ProviderType::Hue);
+	REQUIRE(hue.get() != nullptr);
+
+	SECTION("Hue can find at least 1 device in 5 seconds") {
+		std::this_thread::sleep_for(5s);
+		REQUIRE(hue->GetDevices().size() > 0);
+	}
+}
