@@ -27,13 +27,15 @@ namespace Hue
 		void closeSockets();
 
 	private slots:
-		void replied(QNetworkReply* reply);
-		void tryDescribeBridge(QString ipAddress);
+		void Replied(QNetworkReply* reply);
+		void TryDescribeBridge(QString ipAddress);
 
 	private:
 		std::vector<Bridge> bridges;
 		std::function<void(std::vector<Bridge> const&)> searchCallback;
 		bool hasSearched;
 		std::shared_ptr<class QNetworkAccessManager> qnam;
+
+		void CallSearchCallback();
 	};
 }

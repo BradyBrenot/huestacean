@@ -15,7 +15,7 @@ BridgeDiscovery::BridgeDiscovery(std::shared_ptr<class QNetworkAccessManager> in
 	, hasSearched(false)
 {
 	connect(qnam.get(), SIGNAL(finished(QNetworkReply*)),
-		this, SLOT(replied(QNetworkReply*)));
+		this, SLOT(Replied(QNetworkReply*)));
 }
 
 BridgeDiscovery::~BridgeDiscovery()
@@ -23,10 +23,13 @@ BridgeDiscovery::~BridgeDiscovery()
 	emit closeSockets();
 }
 
-void BridgeDiscovery::startSearch()
+void BridgeDiscovery::Search(std::vector<std::string> manualAddresses, bool doScan, std::function<void(std::vector<Bridge> const&)> callback)
 {
 	emit closeSockets();
 	emit searchStarted();
+
+	CallSearchCallback();
+	searchCallback = callback;
 
 	////////////////////////////////////////////////
 	//0a) this is the first search
@@ -48,10 +51,7 @@ void BridgeDiscovery::startSearch()
 			const QString username = settings.value("username").toString();
 			const QString clientkey = settings.value("clientkey").toString();
 
-			HueBridgeSavedSettings settings(id, address, username, clientkey);
-
-			savedBridges.push_back(settings);
-			tryDescribeBridge(addressStr);
+			TryDescribeBridge(addressStr);
 		}
 		settings.endArray();
 
@@ -133,12 +133,12 @@ void BridgeDiscovery::processPendingDatagrams()
 	}
 }
 
-void BridgeDiscovery::tryDescribeBridge(QString ipAddress)
+void BridgeDiscovery::TryDescribeBridge(QString ipAddress)
 {
 	//See if bridge already added
-	foreach(HueBridge * bridge, bridges)
+	for(const Bridge& bridge : bridges)
 	{
-		if (bridge->address == QHostAddress(ipAddress))
+		if (bridge.address == QHostAddress(ipAddress).toIPv4Address())
 		{
 			return;
 		}
@@ -149,7 +149,7 @@ void BridgeDiscovery::tryDescribeBridge(QString ipAddress)
 	qnam->get(r);
 }
 
-void BridgeDiscovery::replied(QNetworkReply * reply)
+void BridgeDiscovery::Replied(QNetworkReply * reply)
 {
 	if (reply->request().originatingObject() != this)
 		return;
@@ -173,10 +173,10 @@ void BridgeDiscovery::replied(QNetworkReply * reply)
 	const QString url = reply->request().url().toString();
 	const QString ipAddress = url.mid(url.indexOf("http://") + 7, url.indexOf("/description.xml") - url.indexOf("http://") - 7);
 
-	foreach(HueBridge * bridge, bridges)
+	for(const auto& bridge : bridges)
 	{
-		if (bridge->address == QHostAddress(ipAddress)
-			|| bridge->id == id)
+		if (bridge.address == QHostAddress(ipAddress).toIPv4Address()
+			|| bridge.id == id.toUtf8().constData())
 		{
 			qDebug() << "already have that bridge, don't readd";
 
@@ -186,23 +186,20 @@ void BridgeDiscovery::replied(QNetworkReply * reply)
 
 	qDebug() << "bridge that replied was" << id << "at" << ipAddress;
 
-	//Check for the ID amongst our saved settings, see if we have it but under a different IP address
-	foreach(const HueBridgeSavedSettings & settings, savedBridges)
-	{
-		if (settings.id == id)
-		{
-			HueBridgeSavedSettings newSettings(settings);
-			newSettings.address = ipAddress;
+	auto bridge = Bridge(id.toUtf8().constData(), QHostAddress(ipAddress).toIPv4Address());
 
-			HueBridge* bridge = new HueBridge(this, newSettings);
-			bridges.push_back(bridge);
-			emit modelChanged();
-			return;
-		}
+	bridge.status = Bridge::Status::Discovered;
+
+	bridges.push_back(bridge);
+
+	CallSearchCallback();
+}
+
+void BridgeDiscovery::CallSearchCallback()
+{
+	if (searchCallback == nullptr) {
+		return;
 	}
 
-	HueBridgeSavedSettings Settings = HueBridgeSavedSettings(id, QHostAddress(ipAddress));
-	HueBridge* bridge = new HueBridge(this, Settings);
-	bridges.push_back(bridge);
-	emit modelChanged();
+	searchCallback(bridges);
 }

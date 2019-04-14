@@ -6,8 +6,9 @@ namespace Hue
 {
 	struct Bridge
 	{
-		uint32_t address;
 		std::string id;
+		uint32_t address;
+		
 		std::string username;
 		std::string clientkey;
 		std::string friendlyName;
@@ -20,6 +21,12 @@ namespace Hue
 			Connected
 		};
 		Status status;
+
+		Bridge(std::string inId, uint32_t inAddress) :
+			id(inId), address(inAddress)
+		{
+
+		}
 	};
 
 	class Provider : public DeviceProvider
