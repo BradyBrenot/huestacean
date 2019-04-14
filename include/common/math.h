@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <string>
 
 namespace Math
 {
@@ -27,7 +28,7 @@ namespace Math
 	constexpr double D65_Yn = 100.0;
 	constexpr double D65_Zn = 108.883;
 
-	constexpr double PI = 3.14159265359;
+	constexpr double PI = 3.14159265358979323846;
 
 	//////////////////////
 	// Literals
@@ -119,11 +120,13 @@ namespace Math
 			: x(0), y(0), z(0)
 		{
 		}
+		
 		Vector3d(double inX, double inY, double inZ)
 			: x(inX), y(inY), z(inZ)
 		{
 		}
 
+		std::string ToString() const;
 	};
 
 	struct Vector2d {
@@ -172,6 +175,8 @@ namespace Math
 			: pitch(inPitch), yaw(inYaw), roll(inRoll)
 		{
 		}
+
+		std::string ToString() const;
 	};
 
 	struct Box
@@ -188,6 +193,8 @@ namespace Math
 			: center(inCenter), halfSize(inHalfSize)
 		{
 		}
+
+		std::string ToString() const;
 	};
 
 	struct Transform
@@ -208,6 +215,7 @@ namespace Math
 		}
 
 		Box transformBox(const Box& b) const;
+		std::string ToString() const;
 	};
 };
 

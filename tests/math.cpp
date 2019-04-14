@@ -15,7 +15,7 @@ auto nearlyEqual(double a, double b)
 }
 
 //Just copying hsluv-c's tests, make sure wrapper code isn't screwing anything up
-TEST_CASE("Rgb => Hsluv", "") {
+TEST_CASE("Can convert Rgb => Hsluv", "") {
 	for (int i = 0; i < snapshot_n; i++) {
 		auto hsl = HsluvColor{ snapshot[i].hsluv_h, snapshot[i].hsluv_s, snapshot[i].hsluv_l };
 		auto rgb = RgbColor{ hsl };
@@ -26,7 +26,7 @@ TEST_CASE("Rgb => Hsluv", "") {
 	}
 }
 
-TEST_CASE("Hsluv => RGB", "") {
+TEST_CASE("Can convert Hsluv => RGB", "") {
 	for (int i = 0; i < snapshot_n; i++) {
 		auto rgb = RgbColor{ snapshot[i].rgb_r, snapshot[i].rgb_g, snapshot[i].rgb_b };
 		auto hsl = HsluvColor{ rgb };
@@ -44,7 +44,7 @@ struct TransformTestCase
 	Transform transform;
 };
 
-TEST_CASE("Transform Box", "") {
+TEST_CASE("Boxes can be transformed", "") {
 	auto vectorNearlyEqual = [&](const Vector3d & a, const Vector3d & b) {
 		return nearlyEqual(a.x, b.x) && nearlyEqual(a.y, b.y) && nearlyEqual(a.z, b.z);
 	};
@@ -67,12 +67,25 @@ TEST_CASE("Transform Box", "") {
 		TransformTestCase{ {{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}}, {{0.0, 0.0, 0.0}, {5.0, 5.0, 5.0}}, { {0.0, 0.0, 0.0}, {5.0, 5.0, 5.0}, {0.0, 0.0, 0.0}} },
 
 		// Scale, off-center box
-		TransformTestCase{ {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}}, {{0.0, 0.0, 0.0}, {5.0, 5.0, 5.0}}, { {0.0, 0.0, 0.0}, {5.0, 5.0, 5.0}, {0.0, 0.0, 0.0}} },
+		TransformTestCase{ {{1.0, 1.0, 3.0}, {1.0, 1.0, 2.0}}, {{5.0, 5.0, 15.0}, {5.0, 5.0, 10.0}}, { {0.0, 0.0, 0.0}, {5.0, 5.0, 5.0}, {0.0, 0.0, 0.0}} },
+
+		// Translate
+		TransformTestCase{ {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}}, {{2.0, 3.0, 4.0}, {1.0, 1.0, 1.0}}, { {1.0, 2.0, 3.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}} },
+
+		// Rotation, centered, pitch (rotation around Y)
+		TransformTestCase{ {{1.0, 2.0, 3.0}, {5.0, 6.0, 7.0}}, {{-3.0, 2.0, 1.0}, {-7.0, 6.0, 5.0}}, { {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {90.0_deg, 0.0, 0.0}} },
+
+		// Rotation, centered, yaw (rotation around Z)
+		TransformTestCase{ {{1.0, 2.0, 3.0}, {5.0, 6.0, 7.0}}, {{-2.0, 1.0, 3.0}, {-6.0, 5.0, 7.0}}, { {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 90.0_deg, 0.0}} },
+
+		// Rotation, centered, roll (rotation around X)
+		TransformTestCase{ {{1.0, 2.0, 3.0}, {5.0, 6.0, 7.0}}, {{1.0, -3.0, 2.0}, {5.0, -7.0, 6.0}}, { {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 90.0_deg}} },
 	};
 
 	for (const auto& test: testCases)
 	{
 		auto transformed = test.transform.transformBox(test.start);
+		INFO("Expected: " << test.goal.ToString() << "\nactually got: " << transformed.ToString() << "\nusing transform: " << test.transform.ToString() << "\non starting box " << test.start.ToString());
 		REQUIRE(boxNearlyEqual(transformed, test.goal));
 	}
 }

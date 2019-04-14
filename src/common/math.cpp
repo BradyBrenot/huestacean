@@ -2,7 +2,7 @@
 #include "thirdparty/hsluv-c/src/hsluv.h"
 
 #include <cmath>
-
+#include <sstream>
 
 using namespace Math;
 
@@ -348,4 +348,29 @@ XyzColor::XyzColor(const HsluvColor& from)
 Box Transform::transformBox(const Box& b) const
 {
 	return b;
+}
+
+std::string Vector3d::ToString() const
+{
+	std::stringstream s;
+	s << "Vector3d{ " << x << ", " << y << ", " << z << "}";
+	return s.str();
+}
+std::string Rotator::ToString() const
+{
+	std::stringstream s;
+	s << "Rotator{ " << pitch << ", " << yaw << ", " << roll << "}";
+	return s.str();
+}
+std::string Box::ToString() const
+{
+	std::stringstream s;
+	s << "Rotator{ " << center.ToString() << ", " << halfSize.ToString() << "}";
+	return s.str();
+}
+std::string Transform::ToString() const
+{
+	std::stringstream s;
+	s << "Transform{ " << location.ToString() << ", " << scale.ToString() << ", " << rotation.ToString() << "}";
+	return s.str();
 }
