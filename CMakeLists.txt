@@ -42,6 +42,7 @@ set(SOURCES
    ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/backend.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/math.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/scene.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/hue.cpp
 )
 set(HEADERS
    ${HEADERS}
@@ -53,6 +54,7 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/providertype.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/scene.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/math.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/hue.h
 )
 
 #headers with Qt-relevant types (for moc)

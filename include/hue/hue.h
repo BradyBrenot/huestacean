@@ -1,11 +1,20 @@
 #pragma once
 
-#include ""
+#include "backend/deviceprovider.h"
 
 namespace Hue
 {
-	class Provider
+	class Bridge
 	{
 
+	};
+
+	class Provider : public DeviceProvider
+	{
+	public:
+		Provider();
+
+		virtual void Update(const LightUpdateParams& Params) override;
+		virtual std::vector<DevicePtr> GetDevices() override;
 	};
 };

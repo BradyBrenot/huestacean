@@ -2,6 +2,8 @@
 #include "common/lightupdate.h"
 #include "common/math.h"
 
+#include "hue/hue.h"
+
 #include <chrono>
 #include <thread>
 #include <algorithm>
@@ -18,6 +20,7 @@ Backend::Backend() :
 	scenesAreDirty(false),
 	deviceProviders()
 {
+	deviceProviders.emplace(ProviderType::Hue, std::make_unique<Hue::Provider>());
 }
 
 Backend::~Backend()
