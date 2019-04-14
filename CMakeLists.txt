@@ -41,7 +41,7 @@ set(SOURCES
 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/backend.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/math.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/common/room.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/common/scene.cpp
 )
 set(HEADERS
    ${HEADERS}
@@ -51,7 +51,7 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/effect.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/lightupdate.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/providertype.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/room.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/common/scene.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/math.h
 )
 
@@ -126,8 +126,8 @@ target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
 set(TEST_SOURCES
 	${SOURCES}
 
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/backend.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/math.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/tests/backendtests.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/tests/mathtests.cpp
 )
 
 set(TEST_HEADERS

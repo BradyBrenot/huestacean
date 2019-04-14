@@ -9,7 +9,7 @@
 #include <string>
 #include <memory>
 
-struct DeviceInRoom
+struct DeviceInScene
 {
 	Math::Transform transform;
 	DevicePtr device;
@@ -17,14 +17,14 @@ struct DeviceInRoom
 	std::vector<Math::Box> GetLightBoundingBoxes() const;
 };
 
-struct Room
+struct Scene
 {
-	std::vector< DeviceInRoom > devices;
+	std::vector< DeviceInScene > devices;
 	std::vector< std::unique_ptr<Effect> > effects;
 
-	Room() : devices(), effects() {}
+	Scene() : devices(), effects() {}
 
-	Room(const Room& r)
+	Scene(const Scene& r)
 	{
 		devices = r.devices;
 		for (const auto& effect : r.effects)
@@ -33,13 +33,13 @@ struct Room
 		}
 	}
 
-	Room(Room&& r)
+	Scene(Scene&& r)
 	{
 		devices = std::move(r.devices);
 		effects = std::move(r.effects);
 	}
 
-	Room& operator=(const Room& r)
+	Scene& operator=(const Scene& r)
 	{
 		devices = r.devices;
 		for (const auto& effect : r.effects)

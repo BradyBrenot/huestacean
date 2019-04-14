@@ -9,7 +9,7 @@
 
 #include "common/providertype.h"
 #include "deviceprovider.h"
-#include "common/room.h"
+#include "common/scene.h"
 
 //Backend runs the flippin' show.
 
@@ -23,26 +23,26 @@ public:
 	bool IsRunning();
 	void Stop();
 
-	const std::vector<Room>& GetRooms() const;
-	void SetActiveRoom(int roomIndex);
+	const std::vector<Scene>& GetScenes() const;
+	void SetActiveScene(int sceneIndex);
 
-	class RoomsWriter
+	class ScenesWriter
 	{
 	public:
-		RoomsWriter() = delete;
-		RoomsWriter(const RoomsWriter& x) = delete;
-		RoomsWriter(RoomsWriter&& x) = delete;
+		ScenesWriter() = delete;
+		ScenesWriter(const ScenesWriter& x) = delete;
+		ScenesWriter(ScenesWriter&& x) = delete;
 
-		explicit RoomsWriter(Backend* inBackend) : b(inBackend), lock(inBackend->roomsMutex)
+		explicit ScenesWriter(Backend* inBackend) : b(inBackend), lock(inBackend->scenesMutex)
 		{
 
 		}
 
-		~RoomsWriter() { b->roomsAreDirty = true; }
+		~ScenesWriter() { b->scenesAreDirty = true; }
 		
-		std::vector<Room>& GetRoomsMutable()
+		std::vector<Scene>& GetScenesMutable()
 		{
-			return b->rooms;
+			return b->scenes;
 		};
 
 	private:
@@ -50,7 +50,7 @@ public:
 		Backend* b;
 	};
 
-	RoomsWriter GetRoomsWriter();
+	ScenesWriter GetScenesWriter();
 
 	std::unique_ptr<DeviceProvider>& GetDeviceProvider(ProviderType type);
 
@@ -58,11 +58,11 @@ private:
 	std::atomic_bool stopRequested;
 	std::thread thread;
 
-	std::shared_mutex roomsMutex;
-	std::vector<Room> rooms;
+	std::shared_mutex scenesMutex;
+	std::vector<Scene> scenes;
 
-	std::atomic_int activeRoomIndex;
-	std::atomic_bool roomsAreDirty;
+	std::atomic_int activeSceneIndex;
+	std::atomic_bool scenesAreDirty;
 
 	std::unordered_map<ProviderType, std::unique_ptr<DeviceProvider> > deviceProviders;
 };

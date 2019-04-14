@@ -1,6 +1,6 @@
-#include "common/room.h"
+#include "common/scene.h"
 
-std::vector<Math::Box> DeviceInRoom::GetLightBoundingBoxes() const
+std::vector<Math::Box> DeviceInScene::GetLightBoundingBoxes() const
 {
 	auto boxes = device->GetLightBoundingBoxes();
 

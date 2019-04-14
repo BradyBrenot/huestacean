@@ -12,10 +12,10 @@ using namespace Math;
 Backend::Backend() :
 	stopRequested(false),
 	thread(),
-	roomsMutex(),
-	rooms(),
-	activeRoomIndex(0),
-	roomsAreDirty(false),
+	scenesMutex(),
+	scenes(),
+	activeSceneIndex(0),
+	scenesAreDirty(false),
 	deviceProviders()
 {
 }
@@ -27,8 +27,8 @@ Backend::~Backend()
 
 void Backend::Start()
 {
-	//DOES NOT mutate rooms
-	//DOES NOT read from rooms without locking roomsMutex
+	//DOES NOT mutate scenes
+	//DOES NOT read from scenes without locking scenesMutex
 
 	if (IsRunning()) {
 		return;
@@ -36,7 +36,7 @@ void Backend::Start()
 
 	stopRequested = false;
 	thread = std::thread([this] {
-		Room renderRoom = rooms.size() > activeRoomIndex ? rooms[activeRoomIndex] : Room();
+		Scene renderScene = scenes.size() > activeSceneIndex ? scenes[activeSceneIndex] : Scene();
 
 		std::unordered_map<ProviderType, LightUpdateParams> lightUpdates;
 		std::vector<HsluvColor> colors;
@@ -45,19 +45,19 @@ void Backend::Start()
 
 		auto tick = [&](float deltaTime)
 		{
-			//Copy the new room if necessary
-			// @TODO multiple active rooms
-			if (roomsAreDirty)
+			//Copy the new scene if necessary
+			// @TODO multiple active scenes
+			if (scenesAreDirty)
 			{
 				{
-					std::scoped_lock lock(roomsMutex);
-					int updateThreadRoomIndex = activeRoomIndex;
-					renderRoom = rooms.size() > updateThreadRoomIndex ? rooms[updateThreadRoomIndex] : Room();
+					std::scoped_lock lock(scenesMutex);
+					int updateThreadSceneIndex = activeSceneIndex;
+					renderScene = scenes.size() > updateThreadSceneIndex ? scenes[updateThreadSceneIndex] : Scene();
 				}
 
 				//Sort devices by ProviderType     
-				std::sort(renderRoom.devices.begin(), renderRoom.devices.end(),
-					[&](const DeviceInRoom & a, const DeviceInRoom & b) {
+				std::sort(renderScene.devices.begin(), renderScene.devices.end(),
+					[&](const DeviceInScene & a, const DeviceInScene & b) {
 						if (a.device->GetType() == b.device->GetType())
 						{
 							return deviceProviders[a.device->GetType()]->compare(a, b);
@@ -73,7 +73,7 @@ void Backend::Start()
 				boundingBoxes.clear();
 				devices.clear();
 
-				for (const auto& d : renderRoom.devices)
+				for (const auto& d : renderScene.devices)
 				{
 					auto boxesToAppend = d.GetLightBoundingBoxes();
 					auto devicesToAppend = std::vector<DevicePtr>(boxesToAppend.size(), d.device);
@@ -118,7 +118,7 @@ void Backend::Start()
 			}
 
 			//Run effects
-			for (auto& effect : renderRoom.effects)
+			for (auto& effect : renderScene.effects)
 			{
 				effect->Tick(deltaTime);
 				effect->Update(boundingBoxes, colors);
@@ -169,14 +169,14 @@ void Backend::Stop()
 	thread.join();
 }
 
-const std::vector<Room>& Backend::GetRooms() const
+const std::vector<Scene>& Backend::GetScenes() const
 {
-	return rooms;
+	return scenes;
 }
 
-Backend::RoomsWriter Backend::GetRoomsWriter()
+Backend::ScenesWriter Backend::GetScenesWriter()
 {
-	return RoomsWriter(this);
+	return ScenesWriter(this);
 }
 
 std::unique_ptr<DeviceProvider>& Backend::GetDeviceProvider(ProviderType type)

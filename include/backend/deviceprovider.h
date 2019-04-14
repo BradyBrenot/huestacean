@@ -1,7 +1,7 @@
 #pragma once
 #include "common/lightupdate.h"
 #include "common/device.h"
-#include "common/room.h"
+#include "common/scene.h"
 
 #include <functional>
 
@@ -15,7 +15,7 @@ public:
 	virtual void Update(const LightUpdateParams& Params) = 0;
 	virtual std::vector<DevicePtr> GetDevices() = 0;
 
-	virtual bool compare(DeviceInRoom a, DeviceInRoom b)
+	virtual bool compare(DeviceInScene a, DeviceInScene b)
 	{
 		return ::compare(a.device, b.device);
 	};
