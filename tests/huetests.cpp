@@ -30,24 +30,19 @@ TEST_CASE("the Hue device provider can connect with bridges", "[hue]") {
 	hue->SearchForBridges(std::vector<std::string>(), true);
 	
 	SECTION("Hue can find at least 1 bridge in 5 seconds") {
-		QTest::qWait(5000);
-		REQUIRE(hue->GetBridges().size() > 0);
+		REQUIRE(QTest::qWaitFor([&]() { return hue->GetBridges().size() > 0; }, 5000));
 	}
 
 	SECTION("Finds a bridge, links it, and finds devices on it") {
-		QTest::qWait(1000);
+		REQUIRE(QTest::qWaitFor([&]() { return hue->GetBridges().size() > 0; }, 5000));
 
 		auto& bridges = hue->GetBridges();
-		REQUIRE(bridges.size() > 0);
 		bridges[0]->Connect();
-		QTest::qWait(10000);
 
-		REQUIRE(bridges[0]->GetStatus() == Hue::Bridge::Status::Connected);
+		REQUIRE(QTest::qWaitFor([&]() { return bridges[0]->GetStatus() == Hue::Bridge::Status::Connected; }, 10000));
 
 		bridges[0]->RefreshDevices();
 
-		QTest::qWait(2000);
-
-		REQUIRE(bridges[0]->Devices.size() > 0);
+		REQUIRE(QTest::qWaitFor([&]() { return bridges[0]->Devices.size() > 0; }, 2000));
 	}
 }
