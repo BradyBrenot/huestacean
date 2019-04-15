@@ -161,7 +161,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 		for (auto it = obj.begin(); it != obj.end(); ++it)
 		{
 			bool ok;
-			auto id = it.key().toUInt();
+			auto id = it.key().toUInt(&ok);
 
 			if (!ok) {
 				qDebug() << "failed to parse light id at" << reply->request().url().toString() << "--id--" << id;
@@ -224,6 +224,10 @@ void Bridge::OnReplied(QNetworkReply* reply)
 				setProps(Devices.back());
 			}
 			//MakeRequest(*this, QString("/lights/%1").arg(id));
+
+			if (refreshCallback != nullptr) {
+				refreshCallback();
+			}
 		}
 	}
 #if 0
@@ -300,5 +304,18 @@ void Bridge::OnReplied(QNetworkReply* reply)
 
 		QByteArray data = reply->readAll();
 		QJsonDocument replyJson = QJsonDocument::fromJson(data);
+	}
+}
+
+Bridge::Status Bridge::GetStatus()
+{
+	return status;
+}
+
+void Bridge::SetStatus(Bridge::Status s)
+{
+	if (connectCallback != nullptr)
+	{
+		connectCallback();
 	}
 }

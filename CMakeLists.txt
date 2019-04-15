@@ -66,6 +66,7 @@ set(HEADERS
 #headers with Qt-relevant types (for moc)
 set(QT_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridgediscovery.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridge.h
 )
 
 QT5_WRAP_CPP(HEADERS_MOC ${QT_HEADERS})

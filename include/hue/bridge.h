@@ -18,7 +18,6 @@ namespace Hue
 	public:
 		Bridge(std::shared_ptr<QNetworkAccessManager> inQnam, std::string inId, uint32_t inAddress);
 		Bridge(const Bridge& b);
-		virtual ~Bridge();
 
 		void Connect(std::function<void()> callback);
 		void RefreshDevices(std::function<void()> callback);
