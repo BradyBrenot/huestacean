@@ -1,5 +1,7 @@
 #include "hue/bridge.h"
 
+#include <atomic>
+
 #include <QNetworkReply>
 #include <QHostAddress>
 
@@ -20,10 +22,7 @@ Bridge::Bridge(std::shared_ptr<QNetworkAccessManager> inQnam, std::string inId, 
 	clientkey()
 {
 	connect(qnam.get(), SIGNAL(finished(QNetworkReply*)),
-		this, SLOT(replied(QNetworkReply*)));
-
-	connect(this, SIGNAL(connectedChanged()),
-		this, SLOT(requestGroups()));
+		this, SLOT(OnReplied(QNetworkReply*)));
 }
 
 Bridge::Bridge(const Bridge& b)
@@ -32,6 +31,18 @@ Bridge::Bridge(const Bridge& b)
 	status = b.status;
 	username = b.username;
 	clientkey = b.clientkey;
+}
+
+Bridge& Bridge::operator=(const Bridge& b)
+{
+	qnam = b.qnam;
+	id = b.id;
+	address = b.address;
+	status = b.status;
+	username = b.username;
+	clientkey = b.clientkey;
+
+	return *this;
 }
 
 //path relative to http://address/api
@@ -51,14 +62,13 @@ QNetworkRequest MakeRequest(Bridge& bridge, QString path, bool bIncludeUser = tr
 	}
 }
 
-void Bridge::Connect(std::function<void()> callback)
+void Bridge::Connect()
 {
-	connectCallback = callback;
-
 	if (status == Status::Connected)
 	{
 		status = Status::Discovered;
 		SetStatus(Status::Connected);
+		return;
 	}
 
 	if (!username.empty() && !clientkey.empty())
@@ -81,15 +91,26 @@ void Bridge::Connect(std::function<void()> callback)
 	}
 }
 
-void Bridge::RefreshDevices(std::function<void()> callback)
+void Bridge::RefreshDevices()
 {
-	refreshCallback = callback;
-
 	QNetworkRequest qnr = MakeRequest(*this, "/lights");
 	qnam->get(qnr);
 
 	qnr = MakeRequest(*this, "/groups");
 	qnam->get(qnr);
+}
+
+static std::atomic_int nextListenerId;
+
+int Bridge::RegisterListener(std::function<void()> callback)
+{
+	int id = nextListenerId++;
+	listeners[id] = callback;
+	return id;
+}
+void Bridge::UnregisterListener(int id)
+{
+	listeners.erase(id);
 }
 
 void Bridge::OnReplied(QNetworkReply* reply)
@@ -225,9 +246,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 			}
 			//MakeRequest(*this, QString("/lights/%1").arg(id));
 
-			if (refreshCallback != nullptr) {
-				refreshCallback();
-			}
+			NotifyListeners();
 		}
 	}
 #if 0
@@ -260,9 +279,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 
 		if(!replyJson.object().contains()
 
-		if (refreshCallback != nullptr) {
-			refreshCallback();
-		}
+		NotifyListeners();
 	}
 #endif
 	else if (reply->request().url().toString().endsWith("/groups"))
@@ -314,8 +331,21 @@ Bridge::Status Bridge::GetStatus()
 
 void Bridge::SetStatus(Bridge::Status s)
 {
-	if (connectCallback != nullptr)
+	NotifyListeners();
+
+	if (s == Bridge::Status::Connected)
 	{
-		connectCallback();
+		RefreshDevices();
+	}
+}
+
+void Bridge::NotifyListeners()
+{
+	for (const auto& c : listeners)
+	{
+		if (c.second != nullptr)
+		{
+			c.second();
+		}
 	}
 }

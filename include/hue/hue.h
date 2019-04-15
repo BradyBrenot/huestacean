@@ -7,6 +7,9 @@ class QNetworkAccessManager;
 
 namespace Hue
 {
+	class Bridge;
+	class BridgeDiscovery;
+
 	class Provider : public DeviceProvider
 	{
 	public:
@@ -15,10 +18,13 @@ namespace Hue
 		virtual void Update(const LightUpdateParams& Params) override;
 		virtual std::vector<DevicePtr> GetDevices() override;
 
+		void SearchForBridges(std::vector<std::string> manualAddresses, bool doScan);
+		const std::vector<std::shared_ptr<class Bridge>>& GetBridges();
+
 	private:
 		std::shared_ptr<QNetworkAccessManager> qnam;
-		std::vector<std::shared_ptr<class Bridge>> bridges;
-		std::shared_ptr <class BridgeDiscovery> discovery;
+		std::vector<std::shared_ptr<Bridge>> bridges;
+		std::shared_ptr <BridgeDiscovery> discovery;
 	};
 
 	constexpr uint32_t INVALID_ID = 0xffffffff;

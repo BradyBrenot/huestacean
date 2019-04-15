@@ -128,7 +128,7 @@ void BridgeDiscovery::processPendingDatagrams()
 				qWarning() << "Bad reply from IpBridge:" << datagram;
 			}
 
-			QMetaObject::invokeMethod(this, "tryDescribeBridge", Qt::QueuedConnection, Q_ARG(QString, datagram.mid((start + 7), end - start - 7)));
+			QMetaObject::invokeMethod(this, "TryDescribeBridge", Qt::QueuedConnection, Q_ARG(QString, datagram.mid((start + 7), end - start - 7)));
 		}
 	}
 }
