@@ -189,7 +189,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 				return;
 			}
 
-			if (it.value().isObject()) {
+			if (!it.value().isObject()) {
 				qDebug() << "unexpected reply type from" << reply->request().url().toString();
 				return;
 			}
