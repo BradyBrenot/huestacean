@@ -44,6 +44,7 @@ set(SOURCES
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/scene.cpp
 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/hue.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/bridge.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/bridgediscovery.cpp
 )
 set(HEADERS
@@ -58,6 +59,7 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/math.h
 
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/hue.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridge.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridgediscovery.h
 )
 

@@ -9,8 +9,8 @@
 
 using namespace Hue;
 
-BridgeDiscovery::BridgeDiscovery(std::shared_ptr<class QNetworkAccessManager> inQnam, QObject* parent)
-	: QObject(parent)
+BridgeDiscovery::BridgeDiscovery(std::shared_ptr<class QNetworkAccessManager> inQnam)
+	: QObject(nullptr)
 	, qnam(inQnam)
 	, hasSearched(false)
 {
@@ -186,9 +186,9 @@ void BridgeDiscovery::Replied(QNetworkReply * reply)
 
 	qDebug() << "bridge that replied was" << id << "at" << ipAddress;
 
-	auto bridge = Bridge(id.toUtf8().constData(), QHostAddress(ipAddress).toIPv4Address());
+	auto bridge = Bridge(qnam, id.toUtf8().constData(), QHostAddress(ipAddress).toIPv4Address());
 
-	bridge.status = Bridge::Status::Discovered;
+	bridge.SetStatus(Bridge::Status::Discovered);
 
 	bridges.push_back(bridge);
 

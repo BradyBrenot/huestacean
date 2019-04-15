@@ -4,6 +4,7 @@
 #include <QUdpSocket>
 #include <QNetworkReply>
 #include "hue/hue.h"
+#include "hue/bridge.h"
 
 namespace Hue
 {
@@ -12,7 +13,7 @@ namespace Hue
 		Q_OBJECT
 
 	public:
-		explicit BridgeDiscovery(std::shared_ptr<class QNetworkAccessManager> inQnam, QObject* parent = nullptr);
+		BridgeDiscovery(std::shared_ptr<class QNetworkAccessManager> inQnam);
 		virtual ~BridgeDiscovery();
 
 		void Search(std::vector<std::string> manualAddresses, bool doScan, std::function<void(std::vector<Bridge> const&)> callback);

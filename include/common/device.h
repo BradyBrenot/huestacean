@@ -28,7 +28,12 @@ public:
 
 protected:
 	Device() = delete;
-	explicit Device(ProviderType inType);
+	explicit Device(ProviderType inType)
+		: type(inType), 
+		isConnected(false)
+	{
+
+	}
 
 private:
 	ProviderType type;
