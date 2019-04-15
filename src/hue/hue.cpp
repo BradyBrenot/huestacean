@@ -41,6 +41,7 @@ void Provider::SearchForBridges(std::vector<std::string> manualAddresses, bool d
 			}
 
 			//If not found, create a new bridge
+			bridges.push_back(std::make_shared<Bridge>(found));
 		}
 	});
 }

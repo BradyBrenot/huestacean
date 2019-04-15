@@ -331,6 +331,7 @@ Bridge::Status Bridge::GetStatus()
 
 void Bridge::SetStatus(Bridge::Status s)
 {
+	status = s;
 	NotifyListeners();
 
 	if (s == Bridge::Status::Connected)

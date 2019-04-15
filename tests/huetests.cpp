@@ -34,7 +34,7 @@ TEST_CASE("the Hue device provider can connect with bridges", "[hue]") {
 		REQUIRE(hue->GetBridges().size() > 0);
 	}
 
-	SECTION("I can link to a bridge that hue has found, within 10 seconds") {
+	SECTION("Finds a bridge, links it, and finds devices on it") {
 		QTest::qWait(1000);
 
 		auto& bridges = hue->GetBridges();
@@ -43,5 +43,11 @@ TEST_CASE("the Hue device provider can connect with bridges", "[hue]") {
 		QTest::qWait(10000);
 
 		REQUIRE(bridges[0]->GetStatus() == Hue::Bridge::Status::Connected);
+
+		bridges[0]->RefreshDevices();
+
+		QTest::qWait(2000);
+
+		REQUIRE(bridges[0]->Devices.size() > 0);
 	}
 }
