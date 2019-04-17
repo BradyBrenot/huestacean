@@ -216,6 +216,7 @@ namespace Math
 
 		Box transformBox(const Box& b) const;
 		std::string ToString() const;
+		static Transform FromString(std::string s);
 	};
 };
 

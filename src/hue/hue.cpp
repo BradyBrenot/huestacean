@@ -2,6 +2,7 @@
 #include "common/math.h"
 
 #include "hue/bridgediscovery.h"
+#include <sstream>
 
 using namespace Hue;
 using namespace Math;
@@ -22,6 +23,34 @@ std::vector<DevicePtr> Provider::GetDevices()
 {
 	return std::vector<DevicePtr>();
 }
+
+DevicePtr Provider::GetDeviceFromUniqueId(std::string id)
+{
+	//Hue|Bridge|Device
+	auto bridgeDeviceString = id.substr(ProviderType{ ProviderType::Hue }.ToString().size(), id.size());
+	auto pipeIndex = bridgeDeviceString.find('|');
+	auto bridgeString = bridgeDeviceString.substr(0, pipeIndex);
+	//auto deviceString = bridgeDeviceString.substr(pipeIndex + 1, bridgeString.size());
+
+	for (auto& b : bridges)
+	{
+		if (b->id == bridgeString)
+		{
+			for (auto& d : b->Devices)
+			{
+				if (d->GetUniqueId() == id)
+				{
+					return d;
+				}
+			}
+
+			return nullptr;
+		}
+	}
+
+	return nullptr;
+}
+
 void Provider::SearchForBridges(std::vector<std::string> manualAddresses, bool doScan)
 {
 	discovery->Search(manualAddresses, doScan, [&](const std::vector<Bridge>& foundBridges) {
@@ -81,4 +110,17 @@ Light::Light(const Light& l)
 std::vector<Math::Box> Light::GetLightBoundingBoxes() const
 {
 	return { Math::Box{ {0, 0, 0}, { 1_m, 1_m, 1_m } } };
+}
+
+std::string Light::GetUniqueIdInternal() const
+{
+	std::stringstream ss;
+	if (!uniqueid.empty())
+	{
+		ss << bridgeid << "|" << uniqueid;
+		return ss.str();
+	}
+
+	ss << bridgeid << "|" << name << type;
+	return ss.str();
 }

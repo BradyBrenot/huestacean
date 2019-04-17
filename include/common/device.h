@@ -26,6 +26,9 @@ public:
 
 	virtual std::vector<Math::Box> GetLightBoundingBoxes() const = 0;
 
+	std::string GetUniqueId() const;
+	static ProviderType GetProviderTypeFromUniqueId(std::string id);
+
 protected:
 	Device() = delete;
 	explicit Device(ProviderType inType)
@@ -34,6 +37,8 @@ protected:
 	{
 
 	}
+
+	virtual std::string GetUniqueIdInternal() const = 0;
 
 private:
 	ProviderType type;

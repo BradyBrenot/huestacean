@@ -23,7 +23,7 @@ public:
 	bool IsRunning();
 	void Stop();
 
-	const std::vector<Scene>& GetScenes() const;
+	const std::vector<Scene> GetScenes();
 	void SetActiveScene(int sceneIndex);
 
 	class ScenesWriter
@@ -53,6 +53,9 @@ public:
 	ScenesWriter GetScenesWriter();
 
 	std::unique_ptr<DeviceProvider>& GetDeviceProvider(ProviderType type);
+
+	void Load();
+	void Save();
 
 private:
 	std::atomic_bool stopRequested;

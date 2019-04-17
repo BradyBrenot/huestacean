@@ -20,6 +20,11 @@ public:
 		return ::compare(a.device, b.device);
 	};
 
+	virtual DevicePtr GetDeviceFromUniqueId(std::string id) = 0;
+
+	virtual void Save(QSettings& settings) = 0;
+	virtual void Load(QSettings& settings) = 0;
+
 protected:
 	DeviceProvider() = delete;
 	explicit DeviceProvider(ProviderType inType) : type(inType)

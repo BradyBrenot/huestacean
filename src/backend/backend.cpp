@@ -4,6 +4,8 @@
 
 #include "hue/hue.h"
 
+#include <QSettings>
+
 #include <chrono>
 #include <thread>
 #include <algorithm>
@@ -172,8 +174,9 @@ void Backend::Stop()
 	thread.join();
 }
 
-const std::vector<Scene>& Backend::GetScenes() const
+const std::vector<Scene> Backend::GetScenes()
 {
+	std::scoped_lock lock(scenesMutex);
 	return scenes;
 }
 
@@ -185,4 +188,97 @@ Backend::ScenesWriter Backend::GetScenesWriter()
 std::unique_ptr<DeviceProvider>& Backend::GetDeviceProvider(ProviderType type)
 {
 	return deviceProviders[type];
+}
+
+void Backend::Save()
+{
+	QSettings settings;
+
+	//let every DisplayProvider save first
+	for (const auto& dp : deviceProviders)
+	{
+		dp.second->Save(settings);
+	}
+
+	//save scenes
+	std::vector<Scene> scenesToSave = GetScenes();
+
+	settings.beginWriteArray("scenes");
+	int i = 0;
+	for (const auto& scene : scenesToSave)
+	{
+		settings.setArrayIndex(i++);
+
+		settings.beginWriteArray("effects");
+		int j = 0;
+		for (const auto& effect : scene.effects)
+		{
+			settings.setArrayIndex(j++);
+			effect->Save(settings);
+
+		}
+		settings.endArray();
+
+		settings.beginWriteArray("devices");
+		j = 0;
+		for (const auto& device : scene.devices)
+		{
+			settings.setArrayIndex(j++);
+			settings.setProperty("id", device.device->GetUniqueId().c_str());
+			settings.setProperty("transform", device.transform.ToString().c_str());
+		}
+		settings.endArray();
+	}
+	settings.endArray();
+}
+
+void Backend::Load()
+{
+	QSettings settings;
+
+	//let every DisplayProvider load first
+	for (const auto& dp : deviceProviders)
+	{
+		dp.second->Load(settings);
+	}
+
+	//load scenes
+	std::scoped_lock lock(scenesMutex);
+
+	settings.beginReadArray("scenes");
+	int scenesSize = settings.beginReadArray("scenes");
+	for (int i = 0; i < scenesSize; ++i)
+	{
+		settings.setArrayIndex(i);
+		Scene& scene = scenes.emplace_back();
+
+		int effectsSize = settings.beginReadArray("effects");
+		for (int j = 0; j < effectsSize; ++j)
+		{
+			settings.setArrayIndex(j++);
+			scene.effects.push_back(Effect::StaticLoad(settings));
+		}
+		settings.endArray();
+
+		int devicesSize = settings.beginReadArray("devices");
+		for (int j = 0; j < devicesSize; ++j)
+		{
+			settings.setArrayIndex(j++);
+			
+			std::string id = std::string(settings.value("id").toString().toUtf8());
+			auto providerType = Device::GetProviderTypeFromUniqueId(id);
+
+			std::shared_ptr<Device> d = deviceProviders[providerType]->GetDeviceFromUniqueId(id);
+			if (d == nullptr)
+			{
+				continue;
+			}
+
+			DeviceInScene& DiS = scene.devices.emplace_back();
+			DiS.device = d;
+			DiS.transform = Transform::FromString(std::string(settings.value("transform").toString().toUtf8()));
+		}
+		settings.endArray();
+	}
+	settings.endArray();
 }

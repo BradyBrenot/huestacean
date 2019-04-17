@@ -11,8 +11,20 @@
 
 struct DeviceInScene
 {
-	Math::Transform transform;
 	DevicePtr device;
+	Math::Transform transform;
+
+	DeviceInScene(DevicePtr& d, Math::Transform& t) :
+		device(d), transform(t)
+	{
+
+	}
+
+	DeviceInScene() :
+		device(), transform()
+	{
+
+	}
 
 	std::vector<Math::Box> GetLightBoundingBoxes() const;
 };

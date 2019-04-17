@@ -3,6 +3,9 @@
 
 #include <cmath>
 #include <sstream>
+#include <string>
+#include <vector>
+#include <regex>
 
 using namespace Math;
 
@@ -387,24 +390,47 @@ Box Transform::transformBox(const Box& b) const
 std::string Vector3d::ToString() const
 {
 	std::stringstream s;
-	s << "Vector3d{ " << x << ", " << y << ", " << z << "}";
+	s << "Vector3d{ " << x << " " << y << " " << z << " }";
 	return s.str();
 }
 std::string Rotator::ToString() const
 {
 	std::stringstream s;
-	s << "Rotator{ " << pitch << ", " << yaw << ", " << roll << "}";
+	s << "Rotator{ " << pitch << " " << yaw << " " << roll << " }";
 	return s.str();
 }
 std::string Box::ToString() const
 {
 	std::stringstream s;
-	s << "Box{ " << center.ToString() << ", " << halfSize.ToString() << "}";
+	s << "Box{" << center.ToString() << "," << halfSize.ToString() << "}";
 	return s.str();
 }
+
 std::string Transform::ToString() const
 {
 	std::stringstream s;
-	s << "Transform{ " << location.ToString() << ", " << scale.ToString() << ", " << rotation.ToString() << "}";
+	s << "Transform{" << location.ToString() << "," << scale.ToString() << "," << rotation.ToString() << "}";
 	return s.str();
+}
+
+Transform Transform::FromString(std::string s)
+{
+	//Transform{Vector3d{ 1.0 1.0 1.0 },Vector3d{ 1.0 1.0 1.0 },Rotator{ 1.0 1.0 1.0 }}
+
+	std::istringstream iss(s);
+	Transform t;
+	std::string nl;
+	iss >> t.location.x;
+	iss >> t.location.x;
+	iss >> t.location.y;
+	iss >> t.location.z;
+	iss >> t.scale.x;
+	iss >> t.scale.x;
+	iss >> t.scale.y;
+	iss >> t.scale.z;
+	iss >> t.rotation.pitch;
+	iss >> t.rotation.pitch;
+	iss >> t.rotation.yaw;
+	iss >> t.rotation.roll;
+	return t;
 }

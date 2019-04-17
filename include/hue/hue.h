@@ -17,6 +17,7 @@ namespace Hue
 
 		virtual void Update(const LightUpdateParams& Params) override;
 		virtual std::vector<DevicePtr> GetDevices() override;
+		virtual DevicePtr GetDeviceFromUniqueId(std::string id) override;
 
 		void SearchForBridges(std::vector<std::string> manualAddresses, bool doScan);
 		const std::vector<std::shared_ptr<class Bridge>>& GetBridges();
@@ -37,6 +38,7 @@ namespace Hue
 		std::string uniqueid;
 		uint32_t id;
 
+		std::string bridgeid;
 		std::string name;
 		std::string type;
 		std::string productname;
@@ -48,5 +50,8 @@ namespace Hue
 #endif
 
 		virtual std::vector<Math::Box> GetLightBoundingBoxes() const override;
+
+	protected:
+		virtual std::string GetUniqueIdInternal() const override;
 	};
 };

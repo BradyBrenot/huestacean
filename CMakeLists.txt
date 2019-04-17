@@ -42,6 +42,7 @@ set(SOURCES
    ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/backend.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/math.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/scene.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/common/device.cpp
 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/hue.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/bridge.cpp

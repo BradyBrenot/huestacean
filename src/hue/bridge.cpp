@@ -210,6 +210,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 			{
 				l->id = id;
 				l->uniqueid = uniqueid;
+				l->bridgeid = id;
 				l->name = name;
 				l->type = type;
 				l->productname = productname;
