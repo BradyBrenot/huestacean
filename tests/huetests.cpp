@@ -18,22 +18,19 @@ TEST_CASE("a Backend has a Hue device provider", "[hue]") {
 }
 
 TEST_CASE("the Hue device provider can connect with bridges", "[hue]") {
-	Backend b;
 
-	auto& dp = b.GetDeviceProvider(ProviderType::Hue);
+	SECTION("Finds a bridge from scratch, links it, and finds devices on it") {
+		Backend b;
 
-	REQUIRE(dp.get() != nullptr);
+		auto& dp = b.GetDeviceProvider(ProviderType::Hue);
 
-	Hue::Provider* hue = dynamic_cast<Hue::Provider*>(dp.get());
-	REQUIRE(hue != nullptr);
+		REQUIRE(dp.get() != nullptr);
 
-	hue->SearchForBridges(std::vector<std::string>(), true);
-	
-	SECTION("Hue can find at least 1 bridge in 5 seconds") {
-		REQUIRE(QTest::qWaitFor([&]() { return hue->GetBridges().size() > 0; }, 5000));
-	}
+		Hue::Provider * hue = dynamic_cast<Hue::Provider*>(dp.get());
+		REQUIRE(hue != nullptr);
 
-	SECTION("Finds a bridge, links it, and finds devices on it") {
+		hue->SearchForBridges(std::vector<std::string>(), true);
+
 		REQUIRE(QTest::qWaitFor([&]() { return hue->GetBridges().size() > 0; }, 5000));
 
 		auto& bridges = hue->GetBridges();
@@ -44,5 +41,24 @@ TEST_CASE("the Hue device provider can connect with bridges", "[hue]") {
 		bridges[0]->RefreshDevices();
 
 		REQUIRE(QTest::qWaitFor([&]() { return bridges[0]->devices.size() > 0; }, 2000));
+
+		b.Save();
+	}
+
+	SECTION("Connects to a bridge from a previous test using loaded settings") {
+		Backend b;
+		b.Load();
+
+		auto& dp = b.GetDeviceProvider(ProviderType::Hue);
+		Hue::Provider* hue = dynamic_cast<Hue::Provider*>(dp.get());
+
+		hue->SearchForBridges(std::vector<std::string>(), true);
+
+		REQUIRE(QTest::qWaitFor([&]() { return hue->GetBridges().size() > 0; }, 5000));
+
+		auto& bridges = hue->GetBridges();
+		bridges[0]->Connect();
+
+		REQUIRE(QTest::qWaitFor([&]() { return bridges[0]->GetStatus() == Hue::Bridge::Status::Connected; }, 10000));
 	}
 }
