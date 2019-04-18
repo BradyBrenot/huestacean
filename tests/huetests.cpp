@@ -43,6 +43,6 @@ TEST_CASE("the Hue device provider can connect with bridges", "[hue]") {
 
 		bridges[0]->RefreshDevices();
 
-		REQUIRE(QTest::qWaitFor([&]() { return bridges[0]->Devices.size() > 0; }, 2000));
+		REQUIRE(QTest::qWaitFor([&]() { return bridges[0]->devices.size() > 0; }, 2000));
 	}
 }

@@ -36,7 +36,7 @@ DevicePtr Provider::GetDeviceFromUniqueId(std::string id)
 	{
 		if (b->id == bridgeString)
 		{
-			for (auto& d : b->Devices)
+			for (auto& d : b->devices)
 			{
 				if (d->GetUniqueId() == id)
 				{
@@ -124,12 +124,49 @@ void Provider::Save(QSettings& settings)
 }
 void Provider::Load(QSettings& settings)
 {
+	if (bridges.size() > 0)
+	{
+		//don't load overtop of existing data
+		return;
+	}
+
 	settings.beginGroup(ProviderType(ProviderType::Hue).ToString().c_str());
 
 	//for each bridge
 	// add a bridge, read bridge properties (id, username etc.)
 	// for each device on the bridge
 	//  add a device, read id, other properties. All the properties
+
+	int bridgesSize = settings.beginReadArray("bridgesSize");
+	for (int i = 0; i < bridgesSize; ++i)
+	{
+		settings.setArrayIndex(i++);
+
+		auto& b = bridges.emplace_back();
+		b = std::make_shared<Bridge>(qnam, 
+			std::string(settings.value("id").toString().toUtf8()), 
+			settings.value("address").toUInt());
+
+		b->username = std::string(settings.value("username").toString().toUtf8());
+		b->clientkey = std::string(settings.value("clientkey").toString().toUtf8());
+		b->friendlyName = std::string(settings.value("friendlyName").toString().toUtf8());
+
+		int devicesSize = settings.beginReadArray("devices");
+		for (int j = 0; j < devicesSize; ++j)
+		{
+			auto& l = b->devices.emplace_back();
+			l = std::make_shared<Light>();
+
+			std::string uniqueid = settings.value("uniqueid").toString().toUtf8();
+			uint32_t id = settings.value("id").toUInt();
+
+			std::string bridgeid = settings.value("bridgeid").toString().toUtf8();
+			std::string name = settings.value("name").toString().toUtf8();
+			std::string type = settings.value("type").toString().toUtf8();
+			std::string productname = settings.value("productname").toString().toUtf8();
+		}
+	}
+	settings.endArray();
 
 	settings.endGroup();
 }

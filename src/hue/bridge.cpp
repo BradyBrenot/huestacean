@@ -222,7 +222,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 				l->setIsConnected(reachable);
 			};
 
-			for (std::shared_ptr<Light> l : Devices)
+			for (std::shared_ptr<Light>& l : devices)
 			{
 				if (uniqueid != "")
 				{
@@ -246,8 +246,8 @@ void Bridge::OnReplied(QNetworkReply* reply)
 
 			if (!foundMatch)
 			{
-				Devices.push_back(std::make_shared<Light>());
-				setProps(Devices.back());
+				devices.push_back(std::make_shared<Light>());
+				setProps(devices.back());
 			}
 			//MakeRequest(*this, QString("/lights/%1").arg(id));
 

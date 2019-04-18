@@ -255,7 +255,6 @@ void Backend::Load()
 	//load scenes
 	auto sw = GetScenesWriter();
 
-	settings.beginReadArray("scenes");
 	int scenesSize = settings.beginReadArray("scenes");
 	for (int i = 0; i < scenesSize; ++i)
 	{
