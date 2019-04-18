@@ -12,7 +12,13 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+#include <QCoreApplication>
+
 int main(int argc, char* argv[])
 {
+	QCoreApplication::setOrganizationName("Brady Brenot");
+	QCoreApplication::setOrganizationDomain("bradybrenot.com");
+	QCoreApplication::setApplicationName("Huestacean");
+
 	return 0;
 }

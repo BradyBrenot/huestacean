@@ -44,7 +44,7 @@ namespace Hue
 		Status GetStatus();
 		void SetStatus(Status s);
 
-		std::vector<std::shared_ptr<Light>> Devices;
+		std::vector<std::shared_ptr<Light>> devices;
 
 	private slots:
 		void OnReplied(QNetworkReply* reply);

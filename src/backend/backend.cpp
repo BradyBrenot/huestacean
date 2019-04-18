@@ -193,6 +193,7 @@ std::unique_ptr<DeviceProvider>& Backend::GetDeviceProvider(ProviderType type)
 void Backend::Save()
 {
 	QSettings settings;
+	settings.clear();
 
 	//let every DisplayProvider save first
 	for (const auto& dp : deviceProviders)
@@ -225,7 +226,16 @@ void Backend::Save()
 		{
 			settings.setArrayIndex(j++);
 			settings.setProperty("id", device.device->GetUniqueId().c_str());
-			settings.setProperty("transform", device.transform.ToString().c_str());
+
+			settings.setProperty("t.x", device.transform.location.x);
+			settings.setProperty("t.y", device.transform.location.y);
+			settings.setProperty("t.z", device.transform.location.z);
+			settings.setProperty("t.sx", device.transform.scale.x);
+			settings.setProperty("t.sy", device.transform.scale.y);
+			settings.setProperty("t.sz", device.transform.scale.z);
+			settings.setProperty("t.p", device.transform.rotation.pitch);
+			settings.setProperty("t.y", device.transform.rotation.yaw);
+			settings.setProperty("t.r", device.transform.rotation.roll);
 		}
 		settings.endArray();
 	}
@@ -243,7 +253,7 @@ void Backend::Load()
 	}
 
 	//load scenes
-	std::scoped_lock lock(scenesMutex);
+	auto sw = GetScenesWriter();
 
 	settings.beginReadArray("scenes");
 	int scenesSize = settings.beginReadArray("scenes");
@@ -274,9 +284,18 @@ void Backend::Load()
 				continue;
 			}
 
-			DeviceInScene& DiS = scene.devices.emplace_back();
-			DiS.device = d;
-			DiS.transform = Transform::FromString(std::string(settings.value("transform").toString().toUtf8()));
+			DeviceInScene& dis = scene.devices.emplace_back();
+			dis.device = d;
+			
+			dis.transform.location.x = settings.value("t.x").toDouble();
+			dis.transform.location.x = settings.value("t.y").toDouble();
+			dis.transform.location.x = settings.value("t.z").toDouble();
+			dis.transform.scale.x = settings.value("t.sx").toDouble();
+			dis.transform.scale.y = settings.value("t.sy").toDouble();
+			dis.transform.scale.z = settings.value("t.sz").toDouble();
+			dis.transform.rotation.pitch = settings.value("t.p").toDouble();
+			dis.transform.rotation.yaw = settings.value("t.y").toDouble();
+			dis.transform.rotation.roll = settings.value("t.r").toDouble();
 		}
 		settings.endArray();
 	}

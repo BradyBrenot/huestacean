@@ -15,12 +15,15 @@ namespace Hue
 	public:
 		Provider();
 
-		virtual void Update(const LightUpdateParams& Params) override;
+		virtual void Update(const LightUpdateParams& Params) override; //called from worker thread!
 		virtual std::vector<DevicePtr> GetDevices() override;
 		virtual DevicePtr GetDeviceFromUniqueId(std::string id) override;
 
 		void SearchForBridges(std::vector<std::string> manualAddresses, bool doScan);
 		const std::vector<std::shared_ptr<class Bridge>>& GetBridges();
+
+		virtual void Save(QSettings& settings) override;
+		virtual void Load(QSettings& settings) override;
 
 	private:
 		std::shared_ptr<QNetworkAccessManager> qnam;

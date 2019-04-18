@@ -80,6 +80,60 @@ const std::vector<std::shared_ptr<class Bridge>>& Provider::GetBridges()
 	return bridges;
 }
 
+void Provider::Save(QSettings& settings)
+{
+	settings.beginGroup(ProviderType(ProviderType::Hue).ToString().c_str());
+
+	settings.beginWriteArray("bridges");
+
+	int i = 0;
+	for (const auto& b : bridges)
+	{
+		if (b->id.empty())
+		{
+			continue;
+		}
+
+		settings.setArrayIndex(i++);
+
+		settings.setProperty("id", b->id.c_str());
+		settings.setProperty("address", b->address);
+		settings.setProperty("username", b->username.c_str());
+		settings.setProperty("clientkey", b->clientkey.c_str());
+		settings.setProperty("friendlyName", b->friendlyName.c_str());
+
+		settings.beginWriteArray("devices");
+		int j = 0;
+		for (const auto& d : b->devices)
+		{
+			settings.setArrayIndex(j++);
+
+			settings.setProperty("uniqueid", d->uniqueid.c_str());
+			settings.setProperty("id", d->id);
+			settings.setProperty("bridgeid", d->bridgeid.c_str());
+			settings.setProperty("name", d->name.c_str());
+			settings.setProperty("type", d->type.c_str());
+			settings.setProperty("productname", d->productname.c_str());
+		}
+		settings.endArray();
+	}
+
+	settings.endArray();
+
+	settings.endGroup();
+}
+void Provider::Load(QSettings& settings)
+{
+	settings.beginGroup(ProviderType(ProviderType::Hue).ToString().c_str());
+
+	//for each bridge
+	// add a bridge, read bridge properties (id, username etc.)
+	// for each device on the bridge
+	//  add a device, read id, other properties. All the properties
+
+	settings.endGroup();
+}
+
 
 Light::Light()
 	: Device(ProviderType::Hue),

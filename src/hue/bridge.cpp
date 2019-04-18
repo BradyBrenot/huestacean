@@ -143,6 +143,10 @@ void Bridge::OnReplied(QNetworkReply* reply)
 
 			qDebug() << "Registered with bridge. Username:" << obj["success"].toObject()["username"].toString() << "Clientkey:" << obj["success"].toObject()["clientkey"].toString();
 
+			//Fetch config so we can ge the friendlyname
+			QNetworkRequest qnr = MakeRequest(*this, "/config");
+			qnam->get(qnr);
+
 			SetStatus(Status::Connected);
 		}
 		else
