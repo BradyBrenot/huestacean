@@ -40,6 +40,11 @@ public:
 
 		~BackendWriter() { b->scenesAreDirty = true; }
 		
+		std::vector<Scene> GetScenes() const
+		{
+			return b->scenes;
+		};
+
 		std::vector<Scene>& GetScenesMutable()
 		{
 			return b->scenes;

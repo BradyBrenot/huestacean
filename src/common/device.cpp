@@ -14,7 +14,7 @@ ProviderType Device::GetProviderTypeFromUniqueId(std::string id)
 	std::istringstream f(id);
 	std::string s;
 	if (getline(f, s, '|')) {
-		return ProviderType::FromString(id);
+		return ProviderType::FromString(s);
 	}
 
 	return ProviderType::Invalid;

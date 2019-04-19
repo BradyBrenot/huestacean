@@ -225,17 +225,17 @@ void Backend::Save()
 		for (const auto& device : scene.devices)
 		{
 			settings.setArrayIndex(j++);
-			settings.setProperty("id", device.device->GetUniqueId().c_str());
+			settings.setValue("id", device.device->GetUniqueId().c_str());
 
-			settings.setProperty("t.x", device.transform.location.x);
-			settings.setProperty("t.y", device.transform.location.y);
-			settings.setProperty("t.z", device.transform.location.z);
-			settings.setProperty("t.sx", device.transform.scale.x);
-			settings.setProperty("t.sy", device.transform.scale.y);
-			settings.setProperty("t.sz", device.transform.scale.z);
-			settings.setProperty("t.p", device.transform.rotation.pitch);
-			settings.setProperty("t.y", device.transform.rotation.yaw);
-			settings.setProperty("t.r", device.transform.rotation.roll);
+			settings.setValue("t.x", device.transform.location.x);
+			settings.setValue("t.y", device.transform.location.y);
+			settings.setValue("t.z", device.transform.location.z);
+			settings.setValue("t.sx", device.transform.scale.x);
+			settings.setValue("t.sy", device.transform.scale.y);
+			settings.setValue("t.sz", device.transform.scale.z);
+			settings.setValue("t.p", device.transform.rotation.pitch);
+			settings.setValue("t.y", device.transform.rotation.yaw);
+			settings.setValue("t.r", device.transform.rotation.roll);
 		}
 		settings.endArray();
 	}
@@ -275,6 +275,11 @@ void Backend::Load()
 			std::string id = std::string(settings.value("id").toString().toUtf8());
 			auto providerType = Device::GetProviderTypeFromUniqueId(id);
 
+			if (deviceProviders[providerType] == nullptr)
+			{
+				continue;
+			}
+
 			std::shared_ptr<Device> d = deviceProviders[providerType]->GetDeviceFromUniqueId(id);
 			if (d == nullptr)
 			{
@@ -285,8 +290,8 @@ void Backend::Load()
 			dis.device = d;
 			
 			dis.transform.location.x = settings.value("t.x").toDouble();
-			dis.transform.location.x = settings.value("t.y").toDouble();
-			dis.transform.location.x = settings.value("t.z").toDouble();
+			dis.transform.location.y = settings.value("t.y").toDouble();
+			dis.transform.location.z = settings.value("t.z").toDouble();
 			dis.transform.scale.x = settings.value("t.sx").toDouble();
 			dis.transform.scale.y = settings.value("t.sy").toDouble();
 			dis.transform.scale.z = settings.value("t.sz").toDouble();

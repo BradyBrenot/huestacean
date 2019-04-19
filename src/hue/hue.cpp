@@ -43,12 +43,12 @@ DevicePtr Provider::GetDeviceFromUniqueId(std::string id)
 					return d;
 				}
 			}
-
-			return nullptr;
 		}
 	}
 
-	return nullptr;
+	auto dummyLight = std::make_shared<Light>();
+	dummyLight->name = "ORPHANED LIGHT";
+	return dummyLight;
 }
 
 void Provider::SearchForBridges(std::vector<std::string> manualAddresses, bool doScan)
@@ -96,11 +96,11 @@ void Provider::Save(QSettings& settings)
 
 		settings.setArrayIndex(i++);
 
-		settings.setProperty("id", b->id.c_str());
-		settings.setProperty("address", b->address);
-		settings.setProperty("username", b->username.c_str());
-		settings.setProperty("clientkey", b->clientkey.c_str());
-		settings.setProperty("friendlyName", b->friendlyName.c_str());
+		settings.setValue("id", b->id.c_str());
+		settings.setValue("address", b->address);
+		settings.setValue("username", b->username.c_str());
+		settings.setValue("clientkey", b->clientkey.c_str());
+		settings.setValue("friendlyName", b->friendlyName.c_str());
 
 		settings.beginWriteArray("devices");
 		int j = 0;
@@ -108,12 +108,12 @@ void Provider::Save(QSettings& settings)
 		{
 			settings.setArrayIndex(j++);
 
-			settings.setProperty("uniqueid", d->uniqueid.c_str());
-			settings.setProperty("id", d->id);
-			settings.setProperty("bridgeid", d->bridgeid.c_str());
-			settings.setProperty("name", d->name.c_str());
-			settings.setProperty("type", d->type.c_str());
-			settings.setProperty("productname", d->productname.c_str());
+			settings.setValue("uniqueid", d->uniqueid.c_str());
+			settings.setValue("id", d->id);
+			settings.setValue("bridgeid", d->bridgeid.c_str());
+			settings.setValue("name", d->name.c_str());
+			settings.setValue("type", d->type.c_str());
+			settings.setValue("productname", d->productname.c_str());
 		}
 		settings.endArray();
 	}

@@ -44,7 +44,7 @@ TEST_CASE("Backend lets me save and load", "") {
 	
 }
 
-TEST_CASE("Backend can save and load a scene and it turns out OK", "") {
+TEST_CASE("Backend can save and load a scene and it turns out OK", "[save]") {
 	QSettings s;
 	s.clear();
 
@@ -63,6 +63,7 @@ TEST_CASE("Backend can save and load a scene and it turns out OK", "") {
 
 			Scene s;
 			s.devices.push_back(DeviceInScene{ lightAsDevice, t });
+			scenes.push_back(s);
 		}
 
 		sr.Save();
@@ -73,14 +74,11 @@ TEST_CASE("Backend can save and load a scene and it turns out OK", "") {
 		Backend b;
 		auto sr = b.GetWriter();
 
-		sr.Save();
-		auto scenes = b.GetScenes();
+		sr.Load();
+		auto scenes = sr.GetScenes();
 		REQUIRE(scenes.size() == 1);
 		REQUIRE(scenes[0].devices.size() == 1);
-		
-		auto loadedLight = std::dynamic_pointer_cast<Hue::Light>(scenes[0].devices[0].device);
-		REQUIRE(loadedLight != nullptr);
-		REQUIRE(loadedLight->name == light->name);
+
 		REQUIRE(scenes[0].devices[0].transform.location.x == t.location.x);
 	}
 }
