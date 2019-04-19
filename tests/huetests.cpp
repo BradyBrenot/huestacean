@@ -42,12 +42,14 @@ TEST_CASE("the Hue device provider can connect with bridges", "[hue]") {
 
 		REQUIRE(QTest::qWaitFor([&]() { return bridges[0]->devices.size() > 0; }, 2000));
 
-		b.Save();
+		auto sr = b.GetWriter();
+		sr.Save();
 	}
 
 	SECTION("Connects to a bridge from a previous test using loaded settings") {
 		Backend b;
-		b.Load();
+		auto sr = b.GetWriter();
+		sr.Load();
 
 		auto& dp = b.GetDeviceProvider(ProviderType::Hue);
 		Hue::Provider* hue = dynamic_cast<Hue::Provider*>(dp.get());

@@ -180,9 +180,9 @@ const std::vector<Scene> Backend::GetScenes()
 	return scenes;
 }
 
-Backend::ScenesWriter Backend::GetScenesWriter()
+Backend::BackendWriter Backend::GetWriter()
 {
-	return ScenesWriter(this);
+	return BackendWriter(this);
 }
 
 std::unique_ptr<DeviceProvider>& Backend::GetDeviceProvider(ProviderType type)
@@ -202,7 +202,7 @@ void Backend::Save()
 	}
 
 	//save scenes
-	std::vector<Scene> scenesToSave = GetScenes();
+	std::vector<Scene> scenesToSave = scenes;
 
 	settings.beginWriteArray("scenes");
 	int i = 0;
@@ -253,8 +253,6 @@ void Backend::Load()
 	}
 
 	//load scenes
-	auto sw = GetScenesWriter();
-
 	int scenesSize = settings.beginReadArray("scenes");
 	for (int i = 0; i < scenesSize; ++i)
 	{

@@ -29,7 +29,7 @@ TEST_CASE("Backend lets me save and load", "") {
 	{
 		Backend b;
 
-		auto sr = b.GetScenesWriter();
+		auto sr = b.GetWriter();
 		{
 			auto& scenes = sr.GetScenesMutable();
 
@@ -38,8 +38,8 @@ TEST_CASE("Backend lets me save and load", "") {
 		}
 		
 
-		b.Save();
-		b.Load();
+		sr.Save();
+		sr.Load();
 	}
 	
 }
@@ -57,7 +57,7 @@ TEST_CASE("Backend can save and load a scene and it turns out OK", "") {
 	{
 		Backend b;
 
-		auto sr = b.GetScenesWriter();
+		auto sr = b.GetWriter();
 		{
 			auto& scenes = sr.GetScenesMutable();
 
@@ -65,14 +65,15 @@ TEST_CASE("Backend can save and load a scene and it turns out OK", "") {
 			s.devices.push_back(DeviceInScene{ lightAsDevice, t });
 		}
 
-		b.Save();
+		sr.Save();
 	}
 
 
 	{
 		Backend b;
+		auto sr = b.GetWriter();
 
-		b.Load();
+		sr.Save();
 		auto scenes = b.GetScenes();
 		REQUIRE(scenes.size() == 1);
 		REQUIRE(scenes[0].devices.size() == 1);

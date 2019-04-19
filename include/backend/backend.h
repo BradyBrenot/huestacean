@@ -26,38 +26,49 @@ public:
 	const std::vector<Scene> GetScenes();
 	void SetActiveScene(int sceneIndex);
 
-	class ScenesWriter
+	class BackendWriter
 	{
 	public:
-		ScenesWriter() = delete;
-		ScenesWriter(const ScenesWriter& x) = delete;
-		ScenesWriter(ScenesWriter&& x) = delete;
+		BackendWriter() = delete;
+		BackendWriter(const BackendWriter& x) = delete;
+		BackendWriter(BackendWriter&& x) = delete;
 
-		explicit ScenesWriter(Backend* inBackend) : b(inBackend), lock(inBackend->scenesMutex)
+		explicit BackendWriter(Backend* inBackend) : b(inBackend), lock(inBackend->scenesMutex)
 		{
 
 		}
 
-		~ScenesWriter() { b->scenesAreDirty = true; }
+		~BackendWriter() { b->scenesAreDirty = true; }
 		
 		std::vector<Scene>& GetScenesMutable()
 		{
 			return b->scenes;
 		};
 
+		void Load()
+		{
+			b->Load();
+		}
+		void Save()
+		{
+			b->Save();
+		}
+
 	private:
 		std::scoped_lock<std::shared_mutex> lock;
 		Backend* b;
 	};
 
-	ScenesWriter GetScenesWriter();
+	BackendWriter GetWriter();
 
 	std::unique_ptr<DeviceProvider>& GetDeviceProvider(ProviderType type);
 
+private:
+
+	//scenesMutex needs to be locked before calling. BackendWriter ensures this.
 	void Load();
 	void Save();
 
-private:
 	std::atomic_bool stopRequested;
 	std::thread thread;
 
