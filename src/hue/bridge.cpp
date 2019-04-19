@@ -172,7 +172,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 		}
 		else
 		{
-			qDebug() << "Connected! Reused old connection!";
+			qDebug() << "Connected and signed in!";
 			friendlyName = replyJson.object()["name"].toString().toUtf8();
 			SetStatus(Status::Connected);
 		}

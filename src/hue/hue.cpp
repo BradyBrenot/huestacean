@@ -137,7 +137,7 @@ void Provider::Load(QSettings& settings)
 	// for each device on the bridge
 	//  add a device, read id, other properties. All the properties
 
-	int bridgesSize = settings.beginReadArray("bridgesSize");
+	int bridgesSize = settings.beginReadArray("bridges");
 	for (int i = 0; i < bridgesSize; ++i)
 	{
 		settings.setArrayIndex(i++);
