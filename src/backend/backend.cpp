@@ -39,6 +39,11 @@ void Backend::Start()
 		return;
 	}
 
+	for (const auto& dp : deviceProviders)
+	{
+		dp.second->Start();
+	}
+
 	stopRequested = false;
 	thread = std::thread([this] {
 		Scene renderScene = scenes.size() > activeSceneIndex ? scenes[activeSceneIndex] : Scene();
@@ -172,6 +177,11 @@ void Backend::Stop()
 
 	stopRequested = true;
 	thread.join();
+
+	for (const auto& dp : deviceProviders)
+	{
+		dp.second->Stop();
+	}
 }
 
 const std::vector<Scene> Backend::GetScenes()

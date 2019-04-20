@@ -2,6 +2,7 @@
 
 #include "hue/hue.h"
 #include "common/device.h"
+#include "common/math.h"
 
 #include <unordered_map>
 #include <vector>
@@ -12,6 +13,8 @@ class QNetworkReply;
 
 namespace Hue
 {
+	struct Streamer;
+
 	class Bridge : public QObject
 	{
 	Q_OBJECT
@@ -26,6 +29,14 @@ namespace Hue
 
 		int RegisterListener(std::function<void()> callback);
 		void UnregisterListener(int id);
+
+		//////////////////////////////////////////////////////////////////////////
+		
+		std::shared_ptr<Streamer> streamer;
+		void Start(std::vector<DevicePtr> Lights);
+		void Stop();
+		void Upload(const std::vector<std::tuple<uint32_t, Math::XyyColor>>& LightsToUpload);
+		//////////////////////////////////////////////////////////////////////////
 
 		std::string id;
 		uint32_t address;
@@ -56,5 +67,9 @@ namespace Hue
 
 		void NotifyListeners();
 		std::unordered_map<int, std::function<void()>> listeners;
+
+
+		//////////////////////////////////////////////////////////////////////////
+		std::atomic_bool isStreamingEnabled;
 	};
 };

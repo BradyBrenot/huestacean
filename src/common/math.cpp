@@ -345,6 +345,12 @@ XyzColor::XyzColor(const HsluvColor& from)
 	rgb_to_XYZ(rgb.r, rgb.g, rgb.b, x, y, z);
 }
 
+XyyColor::XyyColor(const XyzColor& from)
+{
+	XYZ_to_xy(from.x, from.y, from.z, x, y);
+	Y = from.y;
+}
+
 /////////////////////////////////////////////////////////////////
 // 3D
 

@@ -3,6 +3,7 @@
 
 #include "hue/bridgediscovery.h"
 #include <sstream>
+#include <memory>
 
 using namespace Hue;
 using namespace Math;
@@ -16,12 +17,89 @@ Provider::Provider() :
 
 void Provider::Update(const LightUpdateParams& Params)
 {
+	if (Params.devicesDirty)
+	{
+		perBridgeUpdateInfo.clear();
+		
+		for (auto it = Params.devicesBegin; it != Params.devicesEnd; ++it)
+		{
+			auto& updateInfo = perBridgeUpdateInfo.emplace_back();
+			auto* asLight = dynamic_cast<Light*>((*it).get());
+			
+			for (int i = 0; i < bridges.size(); ++i)
+			{
+				if (bridges[i]->id == asLight->bridgeid)
+				{
+					updateInfo.bridgeIndex = i;
+					break;
+				}
+			}
 
+			updateInfo.deviceIndex = asLight->id;
+		}
+	}
+
+	int currentBridgeIndex = -1;
+	int i = 0;
+	auto colorsIt = Params.colorsBegin;
+	while(colorsIt != Params.colorsEnd
+		&& i < perBridgeUpdateInfo.size())
+	{
+		currentBridgeIndex = perBridgeUpdateInfo[i].bridgeIndex;
+		std::vector<std::tuple<uint32_t, XyyColor> > lightsToUpload;
+
+		while (perBridgeUpdateInfo[i].bridgeIndex == currentBridgeIndex)
+		{
+			lightsToUpload.push_back({ perBridgeUpdateInfo[i].deviceIndex, XyyColor{*colorsIt} });
+
+			i++;
+			colorsIt++;
+		}
+
+		if (lightsToUpload.size() > 0)
+		{
+			bridges[currentBridgeIndex]->Upload(lightsToUpload);
+		}
+	}
 }
 
 std::vector<DevicePtr> Provider::GetDevices()
 {
 	return std::vector<DevicePtr>();
+}
+
+bool Provider::compare(DeviceInScene a, DeviceInScene b)
+{
+	auto aL = dynamic_cast<Light*>(a.device.get());
+	auto bL = dynamic_cast<Light*>(b.device.get());
+
+	if (!aL) {
+		return false;
+	}
+	else if (!bL) {
+		return true;
+	}
+
+	//Find and compare bridge index, id
+	
+	auto findBridgeIndex = [&](std::string id) {
+		int i = 0;
+
+		for (auto& bridge : bridges)
+		{
+			if (bridge->id == id)
+			{
+				return i;
+			}
+		}
+		return -1;
+	};
+	
+	auto aBridgeIndex = findBridgeIndex(aL->bridgeid);
+	auto bBridgeIndex = findBridgeIndex(bL->bridgeid);
+
+	return aBridgeIndex < bBridgeIndex
+		&& aL->id < bL->id;
 }
 
 DevicePtr Provider::GetDeviceFromUniqueId(std::string id)

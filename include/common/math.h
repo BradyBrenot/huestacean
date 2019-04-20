@@ -110,6 +110,15 @@ namespace Math
 		XyzColor(const HsluvColor& from);
 	};
 
+	struct XyyColor
+	{
+		double x;
+		double y;
+		double Y;
+
+		XyyColor(const XyzColor& from);
+	};
+
 	// Coordinate / angle types
 
 	struct Vector3d

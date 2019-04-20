@@ -10,6 +10,12 @@ namespace Hue
 	class Bridge;
 	class BridgeDiscovery;
 
+	struct BridgeUpdateInfo
+	{
+		int bridgeIndex;
+		uint32_t deviceIndex;
+	};
+
 	class Provider : public DeviceProvider
 	{
 	public:
@@ -17,6 +23,7 @@ namespace Hue
 
 		virtual void Update(const LightUpdateParams& Params) override; //called from worker thread!
 		virtual std::vector<DevicePtr> GetDevices() override;
+		virtual bool compare(DeviceInScene a, DeviceInScene b) override;
 		virtual DevicePtr GetDeviceFromUniqueId(std::string id) override;
 
 		void SearchForBridges(std::vector<std::string> manualAddresses, bool doScan);
@@ -29,6 +36,9 @@ namespace Hue
 		std::shared_ptr<QNetworkAccessManager> qnam;
 		std::vector<std::shared_ptr<Bridge>> bridges;
 		std::shared_ptr <BridgeDiscovery> discovery;
+
+		//vector contains vectors telling us which devices belong to which bridge, and have which index 
+		std::vector<BridgeUpdateInfo> perBridgeUpdateInfo;
 	};
 
 	constexpr uint32_t INVALID_ID = 0xffffffff;
