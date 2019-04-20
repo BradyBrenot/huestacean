@@ -46,6 +46,8 @@ set(SOURCES
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/device.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/effect.cpp
 
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/effects/effects.cpp
+
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/hue.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/bridge.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/bridgediscovery.cpp
@@ -60,6 +62,8 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/providertype.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/scene.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/common/math.h
+
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/effects/effects.h
 
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/hue.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridge.h

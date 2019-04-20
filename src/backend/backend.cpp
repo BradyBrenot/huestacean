@@ -48,7 +48,7 @@ void Backend::Start()
 		std::vector<Box> boundingBoxes;
 		std::vector<DevicePtr> devices;
 
-		auto tick = [&](float deltaTime)
+		auto tick = [&](std::chrono::duration<float> deltaTime)
 		{
 			//Copy the new scene if necessary
 			// @TODO multiple active scenes
@@ -144,7 +144,7 @@ void Backend::Start()
 			constexpr auto tickRate = 16.67ms;
 
 			auto start = std::chrono::high_resolution_clock::now();
-			float deltaTime = std::chrono::duration<float>{ start - lastStart }.count();
+			auto deltaTime = std::chrono::duration<float>{ start - lastStart };
 			lastStart = start;
 
 			tick(deltaTime);

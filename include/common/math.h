@@ -34,35 +34,35 @@ namespace Math
 	// Literals
 	//////////////////////
 
-	inline distance operator""_m(long double d) {
+	constexpr inline distance operator""_m(long double d) {
 		return distance( d );
 	}
 
-	inline distance operator""_cm(long double d) {
+	constexpr inline distance operator""_cm(long double d) {
 		return distance( d / 100.0 );
 	}
 
-	inline angle operator""_rad(long double a) {
+	constexpr inline angle operator""_rad(long double a) {
 		return angle( a );
 	}
 
-	inline angle operator""_deg(long double a) {
+	constexpr inline angle operator""_deg(long double a) {
 		return angle( a * PI / 180.0 );
 	}
 
-	inline distance operator""_m(unsigned long long d) {
+	constexpr inline distance operator""_m(unsigned long long d) {
 		return distance(d);
 	}
 
-	inline distance operator""_cm(unsigned long long d) {
+	constexpr inline distance operator""_cm(unsigned long long d) {
 		return distance(distance(d) / 100.0);
 	}
 
-	inline angle operator""_rad(unsigned long long a) {
+	constexpr inline angle operator""_rad(unsigned long long a) {
 		return angle(angle(a));
 	}
 
-	inline angle operator""_deg(unsigned long long a) {
+	constexpr inline angle operator""_deg(unsigned long long a) {
 		return angle(long double(a) * PI / 180.0);
 	}
 
@@ -78,12 +78,12 @@ namespace Math
 
 	struct HsluvColor
 	{
-		double h;
+		angle h;
 		double s;
 		double l;
 
 		HsluvColor();
-		HsluvColor(double inH, double inS, double inL);
+		HsluvColor(angle inH, double inS, double inL);
 		HsluvColor(const RgbColor& from);
 	};
 

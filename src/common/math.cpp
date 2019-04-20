@@ -294,7 +294,7 @@ HsluvColor::HsluvColor()
 
 }
 
-HsluvColor::HsluvColor(double inH, double inS, double inL)
+HsluvColor::HsluvColor(angle inH, double inS, double inL)
 	: h(inH), s(inS), l(inL)
 {
 
