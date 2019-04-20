@@ -33,8 +33,9 @@ namespace Hue
 		//////////////////////////////////////////////////////////////////////////
 		
 		std::shared_ptr<Streamer> streamer;
-		void Start(std::vector<DevicePtr> Lights);
+		void StartFromUpdateThread(std::vector<DevicePtr> Lights);
 		void Stop();
+		void UpdateThreadCleanup();
 		void Upload(const std::vector<std::tuple<uint32_t, Math::XyyColor>>& LightsToUpload);
 		//////////////////////////////////////////////////////////////////////////
 
@@ -57,8 +58,12 @@ namespace Hue
 
 		std::vector<std::shared_ptr<Light>> devices;
 
+	signals:
+		void WantsToggleStreaming(bool enable, int id, const std::vector<DevicePtr> Lights);
+
 	private slots:
 		void OnReplied(QNetworkReply* reply);
+		void ToggleStreaming(bool enable, int id, const std::vector<DevicePtr>& Lights);
 
 	private:
 		std::shared_ptr<class QNetworkAccessManager> qnam;
@@ -68,8 +73,9 @@ namespace Hue
 		void NotifyListeners();
 		std::unordered_map<int, std::function<void()>> listeners;
 
-
 		//////////////////////////////////////////////////////////////////////////
 		std::atomic_bool isStreamingEnabled;
+		std::atomic_bool startingStreaming;
+		std::atomic_int huestaceanGroupIndex;
 	};
 };

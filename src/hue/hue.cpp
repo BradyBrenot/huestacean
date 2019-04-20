@@ -37,6 +37,24 @@ void Provider::Update(const LightUpdateParams& Params)
 
 			updateInfo.deviceIndex = asLight->id;
 		}
+
+		for (const auto& b : bridges)
+		{
+			std::vector<DevicePtr> BridgeLights;
+			for (auto it = Params.devicesBegin; it != Params.devicesEnd; ++it)
+			{
+				auto l = dynamic_cast<Light*>((*it).get());
+				if (l->bridgeid == b->id)
+				{
+					BridgeLights.push_back(*it);
+				}
+			}
+
+			if (BridgeLights.size() > 0)
+			{
+				b->StartFromUpdateThread(BridgeLights);
+			}
+		}
 	}
 
 	int currentBridgeIndex = -1;
@@ -127,6 +145,25 @@ DevicePtr Provider::GetDeviceFromUniqueId(std::string id)
 	auto dummyLight = std::make_shared<Light>();
 	dummyLight->name = "ORPHANED LIGHT";
 	return dummyLight;
+}
+
+void Provider::Start()
+{
+	
+}
+void Provider::Stop()
+{
+	for (const auto& b : bridges)
+	{
+		b->Stop();
+	}
+}
+void Provider::UpdateThreadCleanup()
+{
+	for (const auto& b : bridges)
+	{
+		b->UpdateThreadCleanup();
+	}
 }
 
 void Provider::SearchForBridges(std::vector<std::string> manualAddresses, bool doScan)

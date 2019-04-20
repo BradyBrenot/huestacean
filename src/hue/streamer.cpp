@@ -1,4 +1,11 @@
 #include "hue/streamer.h"
+#include "common/math.h"
+
+#include <thread>
+#include <chrono>
+
+#include <QDebug>
+#include <QHostAddress>
 
 #define READ_TIMEOUT_MS 1000
 #define MAX_RETRY       5
@@ -6,7 +13,11 @@
 #define SERVER_PORT "2100"
 #define SERVER_NAME "Hue"
 
-Streamer::Streamer() :
+using namespace Hue;
+using namespace std::chrono_literals;
+using namespace Math;
+
+Streamer::Streamer(const Bridge& bridge) :
 	pers("dtls_client"),
 	retry_left(5)
 {
@@ -41,11 +52,11 @@ Streamer::Streamer() :
 	/*
 	* -1. Load psk
 	*/
-	QByteArray pskArray = clientkey.toUtf8();
+	QByteArray pskArray = bridge.clientkey.c_str();
 	QByteArray pskRawArray = QByteArray::fromHex(pskArray);
 
 
-	QByteArray pskIdArray = username.toUtf8();
+	QByteArray pskIdArray = bridge.username.c_str();
 	QByteArray pskIdRawArray = pskIdArray;
 
 	/*
@@ -61,8 +72,8 @@ Streamer::Streamer() :
 
 	mbedtls_entropy_init(&entropy);
 	if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-		(const unsigned char*)pers,
-		strlen(pers))) != 0)
+		(const unsigned char*)pers.c_str(),
+		pers.size())) != 0)
 	{
 		mbedtls_printf(" failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret);
 		goto exit;
@@ -71,17 +82,14 @@ Streamer::Streamer() :
 	/*
 	* 1. Start the connection
 	*/
-	qDebug() << "Connecting to udp" << address << SERVER_PORT;
+	qDebug() << "Connecting to udp" << bridge.address << SERVER_PORT;
 
-	if ((ret = mbedtls_net_connect(&server_fd, address.toUtf8(),
+	if ((ret = mbedtls_net_connect(&server_fd, QHostAddress(bridge.address).toString().toUtf8(),
 		SERVER_PORT, MBEDTLS_NET_PROTO_UDP)) != 0)
 	{
 		qCritical() << "mbedtls_net_connect FAILED" << ret;
 		goto exit;
 	}
-
-	if (stopRequested)
-		goto exit;
 
 	/*
 	* 2. Setup stuff
@@ -130,9 +138,6 @@ Streamer::Streamer() :
 	mbedtls_ssl_set_timer_cb(&ssl, &timer, mbedtls_timing_set_delay,
 		mbedtls_timing_get_delay);
 
-	if (stopRequested)
-		goto exit;
-
 	/*
 	* 4. Handshake
 	*/
@@ -149,7 +154,7 @@ Streamer::Streamer() :
 		if (ret == 0)
 			break;
 
-		msleep(200);
+		std::this_thread::sleep_for(200ms);
 	}
 
 	qDebug() << "handshake result" << ret;
@@ -161,11 +166,6 @@ Streamer::Streamer() :
 	}
 
 	qDebug() << "Handshake successful. Connected!";
-
-	if (stopRequested)
-		goto exit;
-
-	emit connected();
 
 	exit:
 		isValid = false;
@@ -191,7 +191,7 @@ Streamer::~Streamer()
 	mbedtls_entropy_free(&entropy);
 }
 
-Streamer::Upload(const std::tuple<uint32_t, XyyColor>& LightsToUpload)
+void Streamer::Upload(const std::vector<std::tuple<uint32_t, Math::XyyColor>>& LightsToUpload)
 {
 	static const uint8_t HEADER[] = {
 		'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
@@ -224,27 +224,20 @@ Streamer::Upload(const std::tuple<uint32_t, XyyColor>& LightsToUpload)
 
 	QByteArray Msg;
 
-	eGroupMutex.lock();
-	Msg.reserve(sizeof(HEADER) + sizeof(PAYLOAD_PER_LIGHT) * eGroup.lights.size());
+	Msg.reserve(static_cast<int>(sizeof(HEADER) + sizeof(PAYLOAD_PER_LIGHT) * LightsToUpload.size()));
 
 	Msg.append((char*)HEADER, sizeof(HEADER));
 
-	static QElapsedTimer timer;
-	double deltaTime = timer.restart() / 1000.0;
-	if (deltaTime > 1.0 || deltaTime <= 0.0 || std::isnan(deltaTime)) {
-		deltaTime = 1.0;
-	}
-
 	for (auto& light : LightsToUpload)
 	{
-
-		quint64 R = light[1].x * 0xffff;
-		quint64 G = light[1].y * 0xffff;
-		double brightness = light[1].Y;
+		auto& [ id, color ] = light;
+		quint64 R = color.x * 0xffff;
+		quint64 G = color.y * 0xffff;
+		double brightness = color.Y;
 		quint64 B = brightness * 0xffff;
 
 		const uint8_t payload[] = {
-			0x00, 0x00, ((uint8_t)light.id.toInt()),
+			0x00, 0x00, static_cast<uint8_t>(id),
 
 			static_cast<uint8_t>((R >> 8) & 0xff), static_cast<uint8_t>(R & 0xff),
 			static_cast<uint8_t>((G >> 8) & 0xff), static_cast<uint8_t>(G & 0xff),
@@ -253,7 +246,6 @@ Streamer::Upload(const std::tuple<uint32_t, XyyColor>& LightsToUpload)
 
 		Msg.append((char*)payload, sizeof(payload));
 	}
-	eGroupMutex.unlock();
 
 	int len = Msg.size();
 

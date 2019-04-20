@@ -14,6 +14,7 @@ public:
 
 	virtual void Start() {}
 	virtual void Stop() {}
+	virtual void UpdateThreadCleanup() {}
 
 	virtual void Update(const LightUpdateParams& Params) = 0;
 	virtual std::vector<DevicePtr> GetDevices() = 0;

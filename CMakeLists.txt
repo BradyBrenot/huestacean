@@ -51,6 +51,7 @@ set(SOURCES
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/hue.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/bridge.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/bridgediscovery.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/streamer.cpp
 )
 set(HEADERS
    ${HEADERS}
@@ -68,6 +69,7 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/hue.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridge.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridgediscovery.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/streamer.h
 )
 
 #headers with Qt-relevant types (for moc)

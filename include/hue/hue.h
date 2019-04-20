@@ -26,6 +26,10 @@ namespace Hue
 		virtual bool compare(DeviceInScene a, DeviceInScene b) override;
 		virtual DevicePtr GetDeviceFromUniqueId(std::string id) override;
 
+		virtual void Start() override;
+		virtual void Stop() override;
+		virtual void UpdateThreadCleanup() override;
+
 		void SearchForBridges(std::vector<std::string> manualAddresses, bool doScan);
 		const std::vector<std::shared_ptr<class Bridge>>& GetBridges();
 

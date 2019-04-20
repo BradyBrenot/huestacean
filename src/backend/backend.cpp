@@ -39,14 +39,18 @@ void Backend::Start()
 		return;
 	}
 
-	for (const auto& dp : deviceProviders)
 	{
-		dp.second->Start();
+		for (const auto& dp : deviceProviders)
+		{
+			dp.second->Start();
+		}
 	}
+	
 
 	stopRequested = false;
 	thread = std::thread([this] {
-		Scene renderScene = scenes.size() > activeSceneIndex ? scenes[activeSceneIndex] : Scene();
+		Scene renderScene;
+		scenesAreDirty = true;
 
 		std::unordered_map<ProviderType, LightUpdateParams> lightUpdates;
 		std::vector<HsluvColor> colors;
@@ -160,6 +164,12 @@ void Backend::Start()
 			auto timeLeft = tickRate - (end - start);
 			auto sleepForTime = timeLeft > 1ms ? timeLeft : 1ms;
 			std::this_thread::sleep_for(sleepForTime);
+		}
+
+		//Allow for any cleanup that MUST happen on this thread
+		for (const auto& dp : deviceProviders)
+		{
+			dp.second->UpdateThreadCleanup();
 		}
 	});
 }

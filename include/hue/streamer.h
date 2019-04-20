@@ -1,6 +1,7 @@
 #pragma once
 
-#include "hue/bridge.h";
+#include "hue/bridge.h"
+#include "common/math.h"
 
 //----------- mbedtls
 
@@ -21,6 +22,8 @@
 #include <string.h>
 #include <math.h>
 
+#include <atomic>
+
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
@@ -36,7 +39,7 @@ namespace Hue
 {
 	struct Streamer
 	{
-		bool isValid;
+		std::atomic_bool isValid;
 
 		int ret;
 		mbedtls_net_context server_fd;
@@ -52,6 +55,6 @@ namespace Hue
 
 		Streamer(const Bridge& bridge);
 		~Streamer();
-		void Upload(const std::vector<std::tuple<uint32_t, XyyColor>>& LightsToUpload);
+		void Upload(const std::vector<std::tuple<uint32_t, Math::XyyColor>>& LightsToUpload);
 	};
 };

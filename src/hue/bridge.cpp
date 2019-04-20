@@ -1,4 +1,5 @@
 #include "hue/bridge.h"
+#include "hue/streamer.h"
 
 #include <atomic>
 
@@ -19,10 +20,14 @@ Bridge::Bridge(std::shared_ptr<QNetworkAccessManager> inQnam, std::string inId, 
 	qnam(inQnam),
 	status(Status::Undiscovered),
 	username(),
-	clientkey()
+	clientkey(),
+	huestaceanGroupIndex(-1)
 {
 	connect(qnam.get(), SIGNAL(finished(QNetworkReply*)),
 		this, SLOT(OnReplied(QNetworkReply*)));
+
+	connect(this, SIGNAL(WantsToggleStreaming(bool, int, const std::vector<DevicePtr>)),
+		this, SLOT(ToggleStreaming(bool, int, const std::vector<DevicePtr>)));
 }
 
 Bridge::Bridge(const Bridge& b)
@@ -31,6 +36,7 @@ Bridge::Bridge(const Bridge& b)
 	status = b.status;
 	username = b.username;
 	clientkey = b.clientkey;
+	huestaceanGroupIndex = int{ b.huestaceanGroupIndex };
 }
 
 Bridge& Bridge::operator=(const Bridge& b)
@@ -111,6 +117,75 @@ int Bridge::RegisterListener(std::function<void()> callback)
 void Bridge::UnregisterListener(int id)
 {
 	listeners.erase(id);
+}
+
+void Bridge::ToggleStreaming(bool enable, int id, const std::vector<DevicePtr>& Lights)
+{
+	QNetworkRequest qnr = MakeRequest(*this, QString("/groups/%1").arg(id));
+	qnr.setOriginatingObject(this);
+	qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+	QJsonObject stream;
+	stream.insert("active", enable);
+
+	QJsonObject body;
+	body.insert("stream", stream);
+
+	if (enable)
+	{
+		QJsonArray arr;
+		for (const auto& l : Lights)
+		{
+			auto* light = dynamic_cast<Light*>(l.get());
+			arr.push_back(static_cast<int>(light->id));
+		}
+
+		body.insert("lights", arr);
+	}
+
+	qnam->put(qnr, QJsonDocument(body).toJson());
+}
+
+void Bridge::StartFromUpdateThread(std::vector<DevicePtr> Lights)
+{
+	if (isStreamingEnabled
+		|| huestaceanGroupIndex == -1
+		|| startingStreaming) {
+		return;
+	}
+
+	startingStreaming = true;
+	emit WantsToggleStreaming(true, huestaceanGroupIndex, Lights);
+}
+void Bridge::Stop()
+{
+	if (!isStreamingEnabled) {
+		return;
+	}
+
+	emit WantsToggleStreaming(false, huestaceanGroupIndex, std::vector<DevicePtr>());
+	isStreamingEnabled = false;
+}
+
+void Bridge::UpdateThreadCleanup()
+{
+	streamer = nullptr;
+}
+
+void Bridge::Upload(const std::vector<std::tuple<uint32_t, Math::XyyColor>> & LightsToUpload)
+{
+	if (!isStreamingEnabled)
+	{
+		return;
+	}
+
+	if (!streamer
+		|| !streamer->isValid)
+	{
+		streamer = std::make_shared<Streamer>(*this);
+	}
+
+	streamer->Upload(LightsToUpload);
 }
 
 void Bridge::OnReplied(QNetworkReply* reply)
@@ -289,32 +364,49 @@ void Bridge::OnReplied(QNetworkReply* reply)
 #endif
 	else if (reply->request().url().toString().endsWith("/groups"))
 	{
-		//@TODO process entertainment groups
-#if 0
 		QByteArray data = reply->readAll();
-		QJsonDocument replyJson = QJsonDocument::fromJson(data);
-		QJsonObject obj = replyJson.object();
-
-		for (auto it = obj.begin(); it != obj.end(); ++it)
+		if (data.contains("success"))
 		{
-			if (it.value().toObject()["type"].toString().compare(QString("entertainment"), Qt::CaseInsensitive) == 0)
-			{
-				QString string = it.key();
-				EntertainmentGroup* newGroup = EntertainmentGroups[it.key()] = new EntertainmentGroup(this);
-				newGroup->id = it.key();
-				newGroup->name = it.value().toObject()["name"].toString();
-				QJsonObject locations = it.value().toObject()["locations"].toObject();
+			QJsonDocument replyJson = QJsonDocument::fromJson(data);
+			auto foundId = replyJson.array()[0].toObject()["id"].toInt();
+		}
+		else
+		{
+			QByteArray data = reply->readAll();
+			QJsonDocument replyJson = QJsonDocument::fromJson(data);
+			QJsonObject obj = replyJson.object();
 
-				for (auto j = locations.begin(); j != locations.end(); ++j)
+			for (auto it = obj.begin(); it != obj.end(); ++it)
+			{
+				if (it.value().toObject()["name"].toString().compare(QString("_huestacean"), Qt::CaseInsensitive) == 0)
 				{
-					QJsonArray loc = j.value().toArray();
-					newGroup->lights.push_back(EntertainmentLight(this, j.key(), loc[0].toDouble(), loc[1].toDouble(), loc[2].toDouble()));
+					QString idString = it.key();
+					huestaceanGroupIndex = idString.toInt();
+					break;
 				}
 			}
-		}
 
-		emit entertainmentGroupsChanged();
-#endif
+			if (huestaceanGroupIndex == -1)
+			{
+				//Create a new group
+				QNetworkRequest qnr = MakeRequest(*this, "/groups", false);
+				qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+				QJsonObject json;
+				json.insert("name", "_huestacean");
+				json.insert("type", "entertainment");
+
+				qnam->post(qnr, QJsonDocument(json).toJson());
+
+				//@TODO -- will this succeed with an empty group?
+			}
+		}
+	}
+	else if (reply->request().url().toString().contains("/groups/"))
+	{
+		QByteArray data = reply->readAll();
+		isStreamingEnabled = data.contains("true");
+		startingStreaming = false;
 	}
 	else if (false /* handle activation of an entertainment group here? */)
 	{
