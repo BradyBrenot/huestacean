@@ -27,7 +27,7 @@ namespace Razer
 		size_t size;
 	};
 
-	template<size_t ROWS, size_t COLUMNS, uint32_t LENGTH_CENTIMETRES, uint32_t WIDTH_CENTIMETRES>
+	template<size_t ROWS, size_t COLUMNS, uint32_t X_SIZE_CENTIMETRES, uint32_t Y_SIZE_CENTIMETRES>
 	class ChromaDevice : public ChromaDeviceBase
 	{
 	public:
@@ -54,11 +54,29 @@ namespace Razer
 		{
 			using namespace Math;
 
-			constexpr auto height = 10_cm;
-			constexpr auto length = 1_cm * LENGTH_CENTIMETRES;
-			constexpr auto width = 1_cm * WIDTH_CENTIMETRES;
+			constexpr distance xSize = 1_cm * X_SIZE_CENTIMETRES;
+			constexpr distance ySize = 1_cm * Y_SIZE_CENTIMETRES;
+			constexpr distance zSize = 10_cm;
 
-			return std::vector<Math::Box>();
+			auto boxes = std::vector<Math::Box>(ROWS * COLUMNS);
+			for (auto x = 0; x < COLUMNS; ++x)
+			{
+				for (auto y = 0; y < ROWS; ++y)
+				{
+					constexpr distance cellXSize = xSize / static_cast<double>(COLUMNS);
+					constexpr distance cellYSize = ySize / static_cast<double>(ROWS);
+					constexpr distance cellZSize = zSize;
+
+					constexpr distance xStart = -1.0 * (xSize / 2.0) + cellXSize / 2.0;
+					constexpr distance yStart = -1.0 * (ySize / 2.0) + cellYSize / 2.0;
+
+					boxes.push_back(Math::Box{ 
+						Vector3d{xStart + cellXSize * x, yStart + cellYSize * y, 0.0},
+						Vector3d{cellXSize / 2.0, cellYSize / 2.0, cellZSize / 2.0}});
+				}
+			}
+
+			return boxes;
 		}
 
 	protected:
@@ -72,7 +90,7 @@ namespace Razer
 	 *	Various concrete Razer devices
 	 */
 	class GenericKeyboard 
-		: public ChromaDevice<ChromaSDK::Keyboard::MAX_ROW, ChromaSDK::Keyboard::MAX_COLUMN, 45, 15>
+		: public ChromaDevice<ChromaSDK::Keyboard::MAX_ROW, ChromaSDK::Keyboard::MAX_COLUMN, 15, 45>
 	{
 	protected:
 		virtual std::string GetUniqueIdInternal() const override;
