@@ -277,7 +277,7 @@ void Provider::Load(QSettings& settings)
 	int bridgesSize = settings.beginReadArray("bridges");
 	for (int i = 0; i < bridgesSize; ++i)
 	{
-		settings.setArrayIndex(i++);
+		settings.setArrayIndex(i);
 
 		auto& b = bridges.emplace_back();
 		b = std::make_shared<Bridge>(qnam, 
@@ -291,7 +291,7 @@ void Provider::Load(QSettings& settings)
 		int devicesSize = settings.beginReadArray("devices");
 		for (int j = 0; j < devicesSize; ++j)
 		{
-			settings.setArrayIndex(j++);
+			settings.setArrayIndex(j);
 
 			auto& l = b->devices.emplace_back();
 			l = std::make_shared<Light>();
