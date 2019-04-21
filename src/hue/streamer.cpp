@@ -237,8 +237,6 @@ void Streamer::Upload(const std::vector<std::tuple<uint32_t, Math::XyyColor>>& L
 		double brightness = color.Y;
 		quint64 B = brightness * 0xffff;
 
-		qDebug() << "sending" << id << " || " << R << G << B;
-
 		const uint8_t payload[] = {
 			0x00, 0x00, static_cast<uint8_t>(id),
 

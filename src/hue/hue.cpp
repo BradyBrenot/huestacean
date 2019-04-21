@@ -70,8 +70,6 @@ void Provider::Update(const LightUpdateParams& Params)
 			&& i < perBridgeUpdateInfo.size()
 			&& perBridgeUpdateInfo[i].bridgeIndex == currentBridgeIndex)
 		{
-			qDebug() << "light" << i << "hue" << colorsIt->h;
-
 			lightsToUpload.push_back({ perBridgeUpdateInfo[i].deviceIndex, XyyColor{*colorsIt} });
 
 			i++;
