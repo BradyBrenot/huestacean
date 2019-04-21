@@ -214,10 +214,3 @@ in lgpl-3.txt. The corresponding source code for Qt can be found at either:
  - qt.io: http://download.qt.io/official_releases/qt/5.12/5.12.0/single/qt-everywhere-src-5.12.0.tar.xz.mirrorlist
  - mirror: https://s3.us-east-2.amazonaws.com/bbrenot-thirdparty-sourcecode/qt-everywhere-src-5.12.0.tar.xz
 The end user can provide their own Qt5 and modifications by replacing the distributed Qt shared library files (Qt* .dll, .so, .dylib, etc.)
-
-===================================
-
-Bear in mind if you want to use this code for anything else that these are all permissive licenses with the exception of Qt and the LGPL;
-the LGPL allows for linking to closed-source applications but has more restrictions than the BSD, MIT, or Apache licenses used elsewhere
-in this application. If this is a problem: Qt is used for GUI and some multiplatform support, it shouldn't be hard to strip out of the
-application's core but it will leave you without a GUI.

@@ -171,7 +171,7 @@ This project is using:
 
 ## License
 
-The source code for this application is licensed under the Apache License Version 2.0. All code should be assumed to be under this license unless stated otherwise, regardless of being tagged with the Apache 2.0 boilerplate or not. Refer to the [LICENSE](LICENSE) file for the text of the license and other details.
+The source code for this application is licensed under the Apache License Version 2.0. All code, excepting what's in the thirdparty directory, should be assumed to be under this license unless stated otherwise, regardless of being tagged with the Apache 2.0 boilerplate or not. Refer to the [LICENSE](LICENSE) file for the text of the license and other details.
 
 ### Third-party licenses
 
