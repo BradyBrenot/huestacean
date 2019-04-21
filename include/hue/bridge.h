@@ -26,6 +26,7 @@ namespace Hue
 
 		void Connect();
 		void RefreshDevices();
+		void RefreshGroups();
 
 		int RegisterListener(std::function<void()> callback);
 		void UnregisterListener(int id);
@@ -34,6 +35,7 @@ namespace Hue
 		
 		std::shared_ptr<Streamer> streamer;
 		void StartFromUpdateThread(std::vector<DevicePtr> Lights);
+		std::vector<DevicePtr> UpdateThreadLastLights;
 		void Stop();
 		void UpdateThreadCleanup();
 		void Upload(const std::vector<std::tuple<uint32_t, Math::XyyColor>>& LightsToUpload);
@@ -59,11 +61,11 @@ namespace Hue
 		std::vector<std::shared_ptr<Light>> devices;
 
 	signals:
-		void WantsToggleStreaming(bool enable, int id, const std::vector<DevicePtr> Lights);
+		void WantsToggleStreaming(bool enable, int id, std::vector<DevicePtr> Lights);
 
 	private slots:
 		void OnReplied(QNetworkReply* reply);
-		void ToggleStreaming(bool enable, int id, const std::vector<DevicePtr>& Lights);
+		void ToggleStreaming(bool enable, int id, std::vector<DevicePtr> Lights);
 
 	private:
 		std::shared_ptr<class QNetworkAccessManager> qnam;

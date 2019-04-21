@@ -67,6 +67,7 @@ void Backend::Start()
 					std::scoped_lock lock(scenesMutex);
 					int updateThreadSceneIndex = activeSceneIndex;
 					renderScene = scenes.size() > updateThreadSceneIndex ? scenes[updateThreadSceneIndex] : Scene();
+					scenesAreDirty = false;
 				}
 
 				//Sort devices by ProviderType     
@@ -102,7 +103,7 @@ void Backend::Start()
 
 				for (const auto& dp : deviceProviders)
 				{
-					auto update = lightUpdates[dp.first];
+					auto& update = lightUpdates[dp.first];
 					update.boundingBoxesDirty = true;
 					update.colorsDirty = true;
 					update.devicesDirty = true;
@@ -150,7 +151,7 @@ void Backend::Start()
 		auto lastStart = std::chrono::high_resolution_clock::now();
 
 		while (!stopRequested) {
-			constexpr auto tickRate = 16.67ms;
+			constexpr auto tickRate = 30ms;
 
 			auto start = std::chrono::high_resolution_clock::now();
 			auto deltaTime = std::chrono::duration<float>{ start - lastStart };
@@ -198,6 +199,11 @@ const std::vector<Scene> Backend::GetScenes()
 {
 	std::scoped_lock lock(scenesMutex);
 	return scenes;
+}
+
+void Backend::SetActiveScene(int sceneIndex)
+{
+	activeSceneIndex = sceneIndex;
 }
 
 Backend::BackendWriter Backend::GetWriter()

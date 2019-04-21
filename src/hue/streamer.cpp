@@ -82,7 +82,7 @@ Streamer::Streamer(const Bridge& bridge) :
 	/*
 	* 1. Start the connection
 	*/
-	qDebug() << "Connecting to udp" << bridge.address << SERVER_PORT;
+	qDebug() << "Connecting to udp" << QHostAddress(bridge.address).toString().toUtf8() << SERVER_PORT;
 
 	if ((ret = mbedtls_net_connect(&server_fd, QHostAddress(bridge.address).toString().toUtf8(),
 		SERVER_PORT, MBEDTLS_NET_PROTO_UDP)) != 0)
@@ -166,6 +166,7 @@ Streamer::Streamer(const Bridge& bridge) :
 	}
 
 	qDebug() << "Handshake successful. Connected!";
+	return;
 
 	exit:
 		isValid = false;
@@ -235,6 +236,8 @@ void Streamer::Upload(const std::vector<std::tuple<uint32_t, Math::XyyColor>>& L
 		quint64 G = color.y * 0xffff;
 		double brightness = color.Y;
 		quint64 B = brightness * 0xffff;
+
+		qDebug() << "sending" << id << " || " << R << G << B;
 
 		const uint8_t payload[] = {
 			0x00, 0x00, static_cast<uint8_t>(id),

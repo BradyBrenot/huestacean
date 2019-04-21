@@ -61,6 +61,7 @@ struct Scene
 	Scene& operator=(const Scene& r)
 	{
 		devices = r.devices;
+		effects.clear();
 		for (const auto& effect : r.effects)
 		{
 			effects.push_back(effect->clone());

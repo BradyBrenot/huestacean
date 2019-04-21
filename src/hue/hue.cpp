@@ -66,8 +66,12 @@ void Provider::Update(const LightUpdateParams& Params)
 		currentBridgeIndex = perBridgeUpdateInfo[i].bridgeIndex;
 		std::vector<std::tuple<uint32_t, XyyColor> > lightsToUpload;
 
-		while (perBridgeUpdateInfo[i].bridgeIndex == currentBridgeIndex)
+		while (colorsIt != Params.colorsEnd
+			&& i < perBridgeUpdateInfo.size()
+			&& perBridgeUpdateInfo[i].bridgeIndex == currentBridgeIndex)
 		{
+			qDebug() << "light" << i << "hue" << colorsIt->h;
+
 			lightsToUpload.push_back({ perBridgeUpdateInfo[i].deviceIndex, XyyColor{*colorsIt} });
 
 			i++;
@@ -171,21 +175,39 @@ void Provider::SearchForBridges(std::vector<std::string> manualAddresses, bool d
 	discovery->Search(manualAddresses, doScan, [&](const std::vector<Bridge>& foundBridges) {
 		for (const auto& found : foundBridges)
 		{
-			//Look for an existing, matching bridge
-			for (const auto& known : bridges)
+			[&]()
 			{
-				if (known->id == found.id)
+				//Look for an existing, matching bridge
+				for (const auto& known : bridges)
 				{
-					if (known->GetStatus() == Bridge::Status::Undiscovered)
+					if (known->id == found.id)
 					{
-						*known.get() = found;
+						if (known->GetStatus() == Bridge::Status::Undiscovered)
+						{
+							if (known->clientkey.empty())
+							{
+								*known.get() = found;
+							}
+							else
+							{
+								known->SetStatus(Bridge::Status::Discovered);
+							}
+						}
+						return;
 					}
-					return;
 				}
-			}
 
-			//If not found, create a new bridge
-			bridges.push_back(std::make_shared<Bridge>(found));
+				//If not found, create a new bridge
+				bridges.push_back(std::make_shared<Bridge>(found));
+			}();
+		}
+
+		for (const auto& bridge : bridges)
+		{
+			if (bridge->GetStatus() == Bridge::Status::Discovered)
+			{
+				bridge->Connect();
+			}
 		}
 	});
 }
@@ -269,17 +291,20 @@ void Provider::Load(QSettings& settings)
 		int devicesSize = settings.beginReadArray("devices");
 		for (int j = 0; j < devicesSize; ++j)
 		{
+			settings.setArrayIndex(j++);
+
 			auto& l = b->devices.emplace_back();
 			l = std::make_shared<Light>();
 
-			std::string uniqueid = settings.value("uniqueid").toString().toUtf8();
-			uint32_t id = settings.value("id").toUInt();
+			l->uniqueid = settings.value("uniqueid").toString().toUtf8();
+			l->id = settings.value("id").toUInt();
 
-			std::string bridgeid = settings.value("bridgeid").toString().toUtf8();
-			std::string name = settings.value("name").toString().toUtf8();
-			std::string type = settings.value("type").toString().toUtf8();
-			std::string productname = settings.value("productname").toString().toUtf8();
+			l->bridgeid = settings.value("bridgeid").toString().toUtf8();
+			l->name = settings.value("name").toString().toUtf8();
+			l->type = settings.value("type").toString().toUtf8();
+			l->productname = settings.value("productname").toString().toUtf8();
 		}
+		settings.endArray();
 	}
 	settings.endArray();
 

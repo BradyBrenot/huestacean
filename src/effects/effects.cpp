@@ -36,12 +36,19 @@ void SinePulseEffect::Update(const std::vector<Math::Box>& positions, std::vecto
 	constexpr auto sMult = 0.5 * sMax;
 	constexpr auto lMult = 0.5 * lMax;
 
+#if 0
 	auto Color = Math::HsluvColor(
 		(std::sin(counter.count() * hRate) + 1.0) * hMult,
 		(std::sin(counter.count() * sRate) + 1.0) * sMult,
 		(std::sin(counter.count() * lRate) + 1.0) * lMult);
+#endif
 
-	for (auto c : outColors)
+	auto Color = Math::HsluvColor(
+		(std::sin(counter.count() * hRate) + 1.0) * hMult,
+		100,
+		80);
+
+	for (auto& c : outColors)
 	{
 		c = Color;
 	}

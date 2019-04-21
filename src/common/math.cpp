@@ -303,6 +303,7 @@ HsluvColor::HsluvColor(angle inH, double inS, double inL)
 HsluvColor::HsluvColor(const RgbColor& from)
 {
 	rgb2hsluv(from.r, from.g, from.b, &h, &s, &l);
+	h *= (PI / 180);
 }
 
 RgbColor::RgbColor() 
@@ -319,7 +320,7 @@ RgbColor::RgbColor(double inR, double inG, double inB)
 
 RgbColor::RgbColor(const HsluvColor& from)
 {
-	hsluv2rgb(from.h, from.s, from.l, &r, &g, &b);
+	hsluv2rgb(from.h * 180 / PI, from.s, from.l, &r, &g, &b);
 }
 
 XyzColor::XyzColor()

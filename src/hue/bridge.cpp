@@ -21,13 +21,17 @@ Bridge::Bridge(std::shared_ptr<QNetworkAccessManager> inQnam, std::string inId, 
 	status(Status::Undiscovered),
 	username(),
 	clientkey(),
+	isStreamingEnabled(false),
+	startingStreaming(false),
 	huestaceanGroupIndex(-1)
 {
 	connect(qnam.get(), SIGNAL(finished(QNetworkReply*)),
 		this, SLOT(OnReplied(QNetworkReply*)));
 
-	connect(this, SIGNAL(WantsToggleStreaming(bool, int, const std::vector<DevicePtr>)),
-		this, SLOT(ToggleStreaming(bool, int, const std::vector<DevicePtr>)));
+	qRegisterMetaType<std::vector<DevicePtr>>("std::vector<DevicePtr>");
+
+	connect(this, SIGNAL(WantsToggleStreaming(bool, int, std::vector<DevicePtr>)),
+		this, SLOT(ToggleStreaming(bool, int, std::vector<DevicePtr>)));
 }
 
 Bridge::Bridge(const Bridge& b)
@@ -77,8 +81,12 @@ void Bridge::Connect()
 		return;
 	}
 
+	qDebug() << "trying to connect to bridge" << id.c_str();
+
 	if (!username.empty() && !clientkey.empty())
 	{
+		qDebug() << "bridge" << id.c_str() << "has existing registration" << username.c_str() << clientkey.c_str();
+
 		//Verify existing registration
 		QNetworkRequest qnr = MakeRequest(*this, "/config");
 		qnam->get(qnr);
@@ -99,10 +107,14 @@ void Bridge::Connect()
 
 void Bridge::RefreshDevices()
 {
+	qDebug() << id.c_str() << "requesting lights and groups";
 	QNetworkRequest qnr = MakeRequest(*this, "/lights");
 	qnam->get(qnr);
+}
 
-	qnr = MakeRequest(*this, "/groups");
+void Bridge::RefreshGroups()
+{
+	QNetworkRequest qnr = MakeRequest(*this, "/groups");
 	qnam->get(qnr);
 }
 
@@ -119,7 +131,7 @@ void Bridge::UnregisterListener(int id)
 	listeners.erase(id);
 }
 
-void Bridge::ToggleStreaming(bool enable, int id, const std::vector<DevicePtr>& Lights)
+void Bridge::ToggleStreaming(bool enable, int id, std::vector<DevicePtr> Lights)
 {
 	QNetworkRequest qnr = MakeRequest(*this, QString("/groups/%1").arg(id));
 	qnr.setOriginatingObject(this);
@@ -137,7 +149,7 @@ void Bridge::ToggleStreaming(bool enable, int id, const std::vector<DevicePtr>& 
 		for (const auto& l : Lights)
 		{
 			auto* light = dynamic_cast<Light*>(l.get());
-			arr.push_back(static_cast<int>(light->id));
+			arr.push_back(QString::number(light->id));
 		}
 
 		body.insert("lights", arr);
@@ -148,6 +160,8 @@ void Bridge::ToggleStreaming(bool enable, int id, const std::vector<DevicePtr>& 
 
 void Bridge::StartFromUpdateThread(std::vector<DevicePtr> Lights)
 {
+	UpdateThreadLastLights = Lights;
+
 	if (isStreamingEnabled
 		|| huestaceanGroupIndex == -1
 		|| startingStreaming) {
@@ -176,6 +190,7 @@ void Bridge::Upload(const std::vector<std::tuple<uint32_t, Math::XyyColor>> & Li
 {
 	if (!isStreamingEnabled)
 	{
+		StartFromUpdateThread(UpdateThreadLastLights);
 		return;
 	}
 
@@ -192,6 +207,8 @@ void Bridge::OnReplied(QNetworkReply* reply)
 {
 	// this is all pretty old, hasn't had to change since I first did it
 	//@TODO: error handling? Right now it just ignores bad / unexpected replies
+
+	qDebug() << "Got reply to" << reply->request().url().toString();
 
 	if (reply->request().originatingObject() != this)
 		return;
@@ -236,6 +253,8 @@ void Bridge::OnReplied(QNetworkReply* reply)
 	{
 		QByteArray data = reply->readAll();
 
+		//qDebug() << "/config replied" << data;
+
 		QJsonDocument replyJson = QJsonDocument::fromJson(data);
 		if (!replyJson.isObject() || !replyJson.object().contains("whitelist"))
 		{
@@ -254,6 +273,8 @@ void Bridge::OnReplied(QNetworkReply* reply)
 	}
 	else if (reply->request().url().toString().endsWith("/lights"))
 	{
+		qDebug() << "got reply to /lights";
+
 		QByteArray data = reply->readAll();
 		QJsonDocument replyJson = QJsonDocument::fromJson(data);
 		QJsonObject obj = replyJson.object();
@@ -261,10 +282,10 @@ void Bridge::OnReplied(QNetworkReply* reply)
 		for (auto it = obj.begin(); it != obj.end(); ++it)
 		{
 			bool ok;
-			auto id = it.key().toUInt(&ok);
+			auto foundLightId = it.key().toUInt(&ok);
 
 			if (!ok) {
-				qDebug() << "failed to parse light id at" << reply->request().url().toString() << "--id--" << id;
+				qDebug() << "failed to parse light id at" << reply->request().url().toString() << "--id--" << foundLightId;
 				return;
 			}
 
@@ -287,7 +308,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 
 			auto setProps = [&](std::shared_ptr<Light>& l)
 			{
-				l->id = id;
+				l->id = foundLightId;
 				l->uniqueid = uniqueid;
 				l->bridgeid = id;
 				l->name = name;
@@ -328,6 +349,8 @@ void Bridge::OnReplied(QNetworkReply* reply)
 
 			NotifyListeners();
 		}
+
+		RefreshGroups();
 	}
 #if 0
 	else if (reply->request().url().toString().contains("/lights/"))
@@ -365,14 +388,17 @@ void Bridge::OnReplied(QNetworkReply* reply)
 	else if (reply->request().url().toString().endsWith("/groups"))
 	{
 		QByteArray data = reply->readAll();
+
+		qDebug() << "Received reply to /groups" << data;
+
 		if (data.contains("success"))
 		{
 			QJsonDocument replyJson = QJsonDocument::fromJson(data);
-			auto foundId = replyJson.array()[0].toObject()["id"].toInt();
+
+			huestaceanGroupIndex = replyJson.array()[0].toObject()["success"].toObject()["id"].toString().toInt();
 		}
 		else
 		{
-			QByteArray data = reply->readAll();
 			QJsonDocument replyJson = QJsonDocument::fromJson(data);
 			QJsonObject obj = replyJson.object();
 
@@ -386,25 +412,34 @@ void Bridge::OnReplied(QNetworkReply* reply)
 				}
 			}
 
-			if (huestaceanGroupIndex == -1)
+			if (huestaceanGroupIndex == -1
+				&& devices.size() > 0)
 			{
 				//Create a new group
-				QNetworkRequest qnr = MakeRequest(*this, "/groups", false);
+				QNetworkRequest qnr = MakeRequest(*this, "/groups");
 				qnr.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
 				QJsonObject json;
 				json.insert("name", "_huestacean");
-				json.insert("type", "entertainment");
+				json.insert("type", "Entertainment");
+				json.insert("class", "TV");
+
+				QJsonArray arr;
+				auto* light = dynamic_cast<Light*>(devices[0].get());
+				arr.push_back(QString::number(light->id));
+
+				json.insert("lights", arr);
 
 				qnam->post(qnr, QJsonDocument(json).toJson());
-
-				//@TODO -- will this succeed with an empty group?
 			}
 		}
 	}
 	else if (reply->request().url().toString().contains("/groups/"))
 	{
 		QByteArray data = reply->readAll();
+
+		qDebug() << "Received reply to /groups/" << data;
+
 		isStreamingEnabled = data.contains("true");
 		startingStreaming = false;
 	}
@@ -430,6 +465,23 @@ void Bridge::SetStatus(Bridge::Status s)
 {
 	status = s;
 	NotifyListeners();
+
+	switch (s)
+	{
+	case Bridge::Status::Connected:
+		qDebug() << "Connected!";
+		break;
+	case Bridge::Status::WantsLink:
+		qDebug() << "WantsLink!";
+		break;
+	case Bridge::Status::Discovered:
+		qDebug() << "Discovered!";
+		break;
+	case Bridge::Status::Undiscovered:
+		qDebug() << "Undiscovered!";
+		break;
+
+	}
 
 	if (s == Bridge::Status::Connected)
 	{

@@ -76,18 +76,19 @@ TEST_CASE("Lights can animate", "[.][hueAll][prompt]") {
 		sr.Load();
 	}
 
-	b.Start();
-
 	{
 		auto& dp = b.GetDeviceProvider(ProviderType::Hue);
 		Hue::Provider* hue = dynamic_cast<Hue::Provider*>(dp.get());
 
 		REQUIRE(hue);
 
+		hue->SearchForBridges(std::vector<std::string>(), true);
+
 		REQUIRE(QTest::qWaitFor([&]() { return hue->GetBridges().size() > 0; }, 5000));
 
 		auto& bridges = hue->GetBridges();
 
+		REQUIRE(QTest::qWaitFor([&]() { return bridges[0]->GetStatus() == Hue::Bridge::Status::Connected; }, 10000));
 		REQUIRE(QTest::qWaitFor([&]() { return bridges[0]->devices.size() > 0; }, 2000));
 
 		auto sr = b.GetWriter();
@@ -118,13 +119,33 @@ TEST_CASE("Lights can animate", "[.][hueAll][prompt]") {
 
 		s.effects.push_back(std::make_unique<SinePulseEffect>());
 		
+		scenes.clear();
 		scenes.push_back(s);
 	}
+
+	b.SetActiveScene(0);
 	
+	b.Start();
 
 	std::string answer;
-	std::cout << "Are the lights (at most 10 per bridge) animating? [Y/N]: ";
-	std::cin >> answer;
+	std::atomic_bool answered = false;
+
+	auto thread = std::thread([&] {
+		std::cout << "Are the lights (at most 10 per bridge) animating? [Y/N]: ";
+		std::cin >> answer;
+		answered = true;
+	});
+
+	while (!answered) {
+		QTest::qWait(100);
+	}
+
+	thread.join();
+
+	{
+		auto sr = b.GetWriter();
+		sr.Save();
+	}
 
 	bool saidYes = answer.rfind('y', 0) == 0 || answer.rfind('Y', 0) == 0;
 	REQUIRE(saidYes);
