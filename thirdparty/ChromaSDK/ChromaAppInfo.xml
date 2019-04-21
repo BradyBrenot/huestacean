@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<application>
+    <title>Razer Chroma SDK Sample Application</title>
+    <description>Razer Chroma SDK Sample Application</description>
+    <author name="Razer" contact="http://developer.razerzone.com/chroma/"/>
+    <device_supported keyboard="1" mouse="1" headset="1" mousepad="1" keypad="1"/>
+	<category game="0"/>
+</application>

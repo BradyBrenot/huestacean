@@ -33,6 +33,12 @@ SET(THIRD_PARTY_SOURCE
 
 SET(THIRD_PARTY_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/hsluv-c/src/hsluv.h
+
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaLinkAPI.h
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaSDK.h
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaSDKDefines.h
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaSDKTypes.h
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzErrors.h
 )
 
 set(SOURCES
@@ -52,6 +58,8 @@ set(SOURCES
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/bridge.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/bridgediscovery.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/streamer.cpp
+
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/razer/chroma.cpp
 )
 set(HEADERS
    ${HEADERS}
@@ -70,6 +78,8 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridge.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridgediscovery.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/streamer.h
+
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/razer/chroma.h
 )
 
 #headers with Qt-relevant types (for moc)
@@ -86,6 +96,7 @@ set(INCLUDE_PATHS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/mbedtls/include
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc
 )
 
 include_directories(${INCLUDE_PATHS})
