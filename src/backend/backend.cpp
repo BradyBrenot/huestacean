@@ -3,6 +3,7 @@
 #include "common/math.h"
 
 #include "hue/hue.h"
+#include "razer/razer.h"
 
 #include <QSettings>
 
@@ -23,6 +24,7 @@ Backend::Backend() :
 	deviceProviders()
 {
 	deviceProviders.emplace(ProviderType::Hue, std::make_unique<Hue::Provider>());
+	deviceProviders.emplace(ProviderType::Razer, std::make_unique<Razer::Provider>());
 }
 
 Backend::~Backend()

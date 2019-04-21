@@ -60,6 +60,8 @@ set(SOURCES
    ${CMAKE_CURRENT_SOURCE_DIR}/src/hue/streamer.cpp
 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/razer/chroma.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/razer/razer.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/razer/razerdevices.cpp
 )
 set(HEADERS
    ${HEADERS}
@@ -80,6 +82,8 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/hue/streamer.h
 
    ${CMAKE_CURRENT_SOURCE_DIR}/include/razer/chroma.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/razer/razer.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/razer/razerdevices.h
 )
 
 #headers with Qt-relevant types (for moc)
@@ -159,6 +163,7 @@ set(TEST_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/backendtests.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/mathtests.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/huetests.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/tests/razertests.cpp
 )
 
 set(TEST_HEADERS

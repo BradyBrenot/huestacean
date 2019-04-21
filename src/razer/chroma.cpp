@@ -6,8 +6,6 @@
 #include <map>
 #include <vector>
 
-Razer::Chroma g_ChromaSDKImpl;
-
 #ifdef _WIN64
 #define CHROMASDKDLL        TEXT("RzChromaSDK64.dll")
 #else
@@ -99,11 +97,6 @@ Chroma::~Chroma()
 		::FreeLibrary(m_hModule);
 		m_hModule = NULL;
 	}
-}
-
-Chroma& Chroma::Get()
-{
-	return g_ChromaSDKImpl;
 }
 
 void Chroma::CreateEffect(RZDEVICEID DeviceId, ChromaSDK::EFFECT_TYPE Effect, PRZPARAM pParam, RZEFFECTID* pEffectId)

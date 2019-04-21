@@ -26,8 +26,8 @@ public:
 
 	virtual DevicePtr GetDeviceFromUniqueId(std::string id) = 0;
 
-	virtual void Save(QSettings& settings) = 0;
-	virtual void Load(QSettings& settings) = 0;
+	virtual void Save(QSettings& settings) {};
+	virtual void Load(QSettings& settings) {};
 
 protected:
 	DeviceProvider() = delete;
