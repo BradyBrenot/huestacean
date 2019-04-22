@@ -62,6 +62,8 @@ set(SOURCES
    ${CMAKE_CURRENT_SOURCE_DIR}/src/razer/chroma.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/razer/razer.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/razer/razerdevices.cpp
+
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/gui/gui.cpp
 )
 set(HEADERS
    ${HEADERS}
@@ -84,12 +86,16 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/razer/chroma.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/razer/razer.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/razer/razerdevices.h
+
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/gui/gui.h
 )
 
 #headers with Qt-relevant types (for moc)
 set(QT_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridgediscovery.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridge.h
+
+	${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/gui/gui.h
 )
 
 QT5_WRAP_CPP(HEADERS_MOC ${QT_HEADERS})
@@ -99,6 +105,7 @@ set(INCLUDE_PATHS
 
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/include
+	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/mbedtls/include
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc
 )

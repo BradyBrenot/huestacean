@@ -1,5 +1,34 @@
 <RCC>
-    <qresource prefix="/">
-<!--        <file>qml/main.qml</file> -->
-    </qresource>
+  <qresource prefix="/">
+    <file>qtquickcontrols2.conf</file>
+
+    <file>qml/main.qml</file>
+
+    <file>qml/MaterialDesign.js</file>
+
+    <file>images/egroup-xy.png</file>
+
+    <file>fonts/roboto/Roboto-Black.ttf</file>
+    <file>fonts/roboto/Roboto-BlackItalic.ttf</file>
+    <file>fonts/roboto/Roboto-Bold.ttf</file>
+    <file>fonts/roboto/Roboto-BoldItalic.ttf</file>
+    <file>fonts/roboto/Roboto-Italic.ttf</file>
+    <file>fonts/roboto/Roboto-Light.ttf</file>
+    <file>fonts/roboto/Roboto-LightItalic.ttf</file>
+    <file>fonts/roboto/Roboto-Medium.ttf</file>
+    <file>fonts/roboto/Roboto-MediumItalic.ttf</file>
+    <file>fonts/roboto/Roboto-Regular.ttf</file>
+    <file>fonts/roboto/Roboto-Thin.ttf</file>
+    <file>fonts/roboto/Roboto-ThinItalic.ttf</file>
+    <file>fonts/roboto/RobotoCondensed-Bold.ttf</file>
+    <file>fonts/roboto/RobotoCondensed-BoldItalic.ttf</file>
+    <file>fonts/roboto/RobotoCondensed-Italic.ttf</file>
+    <file>fonts/roboto/RobotoCondensed-Light.ttf</file>
+    <file>fonts/roboto/RobotoCondensed-LightItalic.ttf</file>
+    <file>fonts/roboto/RobotoCondensed-Medium.ttf</file>
+    <file>fonts/roboto/RobotoCondensed-MediumItalic.ttf</file>
+    <file>fonts/roboto/RobotoCondensed-Regular.ttf</file>
+
+    <file>fonts/materialicons/MaterialIcons-Regular.ttf</file>
+  </qresource>
 </RCC>

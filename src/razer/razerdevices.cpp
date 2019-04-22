@@ -77,7 +77,7 @@ std::vector<Math::Box> GenericMousepad::GetLightBoundingBoxes() const
 	//Quoth the Razer SDK
 
 	//First LED starts from top-right corner.
-    //!< LED 0-4 right side, 5-9 bottom side, 10-14 left side.
+	//!< LED 0-4 right side, 5-9 bottom side, 10-14 left side.
 
 	constexpr auto xSize = 26.0_cm;
 	constexpr auto ySize = 36.0_cm;

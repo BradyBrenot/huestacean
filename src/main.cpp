@@ -14,11 +14,19 @@
 
 #include <QCoreApplication>
 
+#include "frontend/gui/gui.h"
+
+//@TODO: separate executable for pure CLI mode (bunch of #if in here)
+//@TODO: separate handling for foreground and background Android processes (command line arg handling)
+
 int main(int argc, char* argv[])
 {
+	/////////////////////
+	// Qt settings
 	QCoreApplication::setOrganizationName("Brady Brenot");
 	QCoreApplication::setOrganizationDomain("bradybrenot.com");
 	QCoreApplication::setApplicationName("Huestacean");
-
-	return 0;
+	/////////////////////
+	
+	return Gui::Main(argc, argv);
 }
