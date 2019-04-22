@@ -8,6 +8,11 @@ Provider::Provider()
 	: DeviceProvider(ProviderType::Razer)
 {
 	devices.push_back(std::make_shared<GenericKeyboard>());
+	devices.push_back(std::make_shared<GenericMouse>());
+	devices.push_back(std::make_shared<GenericKeypad>());
+	devices.push_back(std::make_shared<GenericHeadset>());
+	devices.push_back(std::make_shared<GenericChromaLink>());
+	devices.push_back(std::make_shared<GenericMousepad>());
 }
 
 Provider::~Provider()

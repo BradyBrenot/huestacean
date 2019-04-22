@@ -125,12 +125,12 @@ namespace Math
 	{
 		double x, y, z;
 
-		Vector3d()
+		constexpr Vector3d()
 			: x(0), y(0), z(0)
 		{
 		}
 		
-		Vector3d(double inX, double inY, double inZ)
+		constexpr Vector3d(double inX, double inY, double inZ)
 			: x(inX), y(inY), z(inZ)
 		{
 		}

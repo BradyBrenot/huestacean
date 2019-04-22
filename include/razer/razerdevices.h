@@ -28,10 +28,10 @@ namespace Razer
 	};
 
 	template<size_t ROWS, size_t COLUMNS, uint32_t X_SIZE_CENTIMETRES, uint32_t Y_SIZE_CENTIMETRES>
-	class ChromaDevice : public ChromaDeviceBase
+	class ChromaDeviceGrid : public ChromaDeviceBase
 	{
 	public:
-		ChromaDevice() : 
+		ChromaDeviceGrid() :
 			ChromaDeviceBase(ROWS* COLUMNS)
 		{
 
@@ -59,12 +59,12 @@ namespace Razer
 			constexpr distance zSize = 10_cm;
 
 			auto boxes = std::vector<Math::Box>(ROWS * COLUMNS);
-			for (auto x = 0; x < COLUMNS; ++x)
+			for (auto x = 0; x < ROWS; ++x)
 			{
-				for (auto y = 0; y < ROWS; ++y)
+				for (auto y = 0; y < COLUMNS; ++y)
 				{
-					constexpr distance cellXSize = xSize / static_cast<double>(COLUMNS);
-					constexpr distance cellYSize = ySize / static_cast<double>(ROWS);
+					constexpr distance cellXSize = xSize / static_cast<double>(ROWS);
+					constexpr distance cellYSize = ySize / static_cast<double>(COLUMNS);
 					constexpr distance cellZSize = zSize;
 
 					constexpr distance xStart = -1.0 * (xSize / 2.0) + cellXSize / 2.0;
@@ -87,55 +87,69 @@ namespace Razer
 
 
 	/*
-	 *	Various concrete Razer devices
+	 *	Razer devices that use a grid layout
 	 */
+
 	class GenericKeyboard 
-		: public ChromaDevice<ChromaSDK::Keyboard::MAX_ROW, ChromaSDK::Keyboard::MAX_COLUMN, 15, 45>
+		: public ChromaDeviceGrid<ChromaSDK::Keyboard::MAX_ROW, ChromaSDK::Keyboard::MAX_COLUMN, 15, 45>
 	{
 	protected:
-		virtual std::string GetUniqueIdInternal() const override;
+		virtual std::string GetUniqueIdInternal() const override { return "GenericKeyboard"; }
 		virtual void UploadInternal(Chroma& Sdk) override;
 	};
 
-#if 0
-	class GenericMouse : public ChromaDevice
+	class GenericMouse
+		: public ChromaDeviceGrid<ChromaSDK::Mouse::MAX_ROW, ChromaSDK::Mouse::MAX_COLUMN, 15, 7>
 	{
-	public:
-		GenericKeyboard();
 	protected:
-		virtual std::string GetUniqueIdInternal() const;
+		virtual std::string GetUniqueIdInternal() const override { return "GenericMouse"; };
+		virtual void UploadInternal(Chroma& Sdk) override;
 	};
 
-	class GenericMousemat : public ChromaDevice
+	class GenericKeypad
+		: public ChromaDeviceGrid<ChromaSDK::Keypad::MAX_ROW, ChromaSDK::Keypad::MAX_COLUMN, 15, 7>
 	{
-	public:
-		GenericKeyboard();
 	protected:
-		virtual std::string GetUniqueIdInternal() const;
+		virtual std::string GetUniqueIdInternal() const override { return "GenericKeypad"; };
+		virtual void UploadInternal(Chroma& Sdk) override;
 	};
 
-	class GenericKeypad : public ChromaDevice
+	class GenericHeadset
+		: public ChromaDeviceGrid<1, ChromaSDK::Headset::MAX_LEDS, 15, 35>
 	{
-	public:
-		GenericKeyboard();
 	protected:
-		virtual std::string GetUniqueIdInternal() const;
+		virtual std::string GetUniqueIdInternal() const override { return "GenericHeadset"; };
+		virtual void UploadInternal(Chroma& Sdk) override;
 	};
 
-	class GenericHeadset : public ChromaDevice
+	class GenericChromaLink
+		: public ChromaDeviceGrid<1, ChromaSDK::ChromaLink::MAX_LEDS, 30, 60>
 	{
-	public:
-		GenericKeyboard();
 	protected:
-		virtual std::string GetUniqueIdInternal() const;
+		virtual std::string GetUniqueIdInternal() const override { return "GenericChromaLink"; };
+		virtual void UploadInternal(Chroma& Sdk) override;
 	};
 
-	class GenericChromaLink : public ChromaDevice
+	/* 
+	 * Devices with weird LED layouts
+	 */
+
+	class GenericMousepad : public ChromaDeviceBase
 	{
 	public:
-		GenericKeyboard();
+		GenericMousepad() :
+			ChromaDeviceBase(ChromaSDK::Mousepad::MAX_LEDS)
+		{
+
+		}
+
+		virtual std::vector<Math::Box> GetLightBoundingBoxes() const override;
 	protected:
-		virtual std::string GetUniqueIdInternal() const;
+		virtual std::string GetUniqueIdInternal() const override { return "GenericMousepad"; };
+		virtual void Upload(std::vector<Math::HsluvColor>::iterator& colorsItMutable,
+			std::vector<DevicePtr>::iterator& devicesItMutable,
+			Chroma& Sdk) override;
+
+		uint32_t data[ChromaSDK::Mousepad::MAX_LEDS];
 	};
-#endif
 };
