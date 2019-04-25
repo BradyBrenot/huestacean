@@ -105,6 +105,21 @@ ApplicationWindow {
 					font.pointSize: 18
 					font.family: "Material Icons"
 					text: MD.icons.menu
+
+					ToolTip.visible: hovered || pressed
+					ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+					ToolTip.text: qsTr("Menu")
+				}
+				
+				Label {
+					font.family: "Roboto Regular"
+					font.pointSize: 14
+
+					text: "Huestacean"
+					elide: Label.ElideRight
+					verticalAlignment: Qt.AlignVCenter
+
+					Layout.fillWidth: true
 				}
 
 				ToolButton {
@@ -113,17 +128,10 @@ ApplicationWindow {
 					font.pointSize: 18
 					font.family: "Material Icons"
 					text: MD.icons.arrow_back
-				}
-				
-				Label {
-					font.family: "Roboto Bold"
-					font.pointSize: 14
 
-					text: "Huestacean"
-					elide: Label.ElideRight
-					verticalAlignment: Qt.AlignVCenter
-
-					Layout.fillWidth: true
+					ToolTip.visible: hovered || pressed
+					ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+					ToolTip.text: qsTr("Back")
 				}
 				
 			}

@@ -1,0 +1,7 @@
+#include "frontendtypes.h"
+
+class Frontend
+{
+	PROP(QList<Scene> scenes);
+    PROP(QList<Hue::Bridge> bridges);
+};

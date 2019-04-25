@@ -22,6 +22,7 @@ endif(CCACHE_FOUND)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Network REQUIRED)
 find_package(Qt5Quick REQUIRED)
+find_package(Qt5RemoteObjects REQUIRED)
 
 set(MAIN_SOURCE 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
@@ -64,6 +65,7 @@ set(SOURCES
    ${CMAKE_CURRENT_SOURCE_DIR}/src/razer/razerdevices.cpp
 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/gui/gui.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/frontend.cpp
 )
 set(HEADERS
    ${HEADERS}
@@ -88,6 +90,8 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/razer/razerdevices.h
 
    ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/gui/gui.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/rep_frontend.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/frontend.h
 )
 
 #headers with Qt-relevant types (for moc)
@@ -96,6 +100,7 @@ set(QT_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridge.h
 
 	${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/gui/gui.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/frontend.h
 )
 
 QT5_WRAP_CPP(HEADERS_MOC ${QT_HEADERS})
@@ -120,6 +125,7 @@ set(LIBRARIES
    Qt5::Core
    Qt5::Network
    Qt5::Quick 
+   Qt5::RemoteObjects
    screen_capture_lite
    mbedtls
    mbedx509
@@ -148,6 +154,14 @@ endif()
 
 add_executable(huestacean WIN32 ${MAIN_SOURCE} ${SOURCES} ${HEADERS} ${HEADERS_MOC} resources/qml.qrc)
 target_link_libraries(huestacean ${LIBRARIES})
+
+add_custom_command(
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/rep_frontend.rep
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/rep_frontend.h
+  COMMAND repc -o merged rep_frontend.rep rep_frontend.h
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend
+  COMMENT "compile with repc"
+)
 
 ### Tests
 
