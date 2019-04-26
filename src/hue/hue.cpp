@@ -197,6 +197,7 @@ void Provider::SearchForBridges(std::vector<std::string> manualAddresses, bool d
 
 				//If not found, create a new bridge
 				bridges.push_back(std::make_shared<Bridge>(found));
+				NotifyListeners(EVENT_BRIDGES_CHANGED);
 			}();
 		}
 
@@ -307,6 +308,8 @@ void Provider::Load(QSettings& settings)
 	settings.endArray();
 
 	settings.endGroup();
+
+	NotifyListeners(EVENT_BRIDGES_CHANGED);
 }
 
 

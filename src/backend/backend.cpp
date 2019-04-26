@@ -206,6 +206,7 @@ const std::vector<Scene> Backend::GetScenes()
 void Backend::SetActiveScene(int sceneIndex)
 {
 	activeSceneIndex = sceneIndex;
+	NotifyListeners(EVENT_ACTIVE_SCENE_CHANGED);
 }
 
 Backend::BackendWriter Backend::GetWriter()

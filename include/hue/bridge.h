@@ -3,7 +3,7 @@
 #include "hue/hue.h"
 #include "common/device.h"
 #include "common/math.h"
-#include "common/ichangelistenernotifier.h"
+#include "common/changelistenernotifier.h"
 
 #include <unordered_map>
 #include <vector>
@@ -16,7 +16,7 @@ namespace Hue
 {
 	struct Streamer;
 
-	class Bridge : public QObject, public iChangeListenerNotifier
+	class Bridge : public QObject, public ChangeListenerNotifier
 	{
 		Q_OBJECT
 
@@ -28,7 +28,7 @@ namespace Hue
 		//////////////////////////////////////////////////////////////////////////
 
 		const int EVENT_STATUS_CHANGED = 1;
-		const int EVENT_DEVICES_CHANGED = 1;
+		const int EVENT_DEVICES_CHANGED = 2;
 
 		//////////////////////////////////////////////////////////////////////////
 

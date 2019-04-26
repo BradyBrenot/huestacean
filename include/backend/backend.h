@@ -11,13 +11,22 @@
 #include "deviceprovider.h"
 #include "common/scene.h"
 
+#include "common/changelistenernotifier.h"
+
 //Backend runs the flippin' show.
 
-class Backend
+class Backend : public ChangeListenerNotifier
 {
 public:
 	Backend();
 	~Backend();
+
+	//////////////////////////////////////////////////////////////////////////
+
+	static const int EVENT_SCENES_CHANGED = 1;
+	static const int EVENT_ACTIVE_SCENE_CHANGED = 2;
+
+	//////////////////////////////////////////////////////////////////////////
 
 	void Start();
 	bool IsRunning();
@@ -38,7 +47,7 @@ public:
 
 		}
 
-		~BackendWriter() { b->scenesAreDirty = true; }
+		~BackendWriter() { b->scenesAreDirty = true; b->NotifyListeners(Backend::EVENT_SCENES_CHANGED); }
 		
 		std::vector<Scene> GetScenes() const
 		{

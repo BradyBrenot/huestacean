@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <atomic>
 
-class iChangeListenerNotifier
+class ChangeListenerNotifier
 {
 	struct _Listener
 	{
