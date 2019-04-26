@@ -9,10 +9,20 @@ using namespace Hue;
 using namespace Math;
 
 Provider::Provider() :
-	DeviceProvider(ProviderType::Hue)
+	DeviceProvider(ProviderType::Hue),
+	bridges(),
+	bridgeListenerIds()
 {
 	qnam = std::make_shared<QNetworkAccessManager>();
 	discovery = std::make_shared<BridgeDiscovery>(qnam);
+}
+
+Provider::~Provider()
+{
+	for (int i = 0; i < bridgeListenerIds.size(); ++i)
+	{
+		bridges[i]->UnregisterListener(bridgeListenerIds[i]);
+	}
 }
 
 void Provider::Update(const LightUpdateParams& Params)
@@ -197,6 +207,12 @@ void Provider::SearchForBridges(std::vector<std::string> manualAddresses, bool d
 
 				//If not found, create a new bridge
 				bridges.push_back(std::make_shared<Bridge>(found));
+
+
+				bridgeListenerIds.push_back(bridges.back()->RegisterListener([&]() {
+					NotifyListeners(EVENT_A_BRIDGE_CHANGED);
+				}));
+
 				NotifyListeners(EVENT_BRIDGES_CHANGED);
 			}();
 		}
@@ -279,6 +295,11 @@ void Provider::Load(QSettings& settings)
 		settings.setArrayIndex(i);
 
 		auto& b = bridges.emplace_back();
+
+		bridgeListenerIds.push_back(bridges.back()->RegisterListener([&]() {
+			NotifyListeners(EVENT_A_BRIDGE_CHANGED);
+		}));
+
 		b = std::make_shared<Bridge>(qnam, 
 			std::string(settings.value("id").toString().toUtf8()), 
 			settings.value("address").toUInt());

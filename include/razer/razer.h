@@ -2,12 +2,13 @@
 
 #include "backend/deviceprovider.h"
 #include "common/device.h"
+#include "common/changelistenernotifier.h"
 
 namespace Razer
 {
 	class Chroma;
 
-	class Provider : public DeviceProvider
+	class Provider : public DeviceProvider, public ChangeListenerNotifier
 	{
 	public:
 		Provider();

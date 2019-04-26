@@ -2,6 +2,7 @@
 
 class Frontend
 {
+	PROP(qint32 ActiveSceneIndex);
 	PROP(QList<SceneInfo> Scenes)
 	PROP(QList<DeviceInfo> Devices);
     PROP(QList<BridgeInfo> Bridges);

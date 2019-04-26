@@ -22,10 +22,12 @@ namespace Hue
 	{
 	public:
 		Provider();
+		virtual ~Provider();
 
 		//////////////////////////////////////////////////////////////////////////
 
 		static const int EVENT_BRIDGES_CHANGED = 1;
+		static const int EVENT_A_BRIDGE_CHANGED = 2;
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -47,6 +49,7 @@ namespace Hue
 	private:
 		std::shared_ptr<QNetworkAccessManager> qnam;
 		std::vector<std::shared_ptr<Bridge>> bridges;
+		std::vector<int> bridgeListenerIds;
 		std::shared_ptr <BridgeDiscovery> discovery;
 
 		//vector contains vectors telling us which devices belong to which bridge, and have which index 

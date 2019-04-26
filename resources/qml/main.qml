@@ -2,7 +2,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Controls.Material 2.12
 import QtQuick.Layouts 1.12
-import Huestacean.Frontend 1.0 as Frontend
+import Huestacean.GuiHelper 1.0 as GuiHelper
 
 import "MaterialDesign.js" as MD
 
@@ -37,7 +37,7 @@ ApplicationWindow {
         sequences: ["Enter", "Return"]
 		context: Qt.ApplicationShortcut
         onActivated: {
-			Frontend.pressedEnter()
+			GuiHelper.pressedEnter()
 		}
     }
 

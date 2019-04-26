@@ -37,11 +37,11 @@ int Gui::Main(int argc, char* argv[])
 
 	QGuiApplication app(argc, argv);
 
-	qmlRegisterSingletonType<Frontend>("Huestacean.Frontend", 1, 0, "Frontend", [](QQmlEngine * engine, QJSEngine * scriptEngine) -> QObject * {
+	qmlRegisterSingletonType<GuiHelper>("Huestacean.GuiHelper", 1, 0, "GuiHelper", [](QQmlEngine * engine, QJSEngine * scriptEngine) -> QObject * {
 		Q_UNUSED(engine)
 		Q_UNUSED(scriptEngine)
 
-		return new Frontend(engine, scriptEngine);
+		return new GuiHelper(engine, scriptEngine);
 	});
 
 	
@@ -108,18 +108,18 @@ int Gui::Main(int argc, char* argv[])
 
 /////////////////////////////////////////////////////////////////
 
-Frontend::Frontend(QQmlEngine* inEngine, QJSEngine* inScriptEngine)
+GuiHelper::GuiHelper(QQmlEngine* inEngine, QJSEngine* inScriptEngine)
 	: QObject(inEngine), engine(qobject_cast<QQmlApplicationEngine*>(inEngine)), scriptEngine(inScriptEngine)
 {
 
 }
 
-Frontend::~Frontend()
+GuiHelper::~GuiHelper()
 {
 
 }
 
-void Frontend::PressedEnter()
+void GuiHelper::PressedEnter()
 {
 	QObject* rootObject = engine->rootObjects().first();
 	QObject* qmlObject = rootObject->findChild<QObject*>("window");

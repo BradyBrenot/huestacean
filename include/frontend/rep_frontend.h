@@ -20,7 +20,8 @@ class FrontendReplica : public QRemoteObjectReplica
 {
     Q_OBJECT
     Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_TYPE, "Frontend")
-    Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_SIGNATURE, "e1ddfabbc613b90d385b6e773428d5021f1d95de")
+    Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_SIGNATURE, "3233a7d57fc7a4f9e35aceb9e9942d23feebae42")
+    Q_PROPERTY(qint32 ActiveSceneIndex READ ActiveSceneIndex NOTIFY ActiveSceneIndexChanged)
     Q_PROPERTY(QList<SceneInfo> Scenes READ Scenes NOTIFY ScenesChanged)
     Q_PROPERTY(QList<DeviceInfo> Devices READ Devices NOTIFY DevicesChanged)
     Q_PROPERTY(QList<BridgeInfo> Bridges READ Bridges NOTIFY BridgesChanged)
@@ -34,14 +35,14 @@ public:
         if (initialized)
             return;
         initialized = true;
+        qRegisterMetaType<QList<BridgeInfo>>();
+        qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
+        qRegisterMetaType<QList<RazerInfo>>();
+        qRegisterMetaTypeStreamOperators<QList<RazerInfo>>();
         qRegisterMetaType<QList<SceneInfo>>();
         qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
         qRegisterMetaType<QList<DeviceInfo>>();
         qRegisterMetaTypeStreamOperators<QList<DeviceInfo>>();
-        qRegisterMetaType<QList<RazerInfo>>();
-        qRegisterMetaTypeStreamOperators<QList<RazerInfo>>();
-        qRegisterMetaType<QList<BridgeInfo>>();
-        qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
 
     }
 
@@ -56,7 +57,8 @@ private:
     {
         FrontendReplica::registerMetatypes();
         QVariantList properties;
-        properties.reserve(4);
+        properties.reserve(5);
+        properties << QVariant::fromValue(qint32());
         properties << QVariant::fromValue(QList<SceneInfo>());
         properties << QVariant::fromValue(QList<DeviceInfo>());
         properties << QVariant::fromValue(QList<BridgeInfo>());
@@ -67,9 +69,18 @@ private:
 public:
     virtual ~FrontendReplica() {}
 
-    QList<SceneInfo> Scenes() const
+    qint32 ActiveSceneIndex() const
     {
         const QVariant variant = propAsVariant(0);
+        if (!variant.canConvert<qint32>()) {
+            qWarning() << "QtRO cannot convert the property ActiveSceneIndex to type qint32";
+        }
+        return variant.value<qint32 >();
+    }
+
+    QList<SceneInfo> Scenes() const
+    {
+        const QVariant variant = propAsVariant(1);
         if (!variant.canConvert<QList<SceneInfo>>()) {
             qWarning() << "QtRO cannot convert the property Scenes to type QList<SceneInfo>";
         }
@@ -78,7 +89,7 @@ public:
 
     QList<DeviceInfo> Devices() const
     {
-        const QVariant variant = propAsVariant(1);
+        const QVariant variant = propAsVariant(2);
         if (!variant.canConvert<QList<DeviceInfo>>()) {
             qWarning() << "QtRO cannot convert the property Devices to type QList<DeviceInfo>";
         }
@@ -87,7 +98,7 @@ public:
 
     QList<BridgeInfo> Bridges() const
     {
-        const QVariant variant = propAsVariant(2);
+        const QVariant variant = propAsVariant(3);
         if (!variant.canConvert<QList<BridgeInfo>>()) {
             qWarning() << "QtRO cannot convert the property Bridges to type QList<BridgeInfo>";
         }
@@ -96,7 +107,7 @@ public:
 
     QList<RazerInfo> Razer() const
     {
-        const QVariant variant = propAsVariant(3);
+        const QVariant variant = propAsVariant(4);
         if (!variant.canConvert<QList<RazerInfo>>()) {
             qWarning() << "QtRO cannot convert the property Razer to type QList<RazerInfo>";
         }
@@ -105,12 +116,20 @@ public:
 
 
 Q_SIGNALS:
+    void ActiveSceneIndexChanged(qint32 ActiveSceneIndex);
     void ScenesChanged(QList<SceneInfo> Scenes);
     void DevicesChanged(QList<DeviceInfo> Devices);
     void BridgesChanged(QList<BridgeInfo> Bridges);
     void RazerChanged(QList<RazerInfo> Razer);
 
 public Q_SLOTS:
+    void pushActiveSceneIndex(qint32 ActiveSceneIndex)
+    {
+        static int __repc_index = FrontendReplica::staticMetaObject.indexOfSlot("pushActiveSceneIndex(qint32)");
+        QVariantList __repc_args;
+        __repc_args << QVariant::fromValue(ActiveSceneIndex);
+        send(QMetaObject::InvokeMetaMethod, __repc_index, __repc_args);
+    }
     void pushScenes(QList<SceneInfo> Scenes)
     {
         static int __repc_index = FrontendReplica::staticMetaObject.indexOfSlot("pushScenes(QList<SceneInfo>)");
@@ -152,7 +171,8 @@ class FrontendSource : public QObject
 {
     Q_OBJECT
     Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_TYPE, "Frontend")
-    Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_SIGNATURE, "e1ddfabbc613b90d385b6e773428d5021f1d95de")
+    Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_SIGNATURE, "3233a7d57fc7a4f9e35aceb9e9942d23feebae42")
+    Q_PROPERTY(qint32 ActiveSceneIndex READ ActiveSceneIndex WRITE setActiveSceneIndex NOTIFY ActiveSceneIndexChanged)
     Q_PROPERTY(QList<SceneInfo> Scenes READ Scenes WRITE setScenes NOTIFY ScenesChanged)
     Q_PROPERTY(QList<DeviceInfo> Devices READ Devices WRITE setDevices NOTIFY DevicesChanged)
     Q_PROPERTY(QList<BridgeInfo> Bridges READ Bridges WRITE setBridges NOTIFY BridgesChanged)
@@ -161,36 +181,43 @@ class FrontendSource : public QObject
 public:
     explicit FrontendSource(QObject *parent = nullptr) : QObject(parent)
     {
+        qRegisterMetaType<QList<BridgeInfo>>();
+        qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
+        qRegisterMetaType<QList<RazerInfo>>();
+        qRegisterMetaTypeStreamOperators<QList<RazerInfo>>();
         qRegisterMetaType<QList<SceneInfo>>();
         qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
         qRegisterMetaType<QList<DeviceInfo>>();
         qRegisterMetaTypeStreamOperators<QList<DeviceInfo>>();
-        qRegisterMetaType<QList<RazerInfo>>();
-        qRegisterMetaTypeStreamOperators<QList<RazerInfo>>();
-        qRegisterMetaType<QList<BridgeInfo>>();
-        qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
 
     }
 
 public:
     virtual ~FrontendSource() {}
 
+    virtual qint32 ActiveSceneIndex() const = 0;
     virtual QList<SceneInfo> Scenes() const = 0;
     virtual QList<DeviceInfo> Devices() const = 0;
     virtual QList<BridgeInfo> Bridges() const = 0;
     virtual QList<RazerInfo> Razer() const = 0;
+    virtual void setActiveSceneIndex(qint32 ActiveSceneIndex) = 0;
     virtual void setScenes(QList<SceneInfo> Scenes) = 0;
     virtual void setDevices(QList<DeviceInfo> Devices) = 0;
     virtual void setBridges(QList<BridgeInfo> Bridges) = 0;
     virtual void setRazer(QList<RazerInfo> Razer) = 0;
 
 Q_SIGNALS:
+    void ActiveSceneIndexChanged(qint32 ActiveSceneIndex);
     void ScenesChanged(QList<SceneInfo> Scenes);
     void DevicesChanged(QList<DeviceInfo> Devices);
     void BridgesChanged(QList<BridgeInfo> Bridges);
     void RazerChanged(QList<RazerInfo> Razer);
 
 public Q_SLOTS:
+    virtual void pushActiveSceneIndex(qint32 ActiveSceneIndex)
+    {
+        setActiveSceneIndex(ActiveSceneIndex);
+    }
     virtual void pushScenes(QList<SceneInfo> Scenes)
     {
         setScenes(Scenes);
@@ -222,6 +249,7 @@ class FrontendSimpleSource : public FrontendSource
 
 public:
     explicit FrontendSimpleSource(QObject *parent = nullptr) : FrontendSource(parent)
+    , m_ActiveSceneIndex()
     , m_Scenes()
     , m_Devices()
     , m_Bridges()
@@ -232,10 +260,18 @@ public:
 public:
     virtual ~FrontendSimpleSource() {}
 
+    qint32 ActiveSceneIndex() const override { return m_ActiveSceneIndex; }
     QList<SceneInfo> Scenes() const override { return m_Scenes; }
     QList<DeviceInfo> Devices() const override { return m_Devices; }
     QList<BridgeInfo> Bridges() const override { return m_Bridges; }
     QList<RazerInfo> Razer() const override { return m_Razer; }
+    virtual void setActiveSceneIndex(qint32 ActiveSceneIndex) override
+    {
+        if (ActiveSceneIndex != m_ActiveSceneIndex) {
+            m_ActiveSceneIndex = ActiveSceneIndex;
+            Q_EMIT ActiveSceneIndexChanged(m_ActiveSceneIndex);
+        }
+    }
     virtual void setScenes(QList<SceneInfo> Scenes) override
     {
         if (Scenes != m_Scenes) {
@@ -266,6 +302,7 @@ public:
     }
 
 private:
+    qint32 m_ActiveSceneIndex;
     QList<SceneInfo> m_Scenes;
     QList<DeviceInfo> m_Devices;
     QList<BridgeInfo> m_Bridges;
@@ -281,25 +318,29 @@ struct FrontendSourceAPI : public SourceApiMap
     {
         Q_UNUSED(object);
         m_enums[0] = 0;
-        m_properties[0] = 4;
-        m_properties[1] = QtPrivate::qtro_property_index<ObjectType>(&ObjectType::Scenes, static_cast<QList<SceneInfo> (QObject::*)()>(0),"Scenes");
+        m_properties[0] = 5;
+        m_properties[1] = QtPrivate::qtro_property_index<ObjectType>(&ObjectType::ActiveSceneIndex, static_cast<qint32 (QObject::*)()>(0),"ActiveSceneIndex");
+        QtPrivate::qtro_method_test<ObjectType>(&ObjectType::ActiveSceneIndexChanged, static_cast<void (QObject::*)()>(0));
+        m_properties[2] = QtPrivate::qtro_property_index<ObjectType>(&ObjectType::Scenes, static_cast<QList<SceneInfo> (QObject::*)()>(0),"Scenes");
         QtPrivate::qtro_method_test<ObjectType>(&ObjectType::ScenesChanged, static_cast<void (QObject::*)()>(0));
-        m_properties[2] = QtPrivate::qtro_property_index<ObjectType>(&ObjectType::Devices, static_cast<QList<DeviceInfo> (QObject::*)()>(0),"Devices");
+        m_properties[3] = QtPrivate::qtro_property_index<ObjectType>(&ObjectType::Devices, static_cast<QList<DeviceInfo> (QObject::*)()>(0),"Devices");
         QtPrivate::qtro_method_test<ObjectType>(&ObjectType::DevicesChanged, static_cast<void (QObject::*)()>(0));
-        m_properties[3] = QtPrivate::qtro_property_index<ObjectType>(&ObjectType::Bridges, static_cast<QList<BridgeInfo> (QObject::*)()>(0),"Bridges");
+        m_properties[4] = QtPrivate::qtro_property_index<ObjectType>(&ObjectType::Bridges, static_cast<QList<BridgeInfo> (QObject::*)()>(0),"Bridges");
         QtPrivate::qtro_method_test<ObjectType>(&ObjectType::BridgesChanged, static_cast<void (QObject::*)()>(0));
-        m_properties[4] = QtPrivate::qtro_property_index<ObjectType>(&ObjectType::Razer, static_cast<QList<RazerInfo> (QObject::*)()>(0),"Razer");
+        m_properties[5] = QtPrivate::qtro_property_index<ObjectType>(&ObjectType::Razer, static_cast<QList<RazerInfo> (QObject::*)()>(0),"Razer");
         QtPrivate::qtro_method_test<ObjectType>(&ObjectType::RazerChanged, static_cast<void (QObject::*)()>(0));
-        m_signals[0] = 4;
-        m_signals[1] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::ScenesChanged, static_cast<void (QObject::*)(QList<SceneInfo>)>(0),m_signalArgCount+0,&m_signalArgTypes[0]);
-        m_signals[2] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::DevicesChanged, static_cast<void (QObject::*)(QList<DeviceInfo>)>(0),m_signalArgCount+1,&m_signalArgTypes[1]);
-        m_signals[3] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::BridgesChanged, static_cast<void (QObject::*)(QList<BridgeInfo>)>(0),m_signalArgCount+2,&m_signalArgTypes[2]);
-        m_signals[4] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::RazerChanged, static_cast<void (QObject::*)(QList<RazerInfo>)>(0),m_signalArgCount+3,&m_signalArgTypes[3]);
-        m_methods[0] = 4;
-        m_methods[1] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushScenes, static_cast<void (QObject::*)(QList<SceneInfo>)>(0),"pushScenes(QList<SceneInfo>)",m_methodArgCount+0,&m_methodArgTypes[0]);
-        m_methods[2] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushDevices, static_cast<void (QObject::*)(QList<DeviceInfo>)>(0),"pushDevices(QList<DeviceInfo>)",m_methodArgCount+1,&m_methodArgTypes[1]);
-        m_methods[3] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushBridges, static_cast<void (QObject::*)(QList<BridgeInfo>)>(0),"pushBridges(QList<BridgeInfo>)",m_methodArgCount+2,&m_methodArgTypes[2]);
-        m_methods[4] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushRazer, static_cast<void (QObject::*)(QList<RazerInfo>)>(0),"pushRazer(QList<RazerInfo>)",m_methodArgCount+3,&m_methodArgTypes[3]);
+        m_signals[0] = 5;
+        m_signals[1] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::ActiveSceneIndexChanged, static_cast<void (QObject::*)(qint32)>(0),m_signalArgCount+0,&m_signalArgTypes[0]);
+        m_signals[2] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::ScenesChanged, static_cast<void (QObject::*)(QList<SceneInfo>)>(0),m_signalArgCount+1,&m_signalArgTypes[1]);
+        m_signals[3] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::DevicesChanged, static_cast<void (QObject::*)(QList<DeviceInfo>)>(0),m_signalArgCount+2,&m_signalArgTypes[2]);
+        m_signals[4] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::BridgesChanged, static_cast<void (QObject::*)(QList<BridgeInfo>)>(0),m_signalArgCount+3,&m_signalArgTypes[3]);
+        m_signals[5] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::RazerChanged, static_cast<void (QObject::*)(QList<RazerInfo>)>(0),m_signalArgCount+4,&m_signalArgTypes[4]);
+        m_methods[0] = 5;
+        m_methods[1] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushActiveSceneIndex, static_cast<void (QObject::*)(qint32)>(0),"pushActiveSceneIndex(qint32)",m_methodArgCount+0,&m_methodArgTypes[0]);
+        m_methods[2] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushScenes, static_cast<void (QObject::*)(QList<SceneInfo>)>(0),"pushScenes(QList<SceneInfo>)",m_methodArgCount+1,&m_methodArgTypes[1]);
+        m_methods[3] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushDevices, static_cast<void (QObject::*)(QList<DeviceInfo>)>(0),"pushDevices(QList<DeviceInfo>)",m_methodArgCount+2,&m_methodArgTypes[2]);
+        m_methods[4] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushBridges, static_cast<void (QObject::*)(QList<BridgeInfo>)>(0),"pushBridges(QList<BridgeInfo>)",m_methodArgCount+3,&m_methodArgTypes[3]);
+        m_methods[5] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushRazer, static_cast<void (QObject::*)(QList<RazerInfo>)>(0),"pushRazer(QList<RazerInfo>)",m_methodArgCount+4,&m_methodArgTypes[4]);
     }
 
     QString name() const override { return m_name; }
@@ -363,6 +404,7 @@ struct FrontendSourceAPI : public SourceApiMap
         case 1: return m_properties[2];
         case 2: return m_properties[3];
         case 3: return m_properties[4];
+        case 4: return m_properties[5];
         }
         return -1;
     }
@@ -373,16 +415,18 @@ struct FrontendSourceAPI : public SourceApiMap
         case 1: return 1;
         case 2: return 2;
         case 3: return 3;
+        case 4: return 4;
         }
         return -1;
     }
     const QByteArray signalSignature(int index) const override
     {
         switch (index) {
-        case 0: return QByteArrayLiteral("ScenesChanged(QList<SceneInfo>)");
-        case 1: return QByteArrayLiteral("DevicesChanged(QList<DeviceInfo>)");
-        case 2: return QByteArrayLiteral("BridgesChanged(QList<BridgeInfo>)");
-        case 3: return QByteArrayLiteral("RazerChanged(QList<RazerInfo>)");
+        case 0: return QByteArrayLiteral("ActiveSceneIndexChanged(qint32)");
+        case 1: return QByteArrayLiteral("ScenesChanged(QList<SceneInfo>)");
+        case 2: return QByteArrayLiteral("DevicesChanged(QList<DeviceInfo>)");
+        case 3: return QByteArrayLiteral("BridgesChanged(QList<BridgeInfo>)");
+        case 4: return QByteArrayLiteral("RazerChanged(QList<RazerInfo>)");
         }
         return QByteArrayLiteral("");
     }
@@ -395,10 +439,11 @@ struct FrontendSourceAPI : public SourceApiMap
     const QByteArray methodSignature(int index) const override
     {
         switch (index) {
-        case 0: return QByteArrayLiteral("pushScenes(QList<SceneInfo>)");
-        case 1: return QByteArrayLiteral("pushDevices(QList<DeviceInfo>)");
-        case 2: return QByteArrayLiteral("pushBridges(QList<BridgeInfo>)");
-        case 3: return QByteArrayLiteral("pushRazer(QList<RazerInfo>)");
+        case 0: return QByteArrayLiteral("pushActiveSceneIndex(qint32)");
+        case 1: return QByteArrayLiteral("pushScenes(QList<SceneInfo>)");
+        case 2: return QByteArrayLiteral("pushDevices(QList<DeviceInfo>)");
+        case 3: return QByteArrayLiteral("pushBridges(QList<BridgeInfo>)");
+        case 4: return QByteArrayLiteral("pushRazer(QList<RazerInfo>)");
         }
         return QByteArrayLiteral("");
     }
@@ -419,20 +464,21 @@ struct FrontendSourceAPI : public SourceApiMap
         case 1: return QByteArrayLiteral("void");
         case 2: return QByteArrayLiteral("void");
         case 3: return QByteArrayLiteral("void");
+        case 4: return QByteArrayLiteral("void");
         }
         return QByteArrayLiteral("");
     }
-    QByteArray objectSignature() const override { return QByteArray{"e1ddfabbc613b90d385b6e773428d5021f1d95de"}; }
+    QByteArray objectSignature() const override { return QByteArray{"3233a7d57fc7a4f9e35aceb9e9942d23feebae42"}; }
 
     int m_enums[1];
-    int m_properties[5];
-    int m_signals[5];
-    int m_methods[5];
+    int m_properties[6];
+    int m_signals[6];
+    int m_methods[6];
     const QString m_name;
-    int m_signalArgCount[4];
-    const int* m_signalArgTypes[4];
-    int m_methodArgCount[4];
-    const int* m_methodArgTypes[4];
+    int m_signalArgCount[5];
+    const int* m_signalArgTypes[5];
+    int m_methodArgCount[5];
+    const int* m_methodArgTypes[5];
 };
 
 QT_BEGIN_NAMESPACE

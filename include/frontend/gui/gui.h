@@ -10,13 +10,13 @@ namespace Gui
 {
 	int Main(int argc, char* argv[]);
 
-	class Frontend : public QObject
+	class GuiHelper : public QObject
 	{
 		Q_OBJECT;
 
 	public:
-		Frontend(QQmlEngine* inEngine, QJSEngine* inScriptEngine);
-		virtual ~Frontend();
+		GuiHelper(QQmlEngine* inEngine, QJSEngine* inScriptEngine);
+		virtual ~GuiHelper();
 
 		Q_INVOKABLE void PressedEnter();
 
