@@ -3,6 +3,7 @@
 #include "hue/hue.h"
 #include "common/device.h"
 #include "common/math.h"
+#include "common/ichangelistenernotifier.h"
 
 #include <unordered_map>
 #include <vector>
@@ -15,21 +16,25 @@ namespace Hue
 {
 	struct Streamer;
 
-	class Bridge : public QObject
+	class Bridge : public QObject, public iChangeListenerNotifier
 	{
-	Q_OBJECT
+		Q_OBJECT
 
 	public:
 		Bridge(std::shared_ptr<QNetworkAccessManager> inQnam, std::string inId, uint32_t inAddress);
 		Bridge(const Bridge& b);
 		Bridge& operator=(const Bridge& b);
 
+		//////////////////////////////////////////////////////////////////////////
+
+		const int EVENT_STATUS_CHANGED = 1;
+		const int EVENT_DEVICES_CHANGED = 1;
+
+		//////////////////////////////////////////////////////////////////////////
+
 		void Connect();
 		void RefreshDevices();
 		void RefreshGroups();
-
-		int RegisterListener(std::function<void()> callback);
-		void UnregisterListener(int id);
 
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -71,9 +76,6 @@ namespace Hue
 		std::shared_ptr<class QNetworkAccessManager> qnam;
 
 		Status status;
-
-		void NotifyListeners();
-		std::unordered_map<int, std::function<void()>> listeners;
 
 		//////////////////////////////////////////////////////////////////////////
 		std::atomic_bool isStreamingEnabled;

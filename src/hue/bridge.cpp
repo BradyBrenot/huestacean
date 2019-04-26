@@ -118,19 +118,6 @@ void Bridge::RefreshGroups()
 	qnam->get(qnr);
 }
 
-static std::atomic_int nextListenerId;
-
-int Bridge::RegisterListener(std::function<void()> callback)
-{
-	int id = nextListenerId++;
-	listeners[id] = callback;
-	return id;
-}
-void Bridge::UnregisterListener(int id)
-{
-	listeners.erase(id);
-}
-
 void Bridge::ToggleStreaming(bool enable, int id, std::vector<DevicePtr> Lights)
 {
 	QNetworkRequest qnr = MakeRequest(*this, QString("/groups/%1").arg(id));
@@ -347,7 +334,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 			}
 			//MakeRequest(*this, QString("/lights/%1").arg(id));
 
-			NotifyListeners();
+			NotifyListeners(EVENT_DEVICES_CHANGED);
 		}
 
 		RefreshGroups();
@@ -464,7 +451,7 @@ Bridge::Status Bridge::GetStatus()
 void Bridge::SetStatus(Bridge::Status s)
 {
 	status = s;
-	NotifyListeners();
+	NotifyListeners(EVENT_STATUS_CHANGED);
 
 	switch (s)
 	{
@@ -486,16 +473,5 @@ void Bridge::SetStatus(Bridge::Status s)
 	if (s == Bridge::Status::Connected)
 	{
 		RefreshDevices();
-	}
-}
-
-void Bridge::NotifyListeners()
-{
-	for (const auto& c : listeners)
-	{
-		if (c.second != nullptr)
-		{
-			c.second();
-		}
 	}
 }
