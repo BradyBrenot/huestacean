@@ -66,6 +66,7 @@ set(SOURCES
 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/gui/gui.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/frontend.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/frontendtypes.cpp
 )
 set(HEADERS
    ${HEADERS}
@@ -92,6 +93,7 @@ set(HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/gui/gui.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/rep_frontend.h
    ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/frontend.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/frontendtypes.h
 )
 
 #headers with Qt-relevant types (for moc)
@@ -100,10 +102,14 @@ set(QT_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/include/hue/bridge.h
 
 	${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/gui/gui.h
+
+	${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/frontendtypes.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/frontend.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/frontend/rep_frontend.h
 )
 
-QT5_WRAP_CPP(HEADERS_MOC ${QT_HEADERS})
+#QT5_WRAP_CPP(HEADERS_MOC ${QT_HEADERS})
+set(CMAKE_AUTOMOC ON)
 
 set(INCLUDE_PATHS
 	${INCLUDE_PATHS}

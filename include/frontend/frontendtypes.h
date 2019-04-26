@@ -1,102 +1,268 @@
 #pragma once
 
-#include "rep_frontend.h"
+#include <QObject>
+#include <QMap>
+#include <QList>
 
 // Lightweight frontend Qt wrappers, because I'm being stubborn and
 // trying to keep my "non-frontend" code from becoming "too Qt-y"
 
-namespace FrontendTypes
+class RazerDeviceInfo
 {
-	Q_NAMESPACE
+	Q_GADGET
+public:
 
-	struct RazerDeviceInfo
+	bool operator==(const RazerDeviceInfo& b) const
 	{
-	};
-	Q_DECLARE_METATYPE(RazerDeviceInfo);
+		return true;
+	}
+};
 
-	struct HueDeviceInfo
+struct HueDeviceInfo
+{
+	Q_GADGET
+public:
+
+	QString bridgeId;
+
+	bool operator==(const HueDeviceInfo& b) const
 	{
-		QString bridgeId;
-	};
-	Q_DECLARE_METATYPE(HueDeviceInfo);
+		return bridgeId == b.bridgeId;
+	}
+};
+
+
+struct DeviceInfo
+{
+	Q_GADGET
+public:
 
 	enum class DeviceType : uint8_t
 	{
+		None,
 		Hue,
 		Razer
 	};
-	Q_ENUM_NS(DeviceType)
+	Q_ENUM(DeviceType);
 
-	struct DeviceInfo
+	DeviceType type;
+	QString uniqueid;
+
+	union
 	{
-		QString uniqueId;
+		HueDeviceInfo hue;
+		RazerDeviceInfo razer;
+	};
 
-		union
+	DeviceInfo() :
+		type(DeviceType::None)
+	{
+
+	}
+
+	DeviceInfo(const DeviceInfo& b) {
+		type = b.type;
+		uniqueid = b.uniqueid;
+
+		switch (type)
 		{
-			HueDeviceInfo hue;
-			RazerDeviceInfo razer;
-		};
-	};
+		case DeviceType::Hue:
+			hue = b.hue;
+			break;
+		case DeviceType::Razer:
+			razer = b.razer;
+			break;
+		case DeviceType::None:
+		default:
+			break;
+		}
+	}
 
-	struct SceneInfo
+	~DeviceInfo() {
+
+	}
+
+	bool operator==(const DeviceInfo& b) const
 	{
-		QMap<QString, DeviceInfo> Devices;
-	};
-	Q_DECLARE_METATYPE(SceneInfo);
+		if (type != b.type
+			|| uniqueid != b.uniqueid) {
+			return false;
+		}
 
-	struct BridgeInfo
+		switch (type)
+		{
+		case DeviceType::Hue:
+			return hue == b.hue;
+			break;
+		case DeviceType::Razer:
+			return razer == b.razer;
+			break;
+		case DeviceType::None:
+		default:
+			return true;
+			break;
+		}
+
+		return false;
+	}
+};
+
+struct BridgeInfo
+{
+	Q_GADGET
+public:
+
+	QString id;
+
+	QList<HueDeviceInfo> devices;
+
+	bool operator==(const BridgeInfo& b) const
 	{
-		QString id;
+		return devices == b.devices;
+	}
+};
 
-		QList<HueDeviceInfo> devices;
-	};
-	Q_DECLARE_METATYPE(BridgeInfo);
+struct HueInfo
+{
+	Q_GADGET
+public:
 
-	struct HueInfo
+	QList<BridgeInfo> bridges;
+
+	bool operator==(const HueInfo& b) const
 	{
-		QList<BridgeInfo> bridges;
-	};
+		return bridges == b.bridges;
+	}
+};
 
-	struct RazerInfo
+struct RazerInfo
+{
+	Q_GADGET
+public:
+
+	QList<RazerDeviceInfo> devices;
+
+	bool operator==(const RazerInfo& b) const
 	{
-		QList<RazerDeviceInfo> devices;
-	};
+		return devices == b.devices;
+	}
+};
 
-	Q_DECLARE_METATYPE(DeviceInfo);
+struct SinePulseEffectInfo
+{
+	Q_GADGET
+public:
 
-	struct SinePulseEffectInfo
+	bool operator==(const SinePulseEffectInfo& b) const
 	{
+		return true;
+	}
+};
 
-	};
-	Q_DECLARE_METATYPE(SinePulseEffectInfo);
+struct ConstantEffectInfo
+{
+	Q_GADGET
+public:
 
-	struct ConstantEffectInfo
+	bool operator==(const ConstantEffectInfo& b) const
 	{
+		return true;
+	}
+};
 
-	};
-	Q_DECLARE_METATYPE(ConstantEffectInfo);
+struct EffectInfo
+{
+	Q_GADGET
+public:
 
 	enum class EffectType : uint8_t
 	{
+		None,
 		SinePulse,
 		Constant
 	};
-	Q_ENUM_NS(EffectType)
+	Q_ENUM(EffectType)
 
-	struct EffectInfo
+	EffectType type;
+
+	union
 	{
-		enum class Type : uint8_t
-		{
-			SinePulse,
-			Constant
-		};
-
-		union
-		{
-			SinePulseEffectInfo sine;
-			ConstantEffectInfo constant;
-		};
+		SinePulseEffectInfo sine;
+		ConstantEffectInfo constant;
 	};
-	Q_DECLARE_METATYPE(EffectInfo);
 
-}
+	EffectInfo() :
+		type(EffectType::None)
+	{
+
+	}
+
+	bool operator==(const EffectInfo& b) const
+	{
+		if (type != b.type) {
+			return false;
+		}
+
+		switch (type)
+		{
+		case EffectType::SinePulse:
+			return sine == b.sine;
+			break;
+		case EffectType::Constant:
+			return constant == b.constant;
+			break;
+		case EffectType::None:
+		default:
+			return true;
+			break;
+		}
+
+		return false;
+	}
+};
+
+struct SceneInfo
+{
+	Q_GADGET
+public:
+
+	QMap<QString, DeviceInfo> devices;
+	QMap<QString, EffectInfo> effects;
+
+	bool operator==(const SceneInfo& b) const
+	{
+		return devices == b.devices && effects == b.effects;
+	}
+};
+
+Q_DECLARE_METATYPE(QList<DeviceInfo>)
+
+QDataStream& operator<<(QDataStream&, const RazerDeviceInfo&);
+QDataStream& operator>>(QDataStream&, RazerDeviceInfo&);
+
+QDataStream& operator<<(QDataStream&, const HueDeviceInfo&);
+QDataStream& operator>>(QDataStream&, HueDeviceInfo&);
+
+QDataStream& operator<<(QDataStream&, const DeviceInfo&);
+QDataStream& operator>>(QDataStream&, DeviceInfo&);
+
+QDataStream& operator<<(QDataStream&, const BridgeInfo&);
+QDataStream& operator>>(QDataStream&, BridgeInfo&);
+
+QDataStream& operator<<(QDataStream&, const HueInfo&);
+QDataStream& operator>>(QDataStream&, HueInfo&);
+
+QDataStream& operator<<(QDataStream&, const RazerInfo&);
+QDataStream& operator>>(QDataStream&, RazerInfo&);
+
+QDataStream& operator<<(QDataStream&, const SinePulseEffectInfo&);
+QDataStream& operator>>(QDataStream&, SinePulseEffectInfo&);
+
+QDataStream& operator<<(QDataStream&, const ConstantEffectInfo&);
+QDataStream& operator>>(QDataStream&, ConstantEffectInfo&);
+
+QDataStream& operator<<(QDataStream&, const EffectInfo&);
+QDataStream& operator>>(QDataStream&, EffectInfo&);
+
+QDataStream& operator<<(QDataStream&, const SceneInfo&);
+QDataStream& operator>>(QDataStream&, SceneInfo&);

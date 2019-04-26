@@ -1,7 +1,9 @@
-#include "frontendtypes.h"
+#include "frontend/frontendtypes.h"
 
 class Frontend
 {
-	PROP(QList<Scene> scenes);
-    PROP(QList<Hue::Bridge> bridges);
+	PROP(QList<SceneInfo> Scenes)
+	PROP(QList<DeviceInfo> Devices);
+    PROP(QList<BridgeInfo> Bridges);
+	PROP(QList<RazerInfo> Razer);
 };
