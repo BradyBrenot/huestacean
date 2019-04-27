@@ -1,5 +1,7 @@
 #pragma once
 
+#include <variant>
+
 #include <QObject>
 #include <QMap>
 #include <QList>
@@ -37,45 +39,19 @@ struct DeviceInfo
 	Q_GADGET
 public:
 
-	enum class DeviceType : uint8_t
-	{
-		None,
-		Hue,
-		Razer
-	};
-	Q_ENUM(DeviceType);
-
-	DeviceType type;
 	QString uniqueid;
 
-	union
-	{
-		HueDeviceInfo hue;
-		RazerDeviceInfo razer;
-	};
+	std::variant< std::monostate, HueDeviceInfo, RazerDeviceInfo > data;
 
-	DeviceInfo() :
-		type(DeviceType::None)
+
+	DeviceInfo()
 	{
 
 	}
 
 	DeviceInfo(const DeviceInfo& b) {
-		type = b.type;
 		uniqueid = b.uniqueid;
-
-		switch (type)
-		{
-		case DeviceType::Hue:
-			hue = b.hue;
-			break;
-		case DeviceType::Razer:
-			razer = b.razer;
-			break;
-		case DeviceType::None:
-		default:
-			break;
-		}
+		data = b.data;
 	}
 
 	~DeviceInfo() {
@@ -84,26 +60,7 @@ public:
 
 	bool operator==(const DeviceInfo& b) const
 	{
-		if (type != b.type
-			|| uniqueid != b.uniqueid) {
-			return false;
-		}
-
-		switch (type)
-		{
-		case DeviceType::Hue:
-			return hue == b.hue;
-			break;
-		case DeviceType::Razer:
-			return razer == b.razer;
-			break;
-		case DeviceType::None:
-		default:
-			return true;
-			break;
-		}
-
-		return false;
+		return uniqueid == b.uniqueid;
 	}
 };
 
@@ -175,49 +132,16 @@ struct EffectInfo
 	Q_GADGET
 public:
 
-	enum class EffectType : uint8_t
-	{
-		None,
-		SinePulse,
-		Constant
-	};
-	Q_ENUM(EffectType)
+	std::variant<std::monostate, SinePulseEffectInfo, ConstantEffectInfo> data;
 
-	EffectType type;
-
-	union
-	{
-		SinePulseEffectInfo sine;
-		ConstantEffectInfo constant;
-	};
-
-	EffectInfo() :
-		type(EffectType::None)
+	EffectInfo()
 	{
 
 	}
 
 	bool operator==(const EffectInfo& b) const
 	{
-		if (type != b.type) {
-			return false;
-		}
-
-		switch (type)
-		{
-		case EffectType::SinePulse:
-			return sine == b.sine;
-			break;
-		case EffectType::Constant:
-			return constant == b.constant;
-			break;
-		case EffectType::None:
-		default:
-			return true;
-			break;
-		}
-
-		return false;
+		return data == b.data;
 	}
 };
 

@@ -37,6 +37,8 @@ private:
 		Frontend* m_Fe;
 
 	public:
+		ScopedIgnoreChanges() = delete;
+
 		ScopedIgnoreChanges(Frontend* Fe) : m_Fe(Fe)
 		{
 			m_Fe->changeIgnoreRequests++;

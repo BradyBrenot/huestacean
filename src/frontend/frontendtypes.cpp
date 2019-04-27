@@ -22,19 +22,33 @@ QDataStream& operator>>(QDataStream& ds, HueDeviceInfo& out)
 	return ds;
 }
 
+enum class DeviceType : quint8 {
+	None,
+	Hue,
+	Razer
+};
+
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
+
+QDataStream& operator<<(QDataStream& ds, const std::monostate& in)
+{
+	return ds;
+}
+
 QDataStream& operator<<(QDataStream& ds, const DeviceInfo& in)
 {
-	ds << static_cast<quint8>(in.type);
+	std::visit(
+		overloaded{
+			[&ds](std::monostate) { ds << static_cast<quint8>(DeviceType::None); },
+			[&ds](HueDeviceInfo) { ds << static_cast<quint8>(DeviceType::Hue); },
+			[&ds](RazerDeviceInfo) { ds << static_cast<quint8>(DeviceType::Razer); },
+		},
+	in.data);
 
-	switch (in.type)
-	{
-	case DeviceInfo::DeviceType::Hue:
-		ds << in.hue;
-		break;
-	case DeviceInfo::DeviceType::Razer:
-		ds << in.razer;
-		break;
-	}
+	std::visit([&ds](const auto & d) {
+		ds << d;
+	}, in.data);
 
 	return ds;
 }
@@ -42,17 +56,23 @@ QDataStream& operator>>(QDataStream& ds, DeviceInfo& out)
 {
 	quint8 iType;
 	ds >> iType;
+	DeviceType type = static_cast<DeviceType>(iType);
 
-	out.type = static_cast<DeviceInfo::DeviceType>(iType);
+	HueDeviceInfo hue;
+	RazerDeviceInfo razer;
 
-	switch (out.type)
+	switch (type)
 	{
-	case DeviceInfo::DeviceType::Hue:
-		ds >> out.hue;
+	case DeviceType::Hue:
+		ds >> hue;
+		out.data = hue;
 		break;
-	case DeviceInfo::DeviceType::Razer:
-		ds >> out.razer;
+	case DeviceType::Razer:
+		ds >> razer;
+		out.data = razer;
 		break;
+	default:
+		out.data = std::monostate();
 	}
 
 	return ds;
@@ -111,22 +131,26 @@ QDataStream& operator>>(QDataStream& ds, ConstantEffectInfo& out)
 	return ds;
 }
 
+enum class EffectType : quint8
+{
+	None,
+	SinePulse,
+	Constant
+};
+
 QDataStream& operator<<(QDataStream& ds, const EffectInfo& in)
 {
-	ds << static_cast<quint8>(in.type);
+	std::visit(
+		overloaded{
+			[&ds](std::monostate) { ds << static_cast<quint8>(EffectType::None); },
+			[&ds](SinePulseEffectInfo) { ds << static_cast<quint8>(EffectType::SinePulse); },
+			[&ds](ConstantEffectInfo) { ds << static_cast<quint8>(EffectType::Constant); },
+		},
+		in.data);
 
-	switch (in.type)
-	{
-	case EffectInfo::EffectType::SinePulse:
-		ds << in.sine;
-		break;
-	case EffectInfo::EffectType::Constant:
-		ds << in.constant;
-		break;
-	case EffectInfo::EffectType::None:
-	default:
-		break;
-	}
+	std::visit([&ds](const auto & d) {
+		ds << d;
+		}, in.data);
 
 	return ds;
 }
@@ -134,20 +158,23 @@ QDataStream& operator>>(QDataStream& ds, EffectInfo& out)
 {
 	quint8 iType;
 	ds >> iType;
+	EffectType type = static_cast<EffectType>(iType);
 
-	out.type = static_cast<EffectInfo::EffectType>(iType);
+	SinePulseEffectInfo sine;
+	ConstantEffectInfo constant;
 
-	switch (out.type)
+	switch (type)
 	{
-	case EffectInfo::EffectType::SinePulse:
-		ds >> out.sine;
+	case EffectType::SinePulse:
+		ds >> sine;
+		out.data = sine;
 		break;
-	case EffectInfo::EffectType::Constant:
-		ds >> out.constant;
+	case EffectType::Constant:
+		ds >> constant;
+		out.data = constant;
 		break;
-	case EffectInfo::EffectType::None:
 	default:
-		break;
+		out.data = std::monostate();
 	}
 
 	return ds;

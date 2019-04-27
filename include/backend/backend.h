@@ -11,6 +11,9 @@
 #include "deviceprovider.h"
 #include "common/scene.h"
 
+#include "hue/hue.h"
+#include "razer/razer.h"
+
 #include "common/changelistenernotifier.h"
 
 //Backend runs the flippin' show.
@@ -75,7 +78,11 @@ public:
 
 	BackendWriter GetWriter();
 
-	std::unique_ptr<DeviceProvider>& GetDeviceProvider(ProviderType type);
+	DeviceProvider* GetDeviceProvider(ProviderType type);
+	std::vector<std::reference_wrapper<DeviceProvider>> GetDeviceProviders();
+
+	Hue::Provider hue;
+	Razer::Provider razer;
 
 private:
 
@@ -91,6 +98,4 @@ private:
 
 	std::atomic_int activeSceneIndex;
 	std::atomic_bool scenesAreDirty;
-
-	std::unordered_map<ProviderType, std::unique_ptr<DeviceProvider> > deviceProviders;
 };

@@ -12,8 +12,11 @@
 TEST_CASE("Razer device provider is OK", "[.][razer]") {
 	Backend b;
 
-	auto& razer = b.GetDeviceProvider(ProviderType::Razer);
-	REQUIRE(razer.get() != nullptr);
+	auto* razer = b.GetDeviceProvider(ProviderType::Razer);
+
+	SECTION("Razer exists") {
+		REQUIRE(razer != nullptr);
+	}
 
 	SECTION("Razer's ProviderType is right") {
 		REQUIRE(razer->GetType() == ProviderType::Razer);
@@ -33,15 +36,14 @@ TEST_CASE("Razer can animate", "[.][razer]") {
 	}
 
 	{
-		auto& razer = b.GetDeviceProvider(ProviderType::Razer);
-		REQUIRE(razer.get() != nullptr);
-		REQUIRE(razer->GetDevices().size() > 0);
+		auto& razer = b.razer;
+		REQUIRE(razer.GetDevices().size() > 0);
 
 		auto sr = b.GetWriter();
 		auto& scenes = sr.GetScenesMutable();
 
 		Scene s;
-		auto devices = razer->GetDevices();
+		auto devices = razer.GetDevices();
 
 		int i = 0;
 		for (auto& d : devices)

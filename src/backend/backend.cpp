@@ -2,9 +2,6 @@
 #include "common/lightupdate.h"
 #include "common/math.h"
 
-#include "hue/hue.h"
-#include "razer/razer.h"
-
 #include <QSettings>
 
 #include <chrono>
@@ -21,10 +18,9 @@ Backend::Backend() :
 	scenes(),
 	activeSceneIndex(0),
 	scenesAreDirty(false),
-	deviceProviders()
+	hue(),
+	razer()
 {
-	deviceProviders.emplace(ProviderType::Hue, std::make_unique<Hue::Provider>());
-	deviceProviders.emplace(ProviderType::Razer, std::make_unique<Razer::Provider>());
 }
 
 Backend::~Backend()
@@ -42,9 +38,9 @@ void Backend::Start()
 	}
 
 	{
-		for (const auto& dp : deviceProviders)
+		for (const auto& dp : GetDeviceProviders())
 		{
-			dp.second->Start();
+			dp.get().Start();
 		}
 	}
 	
@@ -77,7 +73,11 @@ void Backend::Start()
 					[&](const DeviceInScene & a, const DeviceInScene & b) {
 						if (a.device->GetType() == b.device->GetType())
 						{
-							return deviceProviders[a.device->GetType()]->compare(a, b);
+							auto* dp = GetDeviceProvider(a.device->GetType());
+							if (!dp) {
+								return false;
+							}
+							return dp->compare(a, b);
 						}
 						else
 						{
@@ -103,9 +103,9 @@ void Backend::Start()
 				//Resize Colors
 				colors.resize( boundingBoxes.size() );
 
-				for (const auto& dp : deviceProviders)
+				for (const auto& dp : GetDeviceProviders())
 				{
-					auto& update = lightUpdates[dp.first];
+					auto& update = lightUpdates[dp.get().GetType()];
 					update.boundingBoxesDirty = true;
 					update.colorsDirty = true;
 					update.devicesDirty = true;
@@ -114,7 +114,7 @@ void Backend::Start()
 					update.devicesBegin = devices.begin();
 					update.boundingBoxesBegin = boundingBoxes.begin();
 
-					while (update.devicesBegin != devices.end() && (*update.devicesBegin)->GetType() != dp.first)
+					while (update.devicesBegin != devices.end() && (*update.devicesBegin)->GetType() != dp.get().GetType())
 					{
 						update.colorsBegin++;
 						update.devicesBegin++;
@@ -125,7 +125,7 @@ void Backend::Start()
 					update.devicesEnd = update.devicesBegin;
 					update.boundingBoxesEnd = update.boundingBoxesBegin;
 
-					while (update.devicesEnd != devices.end() && (*update.devicesEnd)->GetType() == dp.first)
+					while (update.devicesEnd != devices.end() && (*update.devicesEnd)->GetType() == dp.get().GetType())
 					{
 						update.colorsEnd++;
 						update.devicesEnd++;
@@ -142,9 +142,9 @@ void Backend::Start()
 			}
 
 			//Send light data to device providers
-			for (const auto& dp : deviceProviders)
+			for (const auto& dp : GetDeviceProviders())
 			{
-				dp.second->Update(lightUpdates[dp.first]);
+				dp.get().Update(lightUpdates[dp.get().GetType()]);
 			}
 
 			//DONE
@@ -170,9 +170,9 @@ void Backend::Start()
 		}
 
 		//Allow for any cleanup that MUST happen on this thread
-		for (const auto& dp : deviceProviders)
+		for (const auto& dp : GetDeviceProviders())
 		{
-			dp.second->UpdateThreadCleanup();
+			dp.get().UpdateThreadCleanup();
 		}
 	});
 }
@@ -191,9 +191,9 @@ void Backend::Stop()
 	stopRequested = true;
 	thread.join();
 
-	for (const auto& dp : deviceProviders)
+	for (const auto& dp : GetDeviceProviders())
 	{
-		dp.second->Stop();
+		dp.get().Stop();
 	}
 }
 
@@ -214,9 +214,25 @@ Backend::BackendWriter Backend::GetWriter()
 	return BackendWriter(this);
 }
 
-std::unique_ptr<DeviceProvider>& Backend::GetDeviceProvider(ProviderType type)
+DeviceProvider* Backend::GetDeviceProvider(ProviderType type)
 {
-	return deviceProviders[type];
+	switch (type.type)
+	{
+	case ProviderType::Hue:
+		return &hue;
+		break;
+	case ProviderType::Razer:
+		return &razer;
+		break;
+	default:
+		break;
+	}
+	return nullptr;
+}
+
+std::vector<std::reference_wrapper<DeviceProvider>> Backend::GetDeviceProviders()
+{
+	return { hue, razer };
 }
 
 void Backend::Save()
@@ -225,9 +241,9 @@ void Backend::Save()
 	settings.clear();
 
 	//let every DisplayProvider save first
-	for (const auto& dp : deviceProviders)
+	for (const auto& dp : GetDeviceProviders())
 	{
-		dp.second->Save(settings);
+		dp.get().Save(settings);
 	}
 
 	//save scenes
@@ -276,9 +292,9 @@ void Backend::Load()
 	QSettings settings;
 
 	//let every DisplayProvider load first
-	for (const auto& dp : deviceProviders)
+	for (const auto& dp : GetDeviceProviders())
 	{
-		dp.second->Load(settings);
+		dp.get().Load(settings);
 	}
 
 	//load scenes
@@ -304,12 +320,13 @@ void Backend::Load()
 			std::string id = std::string(settings.value("id").toString().toUtf8());
 			auto providerType = Device::GetProviderTypeFromUniqueId(id);
 
-			if (deviceProviders[providerType] == nullptr)
+			auto* dp = GetDeviceProvider(providerType);
+			if (dp == nullptr)
 			{
 				continue;
 			}
 
-			std::shared_ptr<Device> d = deviceProviders[providerType]->GetDeviceFromUniqueId(id);
+			std::shared_ptr<Device> d = dp->GetDeviceFromUniqueId(id);
 			if (d == nullptr)
 			{
 				continue;

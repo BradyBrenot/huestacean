@@ -29,9 +29,8 @@ Frontend::Frontend(std::shared_ptr<Backend> inBackend)
 		BackendActiveSceneChanged();
 		}, { Backend::EVENT_ACTIVE_SCENE_CHANGED });
 
-	auto& hueDp = m_Backend->GetDeviceProvider(ProviderType::Hue);
-	Hue::Provider* hue = dynamic_cast<Hue::Provider*>(hueDp.get());
-	hueListenerId = hue->RegisterListener([&]() {
+	Hue::Provider& hue = m_Backend->hue;
+	hueListenerId = hue.RegisterListener([&]() {
 		if (isIgnoringChanges()) {
 			return;
 		}
@@ -39,15 +38,14 @@ Frontend::Frontend(std::shared_ptr<Backend> inBackend)
 		BackendHueChanged();
 	});
 
-	auto& razerDp = m_Backend->GetDeviceProvider(ProviderType::Razer);
-	Hue::Provider* razer = dynamic_cast<Hue::Provider*>(razerDp.get());
-	hueListenerId = razer->RegisterListener([&]() {
+	Razer::Provider& razer = m_Backend->razer;
+	razerListenerId = razer.RegisterListener([&]() {
 		if (isIgnoringChanges()) {
 			return;
 		}
 
 		BackendRazerChanged();
-		});
+	});
 
 
 	//Listen for changes coming from network to copy down to backend
@@ -104,18 +102,18 @@ void Frontend::BackendDevicesChanged()
 
 void Frontend::RemoteActiveSceneIndexChanged(qint32 ActiveSceneIndex)
 {
-	ScopedIgnoreChanges Ig();
+	ScopedIgnoreChanges Ig(this);
 	m_Backend->SetActiveScene(static_cast<int>(ActiveSceneIndex));
 }
 void Frontend::RemoteScenesChanged(QList<SceneInfo> Scenes)
 {
-	ScopedIgnoreChanges Ig();
+	ScopedIgnoreChanges Ig(this);
 
 	//@TODO: COPY
 }
 void Frontend::RemoteDevicesChanged(QList<DeviceInfo> Devices)
 {
-	ScopedIgnoreChanges Ig();
+	ScopedIgnoreChanges Ig(this);
 
 	//resend it? What is wrong with client.
 	//@TODO: make this impossible
@@ -123,13 +121,13 @@ void Frontend::RemoteDevicesChanged(QList<DeviceInfo> Devices)
 }
 void Frontend::RemoteBridgesChanged(QList<BridgeInfo> Bridges)
 {
-	ScopedIgnoreChanges Ig();
+	ScopedIgnoreChanges Ig(this);
 
 	//@TODO: COPY
 }
 void Frontend::RemoteRazerChanged(QList<RazerInfo> Razer)
 {
-	ScopedIgnoreChanges Ig();
+	ScopedIgnoreChanges Ig(this);
 
 	//@TODO: COPY
 }
