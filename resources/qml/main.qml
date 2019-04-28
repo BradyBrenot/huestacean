@@ -139,18 +139,171 @@ ApplicationWindow {
 			}
 		}
 
-		Column {
-			Label {
-				text: Frontend.DevicesList.length
-				anchors.margins: 20
-				wrapMode: Label.Wrap
+		GridLayout {
+			columns: inMobileView ? 1 : 2
+			anchors.fill: parent
+			anchors.margins: inMobileView ? 0 : 60
+			anchors.leftMargin: inMobileView ? 0 : 80
+			anchors.rightMargin: inMobileView ? 0 : 80
+			columnSpacing: inMobileView ? 0 : 60
+			rowSpacing: inMobileView ? 0 : 40
 
-				onLinkActivated: Qt.openUrlExternally(link)
+			Pane {
+				//visible: !inMobileView
+				Material.elevation: 4
+				Layout.columnSpan: inMobileView ? 1 : 2
+				Layout.fillHeight: true
+				Layout.fillWidth: true
+				Layout.minimumHeight: inMobileView ? 100 : 200
+
+				Material.background: Material.color(Material.Grey, Material.Shade800)
+				padding: inMobileView ? 0 : 6
+
+				ColumnLayout {
+					anchors.fill: parent
+
+					Label {
+						visible: !inMobileView
+						font.family: "Roboto Regular"
+						font.pointSize: 18
+
+						text: "Scenes"
+					}
+
+					Flickable {
+						id: scenesFlick
+						clip: true
+
+						Layout.fillHeight: true
+						Layout.fillWidth: true
+						
+						ColumnLayout {
+							id: scenesColumn
+							anchors.left: parent.left
+							anchors.right: parent.right
+							spacing: inMobileView ? 0 : 2
+
+							Repeater {
+								model: Frontend.DevicesList
+								Button {
+									id: sceneButton
+									Material.elevation: 6
+									Material.background: Material.color(Material.Blue, Material.Shade600)
+									Layout.fillWidth: true
+
+									RowLayout {
+										anchors.fill: parent
+
+										Label {
+											text: "" + modelData 
+										}
+										Switch {
+											Layout.alignment: Qt.AlignRight
+										}
+									}
+
+									background.anchors.fill: sceneButton
+								}
+							}
+						}
+
+						contentHeight: scenesColumn.height
+						contentWidth: width
+
+						ScrollBar.vertical: ScrollBar { 
+							contentItem.opacity: scenesFlick.contentHeight > scenesFlick.height ? 1 : 0;
+						} 
+
+						ScrollBar.horizontal: ScrollBar { 
+							contentItem.opacity: scenesFlick.contentWidth > scenesFlick.width ? 1 : 0;
+						} 
+					}
+
+					Button {
+						Layout.alignment: Qt.AlignRight
+						Layout.margins: 4
+						text: "New scene"
+					}
+				}
 			}
 
-			Repeater {
-				model: Frontend.DevicesList.length
-				Text { text: "" + Frontend.DevicesList[index] }
+			Pane {
+				visible: false
+
+				Layout.fillWidth: true
+				Material.background: Material.color(Material.Blue, Material.Shade600)
+
+				RowLayout {
+					anchors.fill: parent
+
+					Column {
+						Label {
+							text: "Last scene" 
+							font.pointSize: 18
+						}
+						Label {
+							text: "" + Frontend.DevicesList[0] 
+							font.pointSize: 12
+						}
+					}
+					
+					Switch {
+						Layout.alignment: Qt.AlignRight
+					}
+				}
+									
+			}
+
+			Button {
+				id: hueButton
+				Layout.columnSpan: 1
+				Layout.fillWidth: true
+
+				contentItem: Column {
+					Label { text: "Phlips Hue"; font.pointSize: 18; }
+					Label { text: "Not detected!"; font.pointSize: 12; }
+				}
+
+				background.anchors.fill: hueButton
+			}
+
+			Button {
+				id: settingsButton
+				Layout.columnSpan: 1
+				Layout.fillWidth: true
+
+				contentItem: Column {
+					Label { text: "Settings"; font.pointSize: 18; }
+					Label { text: "Not detected!"; font.pointSize: 12; }
+				}
+
+				background.anchors.fill: settingsButton
+			}
+
+			Button {
+				id: remoteButton
+				Layout.columnSpan: 1
+				Layout.fillWidth: true
+
+				contentItem: Column {
+					Label { text: "Remote control"; font.pointSize: 18; }
+					Label { text: "Not detected!"; font.pointSize: 12; }
+				}
+
+				background.anchors.fill: remoteButton
+			}
+
+			Button {
+				id: razerButton
+				Layout.columnSpan: 1
+				Layout.fillWidth: true
+
+				contentItem: Column {
+					Label { text: "Razer Chroma"; font.pointSize: 18; }
+					Label { text: "Not detected!"; font.pointSize: 12; }
+				}
+
+				background.anchors.fill: razerButton
 			}
 		}
 	}
