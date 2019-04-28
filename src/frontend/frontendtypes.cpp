@@ -180,15 +180,144 @@ QDataStream& operator>>(QDataStream& ds, EffectInfo& out)
 	return ds;
 }
 
+QDataStream& operator<<(QDataStream& ds, const Math::Vector3d& in)
+{
+	ds << in.x;
+	ds << in.y;
+	ds << in.z;
+	return ds;
+}
+QDataStream& operator>>(QDataStream& ds, Math::Vector3d& out)
+{
+	ds >> out.x;
+	ds >> out.y;
+	ds >> out.z;
+	return ds;
+}
+
+QDataStream& operator<<(QDataStream& ds, const Math::Rotator& in)
+{
+	ds << in.pitch;
+	ds << in.yaw;
+	ds << in.roll;
+	return ds;
+}
+QDataStream& operator>>(QDataStream& ds, Math::Rotator& out)
+{
+	ds >> out.pitch;
+	ds >> out.yaw;
+	ds >> out.roll;
+	return ds;
+}
+
+QDataStream& operator<<(QDataStream& ds, const Math::Transform& in)
+{
+	ds << in.location;
+	ds << in.scale;
+	ds << in.rotation;
+	return ds;
+}
+QDataStream& operator>>(QDataStream& ds, Math::Transform& out)
+{
+	ds >> out.location;
+	ds >> out.scale;
+	ds >> out.rotation;
+	return ds;
+}
+
+QDataStream& operator<<(QDataStream& ds, const DeviceInSceneInfo& in)
+{
+	ds << in.transform;
+	ds << in.device;
+	return ds;
+}
+QDataStream& operator>>(QDataStream& ds, DeviceInSceneInfo& out)
+{
+	ds >> out.transform;
+	ds >> out.device;
+	return ds;
+}
+
 QDataStream& operator<<(QDataStream& ds, const SceneInfo& in)
 {
-	ds << in.devices;
+	ds << in.devicesInScene;
 	ds << in.effects;
 	return ds;
 }
 QDataStream& operator>>(QDataStream& ds, SceneInfo& out)
 {
-	ds >> out.devices;
+	ds >> out.devicesInScene;
 	ds >> out.effects;
 	return ds;
 }
+
+DeviceInfo Device_BackendToFrontend(DevicePtr d)
+{
+	auto out = DeviceInfo();
+	out.uniqueid = d->GetUniqueId().c_str();
+
+	if (auto * chroma = dynamic_cast<Razer::ChromaDeviceBase*>(d.get()))
+	{
+		out.data = RazerDeviceInfo{};
+	}
+	else if (auto * hue = dynamic_cast<Hue::Light*>(d.get()))
+	{
+		out.data = HueDeviceInfo{};
+		std::get<HueDeviceInfo>(out.data).bridgeId = hue->bridgeid.c_str();
+	}
+
+	return out;
+}
+
+DevicePtr Device_FrontendToBackend(DeviceInfo d, const Backend& b)
+{
+	return b.GetDeviceFromUniqueId(d.uniqueid.toStdString());
+}
+
+//EffectInfo Effect_BackendToFrontend(const std::unique_ptr<Effect>& e);
+//std::unique_ptr<Effect> Effect_FrontendToBackend(EffectInfo e);
+
+SceneInfo Scene_BackendToFrontend(const Scene& s)
+{
+	SceneInfo frontendScene;
+
+	frontendScene.name = s.name.c_str();
+
+	for (const auto& dis : s.devices)
+	{
+		DeviceInSceneInfo frontendDis;
+		frontendDis.device = Device_BackendToFrontend(dis.device);
+		frontendDis.transform = dis.transform;
+		frontendScene.devicesInScene.push_back(frontendDis);
+	}
+
+	for (const auto& e : s.effects)
+	{
+		frontendScene.effects.push_back(Effect_BackendToFrontend(e));
+	}
+
+	return frontendScene;
+}
+
+Scene Scene_FrontendToBackend(SceneInfo s, const Backend& b)
+{
+	Scene backendScene;
+	backendScene.name = s.name.toStdString();
+
+	for (const auto& dis : s.devicesInScene)
+	{
+		DeviceInScene backendDis;
+		backendDis.device = b.GetDeviceFromUniqueId(dis.device.uniqueid.toStdString());
+		backendDis.transform = dis.transform;
+		backendScene.devices.push_back(backendDis);
+	}
+
+	for (const auto& e : s.effects)
+	{
+		backendScene.effects.push_back(Effect_FrontendToBackend(e));
+	}
+
+	return backendScene;
+}
+
+//BridgeInfo Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b);

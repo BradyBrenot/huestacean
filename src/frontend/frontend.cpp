@@ -10,9 +10,7 @@ Frontend::Frontend(std::shared_ptr<Backend> inBackend)
 	, m_Backend(inBackend)
 	, changeIgnoreRequests(0)
 {
-	//Set state based on Backend
-
-	//Listen for changes to Backend and update accordingly
+	// Listen for changes to Backend and update accordingly
 	scenesListenerId = m_Backend->RegisterListener([&]() {
 		if (isIgnoringChanges()) {
 			return;
@@ -48,7 +46,7 @@ Frontend::Frontend(std::shared_ptr<Backend> inBackend)
 	});
 
 
-	//Listen for changes coming from network to copy down to backend
+	// Listen for changes coming from network to copy down to backend
 	connect(this, SIGNAL(ActiveSceneIndexChanged(qint32)),
 		this, SLOT(RemoteActiveSceneIndexChanged(qint32)));
 
@@ -63,25 +61,59 @@ Frontend::Frontend(std::shared_ptr<Backend> inBackend)
 
 	connect(this, SIGNAL(RazerChanged(QList<RazerInfo>)),
 		this, SLOT(RemoteRazerChanged(QList<RazerInfo>)));
+
+	// Set initial state
+	BackendActiveSceneChanged();
+	BackendScenesChanged();
+
+	BackendHueChanged();
+	BackendRazerChanged();
+
+	BackendDevicesChanged();
+}
+
+void Frontend::StartUpdateLoop()
+{
+	m_Backend->Start();
+}
+void Frontend::StopUpdateLoop()
+{
+	m_Backend->Stop();
 }
 
 void Frontend::BackendActiveSceneChanged()
 {
 	QSignalBlocker Bl(this);
-
-	//@TODO: Update Active Scene
+	setActiveSceneIndex(m_Backend->GetActiveScene());
 }
 void Frontend::BackendScenesChanged()
 {
 	QSignalBlocker Bl(this);
+	
+	auto w = m_Backend->GetWriter();
 
-	//@TODO: Update Scenes
+	QList<SceneInfo> newScenes;
+	for (const auto& s : w.GetScenes())
+	{
+		newScenes.push_back(Scene_BackendToFrontend(s));
+	}
+
+	setScenes(newScenes);
 }
 void Frontend::BackendHueChanged()
 {
 	QSignalBlocker Bl(this);
 
-	//@TODO: Update Bridges
+	QList<BridgeInfo> newBridges;
+
+	for (const auto& b : m_Backend->hue.GetBridges())
+	{
+		newBridges.push_back(Bridge_BackendToFrontend(b));
+	}
+
+	setBridges(newBridges);
+
+	// Devices list probably changed
 	BackendDevicesChanged();
 }
 
@@ -89,7 +121,19 @@ void Frontend::BackendRazerChanged()
 {
 	QSignalBlocker Bl(this);
 
-	//@TODO: Update Razer
+	RazerInfo newRazer;
+
+	auto& razer = m_Backend->razer;
+	auto& devices = razer.GetDevices();
+
+	for (auto& d : devices)
+	{
+		newRazer.devices.push_back(Device_BackendToFrontend(d));
+	}
+
+	setRazer(newRazer);
+
+	// Devices list probably changed
 	BackendDevicesChanged();
 }
 
@@ -97,7 +141,16 @@ void Frontend::BackendDevicesChanged()
 {
 	QSignalBlocker Bl(this);
 
-	//@TODO: Update Devices
+	QList<DeviceInfo> newDevices;
+
+	std::vector<DevicePtr> backendDevices;
+	for (auto& dp : m_Backend->GetDeviceProviders())
+	{
+		auto dpDevices = dp.get().GetDevices();
+		backendDevices.insert(backendDevices.end(), dpDevices.begin(), dpDevices.end());
+	}
+
+	setDevices(newDevices);
 }
 
 void Frontend::RemoteActiveSceneIndexChanged(qint32 ActiveSceneIndex)
@@ -108,26 +161,29 @@ void Frontend::RemoteActiveSceneIndexChanged(qint32 ActiveSceneIndex)
 void Frontend::RemoteScenesChanged(QList<SceneInfo> Scenes)
 {
 	ScopedIgnoreChanges Ig(this);
+	auto w = m_Backend->GetWriter();
+	w.GetScenesMutable().clear();
 
-	//@TODO: COPY
+	for (auto& s : Scenes)
+	{
+		w.GetScenesMutable().push_back(Scene_FrontendToBackend(s, *m_Backend));
+	}
 }
 void Frontend::RemoteDevicesChanged(QList<DeviceInfo> Devices)
 {
+	//@TODO: make this impossible?
 	ScopedIgnoreChanges Ig(this);
-
-	//resend it? What is wrong with client.
-	//@TODO: make this impossible
 	BackendDevicesChanged();
 }
 void Frontend::RemoteBridgesChanged(QList<BridgeInfo> Bridges)
 {
+	//@TODO: make this impossible?
 	ScopedIgnoreChanges Ig(this);
-
-	//@TODO: COPY
+	BackendHueChanged();
 }
 void Frontend::RemoteRazerChanged(QList<RazerInfo> Razer)
 {
+	//@TODO: make this impossible?
 	ScopedIgnoreChanges Ig(this);
-
-	//@TODO: COPY
+	BackendRazerChanged();
 }

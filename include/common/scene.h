@@ -34,11 +34,13 @@ struct DeviceInScene
 
 struct Scene
 {
+	std::string name;
 	std::vector< DeviceInScene > devices;
 	std::vector< std::unique_ptr<Effect> > effects;
 	Math::Vector3d size;
 
 	Scene() : 
+		name(),
 		devices(), 
 		effects(),
 		size(10, 10, 10)
@@ -53,6 +55,7 @@ struct Scene
 
 	Scene(Scene&& r)
 	{
+		name = std::move(r.name);
 		devices = std::move(r.devices);
 		effects = std::move(r.effects);
 		size = r.size;
@@ -60,6 +63,7 @@ struct Scene
 
 	Scene& operator=(const Scene& r)
 	{
+		name = r.name;
 		devices = r.devices;
 		effects.clear();
 		for (const auto& effect : r.effects)

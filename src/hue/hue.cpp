@@ -132,7 +132,7 @@ bool Provider::compare(DeviceInScene a, DeviceInScene b)
 		&& aL->id < bL->id;
 }
 
-DevicePtr Provider::GetDeviceFromUniqueId(std::string id)
+DevicePtr Provider::GetDeviceFromUniqueId(std::string id) const
 {
 	//Hue|Bridge|Device
 	auto bridgeDeviceString = id.substr(ProviderType{ ProviderType::Hue }.ToString().size(), id.size());

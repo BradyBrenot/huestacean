@@ -37,6 +37,7 @@ public:
 
 	const std::vector<Scene> GetScenes();
 	void SetActiveScene(int sceneIndex);
+	int GetActiveScene() { return activeSceneIndex; }
 
 	class BackendWriter
 	{
@@ -78,8 +79,10 @@ public:
 
 	BackendWriter GetWriter();
 
+	const DeviceProvider* GetDeviceProvider(ProviderType type) const;
 	DeviceProvider* GetDeviceProvider(ProviderType type);
 	std::vector<std::reference_wrapper<DeviceProvider>> GetDeviceProviders();
+	DevicePtr GetDeviceFromUniqueId(std::string id) const;
 
 	Hue::Provider hue;
 	Razer::Provider razer;

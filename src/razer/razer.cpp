@@ -37,7 +37,7 @@ std::vector<DevicePtr> Provider::GetDevices()
 	return devices;
 }
 
-DevicePtr Provider::GetDeviceFromUniqueId(std::string id)
+DevicePtr Provider::GetDeviceFromUniqueId(std::string id) const
 {
 	//Razer|UniqueId
 	auto deviceString = id.substr(ProviderType{ ProviderType::Hue }.ToString().size(), id.size());

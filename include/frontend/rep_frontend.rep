@@ -2,9 +2,13 @@
 
 class Frontend
 {
-	PROP(qint32 ActiveSceneIndex);
+	PROP(qint32 ActiveSceneIndex)
 	PROP(QList<SceneInfo> Scenes)
-	PROP(QList<DeviceInfo> Devices);
-    PROP(QList<BridgeInfo> Bridges);
-	PROP(QList<RazerInfo> Razer);
+	PROP(QList<DeviceInfo> Devices)
+    PROP(QList<BridgeInfo> Bridges)
+	PROP(RazerInfo Razer)
+	PROP(bool IsRunning)
+
+	SLOT(void StartUpdateLoop())
+	SLOT(void StopUpdateLoop())
 };

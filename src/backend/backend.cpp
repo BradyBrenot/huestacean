@@ -214,7 +214,7 @@ Backend::BackendWriter Backend::GetWriter()
 	return BackendWriter(this);
 }
 
-DeviceProvider* Backend::GetDeviceProvider(ProviderType type)
+const DeviceProvider* Backend::GetDeviceProvider(ProviderType type) const
 {
 	switch (type.type)
 	{
@@ -230,9 +230,27 @@ DeviceProvider* Backend::GetDeviceProvider(ProviderType type)
 	return nullptr;
 }
 
+DeviceProvider* Backend::GetDeviceProvider(ProviderType type)
+{
+	return const_cast<DeviceProvider*>(const_cast<const Backend*>(this)->GetDeviceProvider(type));
+}
+
 std::vector<std::reference_wrapper<DeviceProvider>> Backend::GetDeviceProviders()
 {
 	return { hue, razer };
+}
+
+DevicePtr Backend::GetDeviceFromUniqueId(std::string id) const
+{
+	auto providerType = Device::GetProviderTypeFromUniqueId(id);
+
+	auto* dp = GetDeviceProvider(providerType);
+	if (dp == nullptr)
+	{
+		return nullptr;
+	}
+
+	return dp->GetDeviceFromUniqueId(id);
 }
 
 void Backend::Save()
@@ -254,6 +272,8 @@ void Backend::Save()
 	for (const auto& scene : scenesToSave)
 	{
 		settings.setArrayIndex(i++);
+
+		settings.setValue("name", scene.name.c_str());
 
 		settings.beginWriteArray("effects");
 		int j = 0;
@@ -304,6 +324,8 @@ void Backend::Load()
 		settings.setArrayIndex(i);
 		Scene& scene = scenes.emplace_back();
 
+		scene.name = settings.value("name").toString().toUtf8();
+
 		int effectsSize = settings.beginReadArray("effects");
 		for (int j = 0; j < effectsSize; ++j)
 		{
@@ -318,19 +340,7 @@ void Backend::Load()
 			settings.setArrayIndex(j++);
 			
 			std::string id = std::string(settings.value("id").toString().toUtf8());
-			auto providerType = Device::GetProviderTypeFromUniqueId(id);
-
-			auto* dp = GetDeviceProvider(providerType);
-			if (dp == nullptr)
-			{
-				continue;
-			}
-
-			std::shared_ptr<Device> d = dp->GetDeviceFromUniqueId(id);
-			if (d == nullptr)
-			{
-				continue;
-			}
+			auto d = GetDeviceFromUniqueId(id);
 
 			DeviceInScene& dis = scene.devices.emplace_back();
 			dis.device = d;

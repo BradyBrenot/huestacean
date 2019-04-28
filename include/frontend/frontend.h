@@ -15,8 +15,15 @@ public:
 public:
 	virtual ~Frontend() {}
 
+	virtual void StartUpdateLoop() override;
+	virtual void StopUpdateLoop() override;
 
 private:
+
+	////////////////////////////////////////////////
+	// Things changed on the backend (locally), so
+	// update myself to let the replicas know
+
 	void BackendActiveSceneChanged();
 	void BackendScenesChanged();
 
@@ -24,6 +31,8 @@ private:
 	void BackendRazerChanged();
 
 	void BackendDevicesChanged();
+
+	////////////////////////////////////////////////
 
 	std::shared_ptr<Backend> m_Backend;
 
@@ -58,9 +67,15 @@ private:
 
 private slots:
 
+	///////////////////////////////////////////////////////
+	// Things changed on a replica (remote or local), so 
+	// update the backend to match the new expected state
+
 	void RemoteActiveSceneIndexChanged(qint32 ActiveSceneIndex);
 	void RemoteScenesChanged(QList<SceneInfo> Scenes);
 	void RemoteDevicesChanged(QList<DeviceInfo> Devices);
 	void RemoteBridgesChanged(QList<BridgeInfo> Bridges);
 	void RemoteRazerChanged(QList<RazerInfo> Razer);
+
+	///////////////////////////////////////////////////////
 };

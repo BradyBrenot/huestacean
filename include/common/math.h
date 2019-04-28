@@ -135,6 +135,12 @@ namespace Math
 		{
 		}
 
+		bool operator==(const Vector3d& b) const
+		{
+			return x == b.x && y == b.y && z == b.z;
+		}
+
+
 		std::string ToString() const;
 	};
 
@@ -185,6 +191,11 @@ namespace Math
 		{
 		}
 
+		bool operator==(const Rotator& b) const
+		{
+			return pitch == b.pitch && yaw == b.yaw && roll == b.roll;
+		}
+
 		std::string ToString() const;
 	};
 
@@ -221,6 +232,11 @@ namespace Math
 			: location(inLocation), scale(inScale), rotation(inRotation)
 		{
 
+		}
+
+		bool operator==(const Transform& b) const
+		{
+			return location == b.location && scale == b.scale && rotation == b.rotation;
 		}
 
 		Box transformBox(const Box& b) const;

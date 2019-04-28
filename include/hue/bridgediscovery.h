@@ -6,6 +6,12 @@
 #include "hue/hue.h"
 #include "hue/bridge.h"
 
+//@TODO: remove BridgeDiscovery inheritence of QObject
+// This is mostly taken from older pre-rewrite code.
+// I don't mind using Qt networking libraries because they're multiplatform
+// and I'm already linking against Qt, but would like to remove any Qt C++
+// extensions from my "backend" headers / keep it to a minimum in source files
+
 namespace Hue
 {
 	class BridgeDiscovery : public QObject

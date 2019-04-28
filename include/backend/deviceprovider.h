@@ -24,7 +24,7 @@ public:
 		return ::compare(a.device, b.device);
 	};
 
-	virtual DevicePtr GetDeviceFromUniqueId(std::string id) = 0;
+	virtual DevicePtr GetDeviceFromUniqueId(std::string id) const = 0;
 
 	virtual void Save(QSettings& settings) {};
 	virtual void Load(QSettings& settings) {};

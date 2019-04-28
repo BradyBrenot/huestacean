@@ -6,8 +6,16 @@
 #include <QMap>
 #include <QList>
 
-// Lightweight frontend Qt wrappers, because I'm being stubborn and
-// trying to keep my "non-frontend" code from becoming "too Qt-y"
+#include "hue/hue.h"
+#include "razer/razer.h"
+#include "razer/razerdevices.h"
+#include "backend/backend.h"
+
+// Lightweight frontend Qt wrappers, because I'm very pointedly 
+// avoiding Qt extensions in my 'backend' code.
+
+// This is not namespaced, because Qt isn't. 
+// Don't #include outside of frontend code.
 
 class RazerDeviceInfo
 {
@@ -33,6 +41,7 @@ public:
 	}
 };
 
+typedef std::variant< std::monostate, HueDeviceInfo, RazerDeviceInfo > DeviceVariant;
 
 struct DeviceInfo
 {
@@ -41,8 +50,7 @@ public:
 
 	QString uniqueid;
 
-	std::variant< std::monostate, HueDeviceInfo, RazerDeviceInfo > data;
-
+	DeviceVariant data;
 
 	DeviceInfo()
 	{
@@ -71,7 +79,7 @@ public:
 
 	QString id;
 
-	QList<HueDeviceInfo> devices;
+	QList<DeviceInfo> devices;
 
 	bool operator==(const BridgeInfo& b) const
 	{
@@ -97,11 +105,15 @@ struct RazerInfo
 	Q_GADGET
 public:
 
-	QList<RazerDeviceInfo> devices;
+	QList<DeviceInfo> devices;
 
 	bool operator==(const RazerInfo& b) const
 	{
 		return devices == b.devices;
+	}
+	bool operator!=(const RazerInfo& b) const
+	{
+		return devices != b.devices;
 	}
 };
 
@@ -127,12 +139,14 @@ public:
 	}
 };
 
+typedef std::variant<std::monostate, SinePulseEffectInfo, ConstantEffectInfo> EffectVariant;
+
 struct EffectInfo
 {
 	Q_GADGET
 public:
 
-	std::variant<std::monostate, SinePulseEffectInfo, ConstantEffectInfo> data;
+	EffectVariant data;
 
 	EffectInfo()
 	{
@@ -145,22 +159,36 @@ public:
 	}
 };
 
+struct DeviceInSceneInfo
+{
+	Math::Transform transform;
+	DeviceInfo device;
+
+	bool operator==(const DeviceInSceneInfo& b) const
+	{
+		return transform == b.transform && device == b.device;
+	}
+};
+
 struct SceneInfo
 {
 	Q_GADGET
 public:
 
-	QMap<QString, DeviceInfo> devices;
-	QMap<QString, EffectInfo> effects;
+	QString name;
+	QList<DeviceInSceneInfo> devicesInScene;
+	QList<EffectInfo> effects;
 
 	bool operator==(const SceneInfo& b) const
 	{
-		return devices == b.devices && effects == b.effects;
+		return name == b.name && devicesInScene == b.devicesInScene && effects == b.effects;
 	}
 };
 
 Q_DECLARE_METATYPE(QList<DeviceInfo>)
 
+
+//Serialization
 QDataStream& operator<<(QDataStream&, const RazerDeviceInfo&);
 QDataStream& operator>>(QDataStream&, RazerDeviceInfo&);
 
@@ -188,5 +216,21 @@ QDataStream& operator>>(QDataStream&, ConstantEffectInfo&);
 QDataStream& operator<<(QDataStream&, const EffectInfo&);
 QDataStream& operator>>(QDataStream&, EffectInfo&);
 
+QDataStream& operator<<(QDataStream&, const DeviceInSceneInfo&);
+QDataStream& operator>>(QDataStream&, DeviceInSceneInfo&);
+
 QDataStream& operator<<(QDataStream&, const SceneInfo&);
 QDataStream& operator>>(QDataStream&, SceneInfo&);
+
+
+//Conversions
+DeviceInfo				Device_BackendToFrontend(DevicePtr d);
+DevicePtr				Device_FrontendToBackend(DeviceInfo d, const Backend& b);
+
+EffectInfo				Effect_BackendToFrontend(const std::unique_ptr<Effect>& e);
+std::unique_ptr<Effect> Effect_FrontendToBackend(EffectInfo e);
+
+SceneInfo				Scene_BackendToFrontend(const Scene& s);
+Scene					Scene_FrontendToBackend(SceneInfo s, const Backend& b);
+
+BridgeInfo				Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b);
