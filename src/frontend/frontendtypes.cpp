@@ -1,4 +1,6 @@
 #include "frontend/frontendtypes.h"
+#include "effects/effects.h"
+#include "hue/bridge.h"
 
 #include <QDataStream>
 
@@ -274,8 +276,37 @@ DevicePtr Device_FrontendToBackend(DeviceInfo d, const Backend& b)
 	return b.GetDeviceFromUniqueId(d.uniqueid.toStdString());
 }
 
-//EffectInfo Effect_BackendToFrontend(const std::unique_ptr<Effect>& e);
-//std::unique_ptr<Effect> Effect_FrontendToBackend(EffectInfo e);
+EffectInfo Effect_BackendToFrontend(const std::unique_ptr<Effect>& e)
+{
+	auto out = EffectInfo();
+
+	if (auto * sine = dynamic_cast<SinePulseEffect*>(e.get()))
+	{
+		out.data = SinePulseEffectInfo{};
+		std::get<SinePulseEffectInfo>(out.data).transform = sine->transform;
+	}
+	else if (auto * constant = dynamic_cast<ConstantEffect*>(e.get()))
+	{
+		out.data = ConstantEffectInfo{};
+		std::get<ConstantEffectInfo>(out.data).transform = constant->transform;
+	}
+
+	return out;
+}
+
+std::unique_ptr<Effect> Effect_FrontendToBackend(EffectInfo e)
+{
+	if (auto sinePtr = std::get_if<SinePulseEffectInfo>(&e.data))
+	{
+		return std::make_unique<SinePulseEffect>();
+	}
+	else if (auto constantPtr = std::get_if<ConstantEffectInfo>(&e.data))
+	{
+		return std::make_unique<ConstantEffect>();
+	}
+
+	return nullptr;
+}
 
 SceneInfo Scene_BackendToFrontend(const Scene& s)
 {
@@ -320,4 +351,16 @@ Scene Scene_FrontendToBackend(SceneInfo s, const Backend& b)
 	return backendScene;
 }
 
-//BridgeInfo Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b);
+BridgeInfo Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b)
+{
+	BridgeInfo frontendBridge;
+	frontendBridge.id = b->id.c_str();
+	
+	auto backendDevices = b->devices;
+	for (auto& device : backendDevices)
+	{
+		frontendBridge.devices.push_back(Device_BackendToFrontend(device));
+	}
+
+	return frontendBridge;
+}

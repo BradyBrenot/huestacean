@@ -117,7 +117,12 @@ public:
 	}
 };
 
-struct SinePulseEffectInfo
+struct EffectWithTransformInfo
+{
+	Math::Transform transform;
+};
+
+struct SinePulseEffectInfo : public EffectWithTransformInfo
 {
 	Q_GADGET
 public:
@@ -128,7 +133,7 @@ public:
 	}
 };
 
-struct ConstantEffectInfo
+struct ConstantEffectInfo : public EffectWithTransformInfo
 {
 	Q_GADGET
 public:

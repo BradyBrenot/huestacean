@@ -53,3 +53,22 @@ void SinePulseEffect::Update(const std::vector<Math::Box>& positions, std::vecto
 		c = Color;
 	}
 }
+
+
+ConstantEffect::ConstantEffect()
+{
+
+}
+
+ConstantEffect::ConstantEffect(const ConstantEffect& s)
+{
+
+}
+
+void ConstantEffect::Update(const std::vector<Math::Box>& positions, std::vector<Math::HsluvColor>& outColors)
+{
+	for (auto& c : outColors)
+	{
+		c = HsluvColor{ 80_deg, 80, 80 };
+	}
+}

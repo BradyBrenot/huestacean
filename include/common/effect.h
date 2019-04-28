@@ -10,7 +10,7 @@
 class Effect
 {
 public:
-	Effect() {}
+	Effect() : transform() {}
 
 	virtual void Tick(std::chrono::duration<float> deltaTime) {}
 	virtual void Update(const std::vector<Math::Box>& positions, std::vector<Math::HsluvColor>& outColors) = 0;
@@ -21,19 +21,8 @@ public:
 
 	std::unique_ptr<Effect> clone() const { return std::unique_ptr<Effect>(clone_impl()); }
 
+	Math::Transform transform;
+
 protected:
 	virtual Effect* clone_impl() const = 0;
-};
-
-class EffectWithTransform : public Effect
-{
-public:
-	EffectWithTransform()
-		: Effect(),
-		transform()
-	{
-
-	}
-
-	Math::Transform transform;
 };

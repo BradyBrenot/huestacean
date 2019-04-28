@@ -8,7 +8,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-class SinePulseEffect : public EffectWithTransform
+class SinePulseEffect : public Effect
 {
 public:
 	SinePulseEffect();
@@ -24,4 +24,18 @@ protected:
 
 private:
 	std::chrono::duration<float> counter;
+};
+
+class ConstantEffect : public Effect
+{
+public:
+	ConstantEffect();
+	ConstantEffect(const ConstantEffect& s);
+
+	virtual void Update(const std::vector<Math::Box>& positions, std::vector<Math::HsluvColor>& outColors) override;
+	virtual void Save(QSettings& settings) override {}
+	virtual void Load(QSettings& settings) override {}
+
+protected:
+	virtual Effect* clone_impl() const override { return new ConstantEffect(*this); }
 };
