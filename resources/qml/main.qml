@@ -4,6 +4,8 @@ import QtQuick.Controls.Material 2.12
 import QtQuick.Layouts 1.12
 import Huestacean.GuiHelper 1.0 as GuiHelper
 
+import "."
+
 import "MaterialDesign.js" as MD
 
 ApplicationWindow {
@@ -137,12 +139,19 @@ ApplicationWindow {
 			}
 		}
 
-		Label {
-			text: 'Huestacean on GitHub: <a href="https://github.com/BradyBrenot/huestacean">https://github.com/BradyBrenot/huestacean</a>'
-			anchors.margins: 20
-			wrapMode: Label.Wrap
+		Column {
+			Label {
+				text: Frontend.DevicesList.length
+				anchors.margins: 20
+				wrapMode: Label.Wrap
 
-			onLinkActivated: Qt.openUrlExternally(link)
+				onLinkActivated: Qt.openUrlExternally(link)
+			}
+
+			Repeater {
+				model: Frontend.DevicesList.length
+				Text { text: "" + Frontend.DevicesList[index] }
+			}
 		}
 	}
 }

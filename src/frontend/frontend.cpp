@@ -4,6 +4,7 @@
 #include "razer/razer.h"
 
 #include <QSignalBlocker>
+#include <QDebug>
 
 Frontend::Frontend(std::shared_ptr<Backend> inBackend) 
 	: FrontendSimpleSource(nullptr)
@@ -59,8 +60,8 @@ Frontend::Frontend(std::shared_ptr<Backend> inBackend)
 	connect(this, SIGNAL(BridgesChanged(QList<BridgeInfo>)),
 		this, SLOT(RemoteBridgesChanged(QList<BridgeInfo>)));
 
-	connect(this, SIGNAL(RazerChanged(QList<RazerInfo>)),
-		this, SLOT(RemoteRazerChanged(QList<RazerInfo>)));
+	connect(this, SIGNAL(RazerChanged(RazerInfo)),
+		this, SLOT(RemoteRazerChanged(RazerInfo)));
 
 	// Set initial state
 	BackendActiveSceneChanged();
@@ -84,11 +85,14 @@ void Frontend::StopUpdateLoop()
 void Frontend::BackendActiveSceneChanged()
 {
 	QSignalBlocker Bl(this);
+	ScopedIgnoreChanges Ig(this);
+
 	setActiveSceneIndex(m_Backend->GetActiveScene());
 }
 void Frontend::BackendScenesChanged()
 {
 	QSignalBlocker Bl(this);
+	ScopedIgnoreChanges Ig(this);
 	
 	auto w = m_Backend->GetWriter();
 
@@ -103,6 +107,7 @@ void Frontend::BackendScenesChanged()
 void Frontend::BackendHueChanged()
 {
 	QSignalBlocker Bl(this);
+	ScopedIgnoreChanges Ig(this);
 
 	QList<BridgeInfo> newBridges;
 
@@ -120,6 +125,7 @@ void Frontend::BackendHueChanged()
 void Frontend::BackendRazerChanged()
 {
 	QSignalBlocker Bl(this);
+	ScopedIgnoreChanges Ig(this);
 
 	RazerInfo newRazer;
 
@@ -140,6 +146,7 @@ void Frontend::BackendRazerChanged()
 void Frontend::BackendDevicesChanged()
 {
 	QSignalBlocker Bl(this);
+	ScopedIgnoreChanges Ig(this);
 
 	QList<DeviceInfo> newDevices;
 
@@ -150,7 +157,13 @@ void Frontend::BackendDevicesChanged()
 		backendDevices.insert(backendDevices.end(), dpDevices.begin(), dpDevices.end());
 	}
 
+	for (auto& d : backendDevices)
+	{
+		newDevices.push_back(Device_BackendToFrontend(d));
+	}
+
 	setDevices(newDevices);
+	qDebug() << "******** DEVICES ****" << newDevices.size();
 }
 
 void Frontend::RemoteActiveSceneIndexChanged(qint32 ActiveSceneIndex)

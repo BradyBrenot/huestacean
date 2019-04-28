@@ -3,6 +3,8 @@
     <file>qtquickcontrols2.conf</file>
 
     <file>qml/main.qml</file>
+    <file>qml/frontend.qml</file>
+    <file>qml/qmldir</file>
 
     <file>qml/MaterialDesign.js</file>
 

@@ -1,4 +1,7 @@
 #include "frontend/gui/gui.h"
+#include "frontend/frontend.h"
+
+#include <QRemoteObjectHost>
 
 #include <QCoreApplication>
 #include <QGuiApplication>
@@ -12,6 +15,9 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
+
+
+#include <QLoggingCategory>
 
 using namespace Gui;
 
@@ -72,9 +78,18 @@ int Gui::Main(int argc, char* argv[])
     QFontDatabase::addApplicationFont(":/fonts/roboto/RobotoCondensed-Medium.ttf");
     QFontDatabase::addApplicationFont(":/fonts/roboto/RobotoCondensed-MediumItalic.ttf");
     QFontDatabase::addApplicationFont(":/fonts/roboto/RobotoCondensed-Regular.ttf");
-
-	//not... working...
 	QFontDatabase::addApplicationFont(":/fonts/materialicons/MaterialIcons-Regular.ttf");
+
+	auto backend = std::make_shared<Backend>();
+
+	QLoggingCategory::setFilterRules("qt.remoteobjects=true\n"
+		"qt.remoteobjects.*=true");
+
+	QRemoteObjectHost srcNode(QUrl(QStringLiteral("local:switch")));
+	Frontend srcFrontend(backend);
+	srcNode.enableRemoting(&srcFrontend);
+
+	qmlRegisterType<FrontendQmlReplica>("Huestacean.Frontend", 1, 0, "FrontendQmlReplica");
 	
 	engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
 	if (engine.rootObjects().isEmpty())
@@ -88,6 +103,7 @@ int Gui::Main(int argc, char* argv[])
 	constexpr auto isMobile = false;
 #endif
 	engine.rootContext()->setContextProperty("isMobile", isMobile);
+
 
 	auto ret = app.exec();
 

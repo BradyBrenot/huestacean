@@ -46,6 +46,8 @@ typedef std::variant< std::monostate, HueDeviceInfo, RazerDeviceInfo > DeviceVar
 struct DeviceInfo
 {
 	Q_GADGET
+	Q_PROPERTY(QString uniqueid MEMBER uniqueid)
+
 public:
 
 	QString uniqueid;

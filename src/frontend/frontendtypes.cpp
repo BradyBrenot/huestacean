@@ -40,6 +40,8 @@ QDataStream& operator<<(QDataStream& ds, const std::monostate& in)
 
 QDataStream& operator<<(QDataStream& ds, const DeviceInfo& in)
 {
+	ds << in.uniqueid;
+
 	std::visit(
 		overloaded{
 			[&ds](std::monostate) { ds << static_cast<quint8>(DeviceType::None); },
@@ -56,6 +58,8 @@ QDataStream& operator<<(QDataStream& ds, const DeviceInfo& in)
 }
 QDataStream& operator>>(QDataStream& ds, DeviceInfo& out)
 {
+	ds >> out.uniqueid;
+
 	quint8 iType;
 	ds >> iType;
 	DeviceType type = static_cast<DeviceType>(iType);

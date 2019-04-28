@@ -79,3 +79,85 @@ private slots:
 
 	///////////////////////////////////////////////////////
 };
+
+template<typename T>
+QVariantList makeVariantList(const QList<T>& list)
+{
+	auto vl = QVariantList();
+	for (const auto& item : list)
+	{
+		QVariant v;
+		v.setValue(item);
+		vl.push_back(v);
+	}
+	return vl;
+}
+
+class FrontendQmlReplica : public FrontendReplica
+{
+	Q_OBJECT
+
+	Q_PROPERTY(QVariantList ScenesList READ ScenesList NOTIFY ScenesListChanged)
+	Q_PROPERTY(QVariantList DevicesList READ DevicesList NOTIFY DevicesListChanged)
+	Q_PROPERTY(QVariantList BridgesList READ BridgesList NOTIFY BridgesListChanged)
+
+public:
+
+	QVariantList ScenesList() const
+	{
+		return makeVariantList(Scenes());
+	}
+	QVariantList DevicesList() const
+	{
+		return makeVariantList(Devices());
+	}
+	QVariantList BridgesList() const
+	{
+		return makeVariantList(Bridges());
+	}
+
+	FrontendQmlReplica() : FrontendReplica()
+	{
+		connect(this, SIGNAL(ScenesChanged(QList<SceneInfo>)),
+			this, SLOT(OnScenesChanged(QList<SceneInfo>)));
+		connect(this, SIGNAL(DevicesChanged(QList<DeviceInfo>)),
+			this, SLOT(OnDevicesChanged(QList<DeviceInfo>)));
+		connect(this, SIGNAL(BridgesChanged(QList<BridgeInfo>)),
+			this, SLOT(OnBridgesChanged(QList<BridgeInfo>)));
+
+		connect(this, SIGNAL(stateChanged(State, State)),
+			this, SLOT(OnStateChanged()));
+	}
+
+signals:
+	void ScenesListChanged();
+	void DevicesListChanged();
+	void BridgesListChanged();
+
+public slots:
+	void OnStateChanged()
+	{
+		//I don't know, it looks like QtRO doesn't fire the "On____Changed" events on
+		//connection established, which means QML doesn't know that things actually
+		//changed.
+
+		emit ScenesChanged(Scenes());
+		emit DevicesChanged(Devices());
+		emit BridgesChanged(Bridges());
+		emit RazerChanged(Razer());
+		emit ActiveSceneIndexChanged(ActiveSceneIndex());
+		emit IsRunningChanged(IsRunning());
+	}
+	void OnScenesChanged(QList<SceneInfo> Scenes)
+	{
+		emit ScenesListChanged();
+	}
+	void OnDevicesChanged(QList<DeviceInfo> Devices)
+	{
+		emit DevicesListChanged();
+	}
+	void OnBridgesChanged(QList<BridgeInfo> Bridges)
+	{
+		emit BridgesListChanged();
+	}
+};
