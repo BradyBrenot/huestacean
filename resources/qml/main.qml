@@ -3,6 +3,8 @@ import QtQuick.Controls 2.12
 import QtQuick.Controls.Material 2.12
 import QtQuick.Layouts 1.12
 import Huestacean.GuiHelper 1.0 as GuiHelper
+import QtGraphicalEffects 1.12
+
 
 import "."
 
@@ -140,13 +142,14 @@ ApplicationWindow {
 		}
 
 		GridLayout {
+			id: grid
 			columns: inMobileView ? 1 : 2
 			anchors.fill: parent
 			anchors.margins: inMobileView ? 0 : 60
 			anchors.leftMargin: inMobileView ? 0 : 80
 			anchors.rightMargin: inMobileView ? 0 : 80
-			columnSpacing: inMobileView ? 0 : 60
-			rowSpacing: inMobileView ? 0 : 40
+			columnSpacing: inMobileView ? 0 : 40
+			rowSpacing: inMobileView ? 0 : 30
 
 			Pane {
 				//visible: !inMobileView
@@ -157,7 +160,7 @@ ApplicationWindow {
 				Layout.minimumHeight: inMobileView ? 100 : 200
 
 				Material.background: Material.color(Material.Grey, Material.Shade800)
-				padding: inMobileView ? 0 : 6
+				padding: inMobileView ? 0 : 12
 
 				ColumnLayout {
 					anchors.fill: parent
@@ -181,28 +184,64 @@ ApplicationWindow {
 							id: scenesColumn
 							anchors.left: parent.left
 							anchors.right: parent.right
-							spacing: inMobileView ? 0 : 2
+							spacing: 4
 
 							Repeater {
 								model: Frontend.DevicesList
 								Button {
 									id: sceneButton
+									padding: 10
 									Material.elevation: 6
 									Material.background: Material.color(Material.Blue, Material.Shade600)
 									Layout.fillWidth: true
 
-									RowLayout {
+									background: Item {
 										anchors.fill: parent
-
-										Label {
-											text: "" + modelData 
+										Rectangle {
+											id:rect
+											anchors.fill:parent
+											radius: 6
 										}
+
+										LinearGradient {
+											anchors.fill: parent
+											start: Qt.point(0, 0)
+											end: Qt.point(sceneButton.width, 0)
+											source: rect
+											gradient: Gradient {
+												GradientStop { position: 0.0; color: Material.color(Material.Blue, Material.Shade200) }
+												GradientStop { position: 0.5; color: Material.color(Material.Blue, Material.Shade600) }
+												GradientStop { position: 1.0; color: Material.color(Material.Green, Material.Shade600) }
+											}
+										}
+									}
+
+									contentItem: RowLayout {
+										id: rowLayout
+
+										Item {
+											height: label.height
+											width: label.width
+
+											Label {
+												color: "black"
+												text: "" + modelData
+												x: label.x + 1
+												y: label.y + 1
+												opacity: 0.6
+											}
+
+											Label {
+												anchors.verticalCenter: parent.verticalCenter
+												id: label
+												text: "" + modelData 
+											}
+										}
+										
 										Switch {
 											Layout.alignment: Qt.AlignRight
 										}
 									}
-
-									background.anchors.fill: sceneButton
 								}
 							}
 						}
@@ -256,8 +295,12 @@ ApplicationWindow {
 
 			Button {
 				id: hueButton
+				padding: 30
 				Layout.columnSpan: 1
 				Layout.fillWidth: true
+				Layout.preferredWidth: grid.width / grid.columns
+
+				//Material.background: Material.color(Material.Blue, Material.Shade900)
 
 				contentItem: Column {
 					Label { text: "Phlips Hue"; font.pointSize: 18; }
@@ -268,35 +311,13 @@ ApplicationWindow {
 			}
 
 			Button {
-				id: settingsButton
-				Layout.columnSpan: 1
-				Layout.fillWidth: true
-
-				contentItem: Column {
-					Label { text: "Settings"; font.pointSize: 18; }
-					Label { text: "Not detected!"; font.pointSize: 12; }
-				}
-
-				background.anchors.fill: settingsButton
-			}
-
-			Button {
-				id: remoteButton
-				Layout.columnSpan: 1
-				Layout.fillWidth: true
-
-				contentItem: Column {
-					Label { text: "Remote control"; font.pointSize: 18; }
-					Label { text: "Not detected!"; font.pointSize: 12; }
-				}
-
-				background.anchors.fill: remoteButton
-			}
-
-			Button {
 				id: razerButton
+				padding: 30
 				Layout.columnSpan: 1
 				Layout.fillWidth: true
+				Layout.preferredWidth: grid.width / grid.columns
+
+				//Material.background: Material.color(Material.Green, Material.Shade900)
 
 				contentItem: Column {
 					Label { text: "Razer Chroma"; font.pointSize: 18; }
@@ -305,6 +326,42 @@ ApplicationWindow {
 
 				background.anchors.fill: razerButton
 			}
+
+			Button {
+				id: remoteButton
+				padding: 30
+				Layout.columnSpan: 1
+				Layout.fillWidth: true
+				Layout.preferredWidth: grid.width / grid.columns
+
+				//Material.background: Material.color(Material.Teal, Material.Shade900)
+
+				contentItem: Column {
+					Label { text: "Remote control"; font.pointSize: 18; }
+					Label { text: "Not enabled"; font.pointSize: 12; }
+				}
+
+				background.anchors.fill: remoteButton
+			}
+
+			Button {
+				id: settingsButton
+				padding: 30
+				Layout.columnSpan: 1
+				Layout.fillWidth: true
+				Layout.preferredWidth: grid.width / grid.columns
+
+				//Material.background: Material.color(Material.Red, Material.Shade900)
+
+				contentItem: Column {
+					Label { text: "Settings"; font.pointSize: 18; }
+					Label { text: "Global settings and About Huestacean"; font.pointSize: 12; wrapMode: Text.WordWrap; }
+				}
+
+				background.anchors.fill: settingsButton
+			}
 		}
 	}
+
+	
 }
