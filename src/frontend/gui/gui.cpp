@@ -11,6 +11,8 @@
 #include <QKeyEvent>
 
 #include <QDebug>
+#include <QIcon>
+#include <QPixmap>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -42,6 +44,7 @@ int Gui::Main(int argc, char* argv[])
 #endif
 
 	QGuiApplication app(argc, argv);
+	app.setWindowIcon(QIcon(QPixmap(":/images/icon.png")));
 
 	qmlRegisterSingletonType<GuiHelper>("Huestacean.GuiHelper", 1, 0, "GuiHelper", [](QQmlEngine * engine, QJSEngine * scriptEngine) -> QObject * {
 		Q_UNUSED(engine)

@@ -5,7 +5,6 @@ import QtQuick.Layouts 1.12
 import Huestacean.GuiHelper 1.0 as GuiHelper
 import QtGraphicalEffects 1.12
 
-
 import "."
 
 import "MaterialDesign.js" as MD
@@ -63,8 +62,8 @@ ApplicationWindow {
 			KeyNavigation.right: stackView.currentItem
 
             model: ListModel {
-				ListElement { title: "Home"; source: "qrc:/qml/Screensync.qml" }
-				ListElement { title: "Scenes"; source: "" }
+				ListElement { title: "Home"; source: "" }
+				ListElement { title: "Scenes"; source: "qrc:/qml/Scenes.qml" }
 				ListElement { title: "Philips Hue"; source: "" }
 				ListElement { title: "Razer Chroma"; source: "" }
 				ListElement { title: "Settings"; source: "" }
@@ -78,7 +77,10 @@ ApplicationWindow {
                     highlighted: ListView.isCurrentItem
                     onClicked: {
                         listView.currentIndex = index
-                        stack.replace(model.source)
+						stack.pop(stack.initialItem)
+						if("" != model.source) {
+							stack.push(model.source)
+						}
                         if (inMobileView) {
                             drawer.close()
                         }
@@ -152,7 +154,7 @@ ApplicationWindow {
 			rowSpacing: inMobileView ? 0 : 30
 
 			Pane {
-				//visible: !inMobileView
+				visible: !inMobileView
 				Material.elevation: 4
 				Layout.columnSpan: inMobileView ? 1 : 2
 				Layout.fillHeight: true
@@ -160,18 +162,32 @@ ApplicationWindow {
 				Layout.minimumHeight: inMobileView ? 100 : 200
 
 				Material.background: Material.color(Material.Grey, Material.Shade800)
-				padding: inMobileView ? 0 : 12
+				padding: inMobileView ? 0 : 30
+				topPadding: 10
+				bottomPadding: 20
 
 				ColumnLayout {
 					anchors.fill: parent
 
-					Label {
-						visible: !inMobileView
-						font.family: "Roboto Regular"
-						font.pointSize: 18
+					RowLayout {
+						Label {
+							visible: !inMobileView
+							font.family: "Roboto Regular"
+							font.pointSize: 18
 
-						text: "Scenes"
+							text: "Scenes"
+						}
+						Item {
+							Layout.fillWidth: true
+						}
+
+						RoundButton {
+							font.family: "Material Icons"
+							font.pointSize: 18
+							text: MD.icons.add
+						}
 					}
+					
 
 					Flickable {
 						id: scenesFlick
@@ -187,15 +203,18 @@ ApplicationWindow {
 							spacing: 4
 
 							Repeater {
-								model: Frontend.DevicesList
+								model: Frontend.ScenesList
 								Button {
 									id: sceneButton
 									padding: 10
 									Material.elevation: 6
-									Material.background: Material.color(Material.Blue, Material.Shade600)
+									Material.background: "transparent"
 									Layout.fillWidth: true
 
-									background: Item {
+									background.anchors.fill: sceneButton
+
+									Item {
+										z: -2
 										anchors.fill: parent
 										Rectangle {
 											id:rect
@@ -208,10 +227,23 @@ ApplicationWindow {
 											start: Qt.point(0, 0)
 											end: Qt.point(sceneButton.width, 0)
 											source: rect
+
 											gradient: Gradient {
 												GradientStop { position: 0.0; color: Material.color(Material.Blue, Material.Shade200) }
 												GradientStop { position: 0.5; color: Material.color(Material.Blue, Material.Shade600) }
 												GradientStop { position: 1.0; color: Material.color(Material.Green, Material.Shade600) }
+											}
+										}
+
+										LinearGradient {
+											anchors.fill: parent
+											start: Qt.point(0, 0)
+											end: Qt.point(0, sceneButton.height)
+											source: rect
+
+											gradient: Gradient {
+												GradientStop { position: 0.0; color: "#2fffffff"}
+												GradientStop { position: 0.4; color: "#00ffffff" }
 											}
 										}
 									}
@@ -256,12 +288,6 @@ ApplicationWindow {
 						ScrollBar.horizontal: ScrollBar { 
 							contentItem.opacity: scenesFlick.contentWidth > scenesFlick.width ? 1 : 0;
 						} 
-					}
-
-					Button {
-						Layout.alignment: Qt.AlignRight
-						Layout.margins: 4
-						text: "New scene"
 					}
 				}
 			}
@@ -359,6 +385,10 @@ ApplicationWindow {
 				}
 
 				background.anchors.fill: settingsButton
+			}
+
+			Item {
+				Layout.fillHeight: true
 			}
 		}
 	}

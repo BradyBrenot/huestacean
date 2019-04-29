@@ -153,7 +153,7 @@ public slots:
 		emit ScenesListChanged();
 	}
 	void OnDevicesChanged(QList<DeviceInfo> Devices)
-	{
+	{ 
 		emit DevicesListChanged();
 	}
 	void OnBridgesChanged(QList<BridgeInfo> Bridges)

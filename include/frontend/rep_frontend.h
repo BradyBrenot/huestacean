@@ -38,10 +38,10 @@ public:
         initialized = true;
         qRegisterMetaType<QList<SceneInfo>>();
         qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
-        qRegisterMetaType<RazerInfo>();
-        qRegisterMetaTypeStreamOperators<RazerInfo>();
         qRegisterMetaType<QList<DeviceInfo>>();
         qRegisterMetaTypeStreamOperators<QList<DeviceInfo>>();
+        qRegisterMetaType<RazerInfo>();
+        qRegisterMetaTypeStreamOperators<RazerInfo>();
         qRegisterMetaType<QList<BridgeInfo>>();
         qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
 
@@ -215,10 +215,10 @@ public:
     {
         qRegisterMetaType<QList<SceneInfo>>();
         qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
-        qRegisterMetaType<RazerInfo>();
-        qRegisterMetaTypeStreamOperators<RazerInfo>();
         qRegisterMetaType<QList<DeviceInfo>>();
         qRegisterMetaTypeStreamOperators<QList<DeviceInfo>>();
+        qRegisterMetaType<RazerInfo>();
+        qRegisterMetaTypeStreamOperators<RazerInfo>();
         qRegisterMetaType<QList<BridgeInfo>>();
         qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
 

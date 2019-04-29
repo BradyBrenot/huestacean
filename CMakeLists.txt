@@ -19,7 +19,7 @@ if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-find_package(Qt5Core REQUIRED)
+find_package(Qt5Core REQUIRED) 
 find_package(Qt5Network REQUIRED)
 find_package(Qt5Quick REQUIRED)
 find_package(Qt5RemoteObjects REQUIRED)
@@ -116,6 +116,7 @@ set(INCLUDE_PATHS
 
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/include
+	${CMAKE_CURRENT_SOURCE_DIR}/resources
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/mbedtls/include
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc
@@ -158,7 +159,7 @@ elseif(LINUX)
    )
 endif()
 
-add_executable(huestacean WIN32 ${MAIN_SOURCE} ${SOURCES} ${HEADERS} ${HEADERS_MOC} resources/qml.qrc)
+add_executable(huestacean WIN32 ${MAIN_SOURCE} ${SOURCES} ${HEADERS} ${HEADERS_MOC} resources/qml.qrc resources/resources.rc)
 target_link_libraries(huestacean ${LIBRARIES})
 
 add_custom_command(
