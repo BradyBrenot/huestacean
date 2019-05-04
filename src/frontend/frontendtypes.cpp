@@ -3,6 +3,125 @@
 #include "hue/bridge.h"
 
 #include <QDataStream>
+#include <QQuaternion>
+
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
+
+///////////////////////////////////////////////////////////////////////////
+// Transform
+Transform::Transform()
+	: location(), scale(), rotation()
+{
+
+}
+Transform::Transform(const Transform& t)
+	: location(t.location), scale(t.scale), rotation(t.rotation)
+{
+
+}
+Transform::Transform(Math::Transform t)
+	: location(t.location.x, t.location.y, t.location.z), 
+	scale(t.scale.x, t.scale.y, t.scale.z), 
+	rotation(QQuaternion::fromEulerAngles(t.rotation.pitch, t.rotation.yaw, t.rotation.roll))
+{
+
+}
+Math::Transform Transform::ToMathTransform() const
+{
+	auto rotAngles = rotation.toEulerAngles();
+
+	return Math::Transform{
+		Math::Vector3d{location.x(), location.y(), location.z()},
+		Math::Vector3d{scale.x(), scale.y(), scale.z()},
+		Math::Rotator{rotAngles.x(), rotAngles.y(), rotAngles.z()}
+	};
+}
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// Devices
+QVariant DeviceInfo::GetData()
+{
+	QVariant out;
+
+	std::visit(
+		overloaded{
+			[&out](std::monostate) { },
+			[&out](HueDeviceInfo hue) { out.setValue(hue); },
+			[&out](RazerDeviceInfo razer) { out.setValue(razer); },
+		},
+		data);
+
+	return out;
+}
+void DeviceInfo::SetData(QVariant& in)
+{
+	if (in.canConvert<HueDeviceInfo>())
+	{
+		data = in.value<HueDeviceInfo>();
+	}
+	else if (in.canConvert<RazerDeviceInfo>())
+	{
+		data = in.value<RazerDeviceInfo>();
+	}
+	else
+	{
+		data = std::monostate{};
+	}
+}
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// Effects
+QVariant EffectInfo::GetData()
+{
+	QVariant out;
+
+	std::visit(
+		overloaded{
+			[&out](std::monostate) {},
+			[&out](SinePulseEffectInfo info) { out.setValue(info); },
+			[&out](ConstantEffectInfo info) { out.setValue(info); },
+		},
+		data);
+
+	return out;
+}
+void EffectInfo::SetData(QVariant& in)
+{
+	if (in.canConvert<SinePulseEffectInfo>())
+	{
+		data = in.value<SinePulseEffectInfo>();
+	}
+	else if (in.canConvert<ConstantEffectInfo>())
+	{
+		data = in.value<ConstantEffectInfo>();
+	}
+	else
+	{
+		data = std::monostate{};
+	}
+}
+///////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////
+// Serialization
+QDataStream& operator<<(QDataStream& ds, const Transform& in)
+{
+	ds << in.location;
+	ds << in.scale;
+	ds << in.rotation;
+	return ds;
+}
+QDataStream& operator>>(QDataStream& ds, Transform& out)
+{
+	ds >> out.location;
+	ds >> out.scale;
+	ds >> out.rotation;
+	return ds;
+}
 
 QDataStream& operator<<(QDataStream& ds, const RazerDeviceInfo& in)
 {
@@ -29,9 +148,6 @@ enum class DeviceType : quint8 {
 	Hue,
 	Razer
 };
-
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 QDataStream& operator<<(QDataStream& ds, const std::monostate& in)
 {
@@ -256,7 +372,10 @@ QDataStream& operator>>(QDataStream& ds, SceneInfo& out)
 	ds >> out.effects;
 	return ds;
 }
+///////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////
+// Conversions between frontend/backend types
 DeviceInfo Device_BackendToFrontend(DevicePtr d)
 {
 	auto out = DeviceInfo();
@@ -343,7 +462,7 @@ Scene Scene_FrontendToBackend(SceneInfo s, const Backend& b)
 	{
 		DeviceInScene backendDis;
 		backendDis.device = b.GetDeviceFromUniqueId(dis.device.uniqueid.toStdString());
-		backendDis.transform = dis.transform;
+		backendDis.transform = dis.transform.ToMathTransform();
 		backendScene.devices.push_back(backendDis);
 	}
 
@@ -368,3 +487,4 @@ BridgeInfo Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b)
 
 	return frontendBridge;
 }
+///////////////////////////////////////////////////////////////////////////

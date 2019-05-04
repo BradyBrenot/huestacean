@@ -2,6 +2,7 @@
 
 #include "rep_frontend.h"
 #include "backend/backend.h"
+#include "frontend/utility.h"
 
 #include <memory>
 
@@ -79,19 +80,6 @@ private slots:
 
 	///////////////////////////////////////////////////////
 };
-
-template<typename T>
-QVariantList makeVariantList(const QList<T>& list)
-{
-	auto vl = QVariantList();
-	for (const auto& item : list)
-	{
-		QVariant v;
-		v.setValue(item);
-		vl.push_back(v);
-	}
-	return vl;
-}
 
 class FrontendQmlReplica : public FrontendReplica
 {

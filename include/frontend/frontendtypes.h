@@ -5,19 +5,57 @@
 #include <QObject>
 #include <QMap>
 #include <QList>
+#include <QVector3D>
+#include <QQuaternion>
 
 #include "hue/hue.h"
 #include "razer/razer.h"
 #include "razer/razerdevices.h"
 #include "backend/backend.h"
+#include "frontend/utility.h"
 
 // Lightweight frontend Qt wrappers, because I'm very pointedly 
-// avoiding Qt extensions in my 'backend' code.
+// avoiding Qt extensions in my 'backend' code. This keeps that
+// side relatively clean and simple and C++y, while the horrible
+// heavy Qt/QML-friendly side is contained over here.
 
 // This is not namespaced, because Qt isn't. 
 // Don't #include outside of frontend code.
 
-class RazerDeviceInfo
+///////////////////////////////////////////////////////////////////////////
+// Qt-friendly version of Math::Transform
+struct Transform
+{
+	Q_GADGET
+
+	Q_PROPERTY(QVector3D location MEMBER location)
+	Q_PROPERTY(QVector3D scale MEMBER scale)
+	Q_PROPERTY(QQuaternion rotation MEMBER rotation)
+public:
+
+	Transform();
+	Transform(const Transform& t);
+	Transform(Math::Transform);
+	Math::Transform ToMathTransform() const;
+
+	QVector3D location;
+	QVector3D scale;
+	QQuaternion rotation;
+
+	bool operator==(const Transform& b) const
+	{
+		return location == b.location && scale == b.scale && rotation == b.rotation;
+	}
+	bool operator!=(const Transform& b) const
+	{
+		return !(*this == b);
+	}
+};
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// Devices
+struct RazerDeviceInfo
 {
 	Q_GADGET
 public:
@@ -31,6 +69,8 @@ public:
 struct HueDeviceInfo
 {
 	Q_GADGET
+	Q_PROPERTY(QString bridgeId MEMBER bridgeId)
+
 public:
 
 	QString bridgeId;
@@ -47,6 +87,7 @@ struct DeviceInfo
 {
 	Q_GADGET
 	Q_PROPERTY(QString uniqueid MEMBER uniqueid)
+	Q_PROPERTY(QVariant data READ GetData WRITE SetData)
 
 public:
 
@@ -72,11 +113,25 @@ public:
 	{
 		return uniqueid == b.uniqueid;
 	}
-};
+	bool operator!=(const DeviceInfo& b) const
+	{
+		return !(*this == b);
+	}
 
+private:
+	QVariant GetData();
+	void SetData(QVariant& in);
+};
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// Device providers
 struct BridgeInfo
 {
 	Q_GADGET
+	Q_PROPERTY(QString id MEMBER id)
+	Q_PROPERTY(QList<QVariant> devices READ GetDevices WRITE SetDevices)
+
 public:
 
 	QString id;
@@ -87,11 +142,17 @@ public:
 	{
 		return devices == b.devices;
 	}
+
+private:
+	QList<QVariant> GetDevices() { return makeVariantList(devices); }
+	void SetDevices(QVariantList& in) { devices = fromVariantList<DeviceInfo>(in); }
 };
 
 struct HueInfo
 {
 	Q_GADGET
+	Q_PROPERTY(QList<QVariant> bridges READ GetBridges WRITE SetBridges)
+
 public:
 
 	QList<BridgeInfo> bridges;
@@ -100,11 +161,17 @@ public:
 	{
 		return bridges == b.bridges;
 	}
+
+private:
+	QList<QVariant> GetBridges() { return makeVariantList(bridges); }
+	void SetBridges(QVariantList& in) { bridges = fromVariantList<BridgeInfo>(in); }
 };
 
 struct RazerInfo
 {
 	Q_GADGET
+	Q_PROPERTY(QList<QVariant> devices READ GetDevices WRITE SetDevices)
+
 public:
 
 	QList<DeviceInfo> devices;
@@ -117,11 +184,29 @@ public:
 	{
 		return devices != b.devices;
 	}
+
+private:
+	QList<QVariant> GetDevices() { return makeVariantList(devices); }
+	void SetDevices(QVariantList& in) { devices = fromVariantList<DeviceInfo>(in); }
 };
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// Effects
 
 struct EffectWithTransformInfo
 {
-	Math::Transform transform;
+	Q_GADGET
+	Q_PROPERTY(Transform transform MEMBER transform)
+
+public:
+
+	Transform transform;
+
+	EffectWithTransformInfo() : transform()
+	{
+
+	}
 };
 
 struct SinePulseEffectInfo : public EffectWithTransformInfo
@@ -151,6 +236,8 @@ typedef std::variant<std::monostate, SinePulseEffectInfo, ConstantEffectInfo> Ef
 struct EffectInfo
 {
 	Q_GADGET
+	Q_PROPERTY(QVariant data READ GetData WRITE SetData)
+
 public:
 
 	EffectVariant data;
@@ -164,11 +251,24 @@ public:
 	{
 		return data == b.data;
 	}
-};
 
+private:
+	QVariant GetData();
+	void SetData(QVariant& in);
+};
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// Scenes
 struct DeviceInSceneInfo
 {
-	Math::Transform transform;
+	Q_GADGET
+
+	Q_PROPERTY(Transform transform MEMBER transform)
+	Q_PROPERTY(DeviceInfo device MEMBER device)
+
+public:
+	Transform transform;
 	DeviceInfo device;
 
 	bool operator==(const DeviceInSceneInfo& b) const
@@ -180,6 +280,11 @@ struct DeviceInSceneInfo
 struct SceneInfo
 {
 	Q_GADGET
+
+	Q_PROPERTY(QString name MEMBER name)
+	Q_PROPERTY(QList<QVariant> devicesInScene READ GetDevicesInScene WRITE SetDevicesInScene)
+	Q_PROPERTY(QList<QVariant> effects READ GetEffects WRITE SetEffects)
+
 public:
 
 	QString name;
@@ -190,12 +295,22 @@ public:
 	{
 		return name == b.name && devicesInScene == b.devicesInScene && effects == b.effects;
 	}
+
+private:
+	QList<QVariant> GetDevicesInScene() { return makeVariantList(devicesInScene); }
+	void SetDevicesInScene(QVariantList& in) { devicesInScene = fromVariantList<DeviceInSceneInfo>(in); }
+	QList<QVariant> GetEffects() { return makeVariantList(effects); }
+	void SetEffects(QVariantList& in) { effects = fromVariantList<EffectInfo>(in); }
 };
+///////////////////////////////////////////////////////////////////////////
 
 Q_DECLARE_METATYPE(QList<DeviceInfo>)
 
-
+///////////////////////////////////////////////////////////////////////////
 //Serialization
+QDataStream& operator<<(QDataStream&, const Transform&);
+QDataStream& operator>>(QDataStream&, Transform&);
+
 QDataStream& operator<<(QDataStream&, const RazerDeviceInfo&);
 QDataStream& operator>>(QDataStream&, RazerDeviceInfo&);
 
@@ -228,9 +343,10 @@ QDataStream& operator>>(QDataStream&, DeviceInSceneInfo&);
 
 QDataStream& operator<<(QDataStream&, const SceneInfo&);
 QDataStream& operator>>(QDataStream&, SceneInfo&);
+///////////////////////////////////////////////////////////////////////////
 
-
-//Conversions
+///////////////////////////////////////////////////////////////////////////
+//Conversions between frontend/backend types
 DeviceInfo				Device_BackendToFrontend(DevicePtr d);
 DevicePtr				Device_FrontendToBackend(DeviceInfo d, const Backend& b);
 
@@ -241,3 +357,4 @@ SceneInfo				Scene_BackendToFrontend(const Scene& s);
 Scene					Scene_FrontendToBackend(SceneInfo s, const Backend& b);
 
 BridgeInfo				Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b);
+///////////////////////////////////////////////////////////////////////////
