@@ -16,9 +16,6 @@ public:
 public:
 	virtual ~Frontend() {}
 
-	virtual void StartUpdateLoop() override;
-	virtual void StopUpdateLoop() override;
-
 private:
 
 	////////////////////////////////////////////////
@@ -85,9 +82,9 @@ class FrontendQmlReplica : public FrontendReplica
 {
 	Q_OBJECT
 
-	Q_PROPERTY(QVariantList ScenesList READ ScenesList NOTIFY ScenesListChanged)
-	Q_PROPERTY(QVariantList DevicesList READ DevicesList NOTIFY DevicesListChanged)
-	Q_PROPERTY(QVariantList BridgesList READ BridgesList NOTIFY BridgesListChanged)
+		Q_PROPERTY(QVariantList ScenesList READ ScenesList NOTIFY ScenesListChanged)
+		Q_PROPERTY(QVariantList DevicesList READ DevicesList NOTIFY DevicesListChanged)
+		Q_PROPERTY(QVariantList BridgesList READ BridgesList NOTIFY BridgesListChanged)
 
 public:
 
@@ -141,11 +138,13 @@ public slots:
 		emit ScenesListChanged();
 	}
 	void OnDevicesChanged(QList<DeviceInfo> Devices)
-	{ 
+	{
 		emit DevicesListChanged();
 	}
 	void OnBridgesChanged(QList<BridgeInfo> Bridges)
 	{
 		emit BridgesListChanged();
 	}
+
+	void pushScenesList(QVariantList in);
 };

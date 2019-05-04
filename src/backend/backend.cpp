@@ -207,6 +207,13 @@ void Backend::SetActiveScene(int sceneIndex)
 {
 	activeSceneIndex = sceneIndex;
 	NotifyListeners(EVENT_ACTIVE_SCENE_CHANGED);
+
+	if (activeSceneIndex >= 0 && !IsRunning()) {
+		Start();
+	}
+	else if (activeSceneIndex < 0 && IsRunning()) {
+		Stop();
+	}
 }
 
 Backend::BackendWriter Backend::GetWriter()

@@ -4,30 +4,51 @@ import QtQuick.Controls.Material 2.12
 import QtQuick.Layouts 1.12
 import Huestacean.GuiHelper 1.0 as GuiHelper
 import QtGraphicalEffects 1.12
+import Huestacean.Types 1.0
 import "."
 import "MaterialDesign.js" as MD
 
 Pane {
-	readonly property bool inMobileView: (isMobile != undefined && isMobile) || window.width < window.height
+	property var isPendingNewScene: false
 
-	visible: !inMobileView
 	Material.elevation: 4
-	Layout.columnSpan: inMobileView ? 1 : 2
+	Layout.columnSpan: Common.inMobileView ? 1 : 2
 	Layout.fillHeight: true
 	Layout.fillWidth: true
-	Layout.minimumHeight: inMobileView ? 100 : 200
+	Layout.minimumHeight: Common.inMobileView ? 100 : 200
 
 	Material.background: Material.color(Material.Grey, Material.Shade800)
-	padding: inMobileView ? 0 : 30
+	padding: Common.inMobileView ? 0 : 30
 	topPadding: 10
 	bottomPadding: 20
+
+	Component.onCompleted: {
+        Frontend.ScenesChanged.connect(scenesChanged)
+	}
+
+	function scenesChanged() {
+		if(isPendingNewScene) {
+			isPendingNewScene = false;
+			Common.stack.push(Common.sceneEditorComponent, {"index": Frontend.ScenesList.length - 1});
+		}		
+	}
+
+	function newScene() {
+		var newScene = TypeFactory.NewScene();
+		newScene.name = "New Scene";
+		var newSceneList = Array.from(Frontend.ScenesList);
+		newSceneList.push(newScene);
+		isPendingNewScene = true;
+		Frontend.pushScenesList(newSceneList);
+	}
 
 	ColumnLayout {
 		anchors.fill: parent
 
 		RowLayout {
+			visible: !Common.inMobileView
+
 			Label {
-				visible: !inMobileView
 				font.family: "Roboto Regular"
 				font.pointSize: 18
 
@@ -42,9 +63,11 @@ Pane {
 				font.pointSize: 18
 				text: MD.icons.add
 
-				onClicked: {
-					Common.stack.push(Common.sceneEditorComponent, {"index": -1})
-				}
+				onClicked: newScene();
+
+				ToolTip.visible: hovered || pressed
+				ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+				ToolTip.text: qsTr("Create a new Scene")
 			}
 		}
 					
@@ -72,6 +95,10 @@ Pane {
 						Layout.fillWidth: true
 
 						background.anchors.fill: sceneButton
+
+						onClicked : {
+							Common.stack.push(Common.sceneEditorComponent, {"index": index});	
+						}
 
 						Item {
 							z: -2

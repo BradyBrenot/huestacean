@@ -8,7 +8,4 @@ class Frontend
     PROP(QList<BridgeInfo> Bridges)
 	PROP(RazerInfo Razer)
 	PROP(bool IsRunning)
-
-	SLOT(void StartUpdateLoop())
-	SLOT(void StopUpdateLoop())
 };

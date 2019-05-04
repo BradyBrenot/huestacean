@@ -1,5 +1,6 @@
 #include "frontend/gui/gui.h"
 #include "frontend/frontend.h"
+#include "frontend/frontendtypes.h"
 
 #include <QRemoteObjectHost>
 
@@ -53,6 +54,13 @@ int Gui::Main(int argc, char* argv[])
 		return new GuiHelper(engine, scriptEngine);
 	});
 
+	qmlRegisterSingletonType<GuiHelper>("Huestacean.Types", 1, 0, "TypeFactory", [](QQmlEngine * engine, QJSEngine * scriptEngine) -> QObject * {
+		Q_UNUSED(engine)
+		Q_UNUSED(scriptEngine)
+
+		return new TypeFactory(engine);
+	});
+
 	
 	QQmlApplicationEngine engine;
 
@@ -92,7 +100,10 @@ int Gui::Main(int argc, char* argv[])
 	Frontend srcFrontend(backend);
 	srcNode.enableRemoting(&srcFrontend);
 
+	/////////////////////////////////
 	qmlRegisterType<FrontendQmlReplica>("Huestacean.Frontend", 1, 0, "FrontendQmlReplica");
+
+	/////////////////////////////////
 	
 	engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
 	if (engine.rootObjects().isEmpty())

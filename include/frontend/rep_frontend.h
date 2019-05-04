@@ -20,7 +20,7 @@ class FrontendReplica : public QRemoteObjectReplica
 {
     Q_OBJECT
     Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_TYPE, "Frontend")
-    Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_SIGNATURE, "108fc7879a435f041ca807cd71708d204ddab89e")
+    Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_SIGNATURE, "8e55f9a1328c0af1d084e5a8d6f54c5daec1cb63")
     Q_PROPERTY(qint32 ActiveSceneIndex READ ActiveSceneIndex NOTIFY ActiveSceneIndexChanged)
     Q_PROPERTY(QList<SceneInfo> Scenes READ Scenes NOTIFY ScenesChanged)
     Q_PROPERTY(QList<DeviceInfo> Devices READ Devices NOTIFY DevicesChanged)
@@ -38,12 +38,12 @@ public:
         initialized = true;
         qRegisterMetaType<QList<SceneInfo>>();
         qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
-        qRegisterMetaType<QList<DeviceInfo>>();
-        qRegisterMetaTypeStreamOperators<QList<DeviceInfo>>();
-        qRegisterMetaType<RazerInfo>();
-        qRegisterMetaTypeStreamOperators<RazerInfo>();
         qRegisterMetaType<QList<BridgeInfo>>();
         qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
+        qRegisterMetaType<RazerInfo>();
+        qRegisterMetaTypeStreamOperators<RazerInfo>();
+        qRegisterMetaType<QList<DeviceInfo>>();
+        qRegisterMetaTypeStreamOperators<QList<DeviceInfo>>();
 
     }
 
@@ -177,18 +177,6 @@ public Q_SLOTS:
         __repc_args << QVariant::fromValue(IsRunning);
         send(QMetaObject::InvokeMetaMethod, __repc_index, __repc_args);
     }
-    void StartUpdateLoop()
-    {
-        static int __repc_index = FrontendReplica::staticMetaObject.indexOfSlot("StartUpdateLoop()");
-        QVariantList __repc_args;
-        send(QMetaObject::InvokeMetaMethod, __repc_index, __repc_args);
-    }
-    void StopUpdateLoop()
-    {
-        static int __repc_index = FrontendReplica::staticMetaObject.indexOfSlot("StopUpdateLoop()");
-        QVariantList __repc_args;
-        send(QMetaObject::InvokeMetaMethod, __repc_index, __repc_args);
-    }
 
 private:
     friend class QT_PREPEND_NAMESPACE(QRemoteObjectNode);
@@ -202,7 +190,7 @@ class FrontendSource : public QObject
 {
     Q_OBJECT
     Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_TYPE, "Frontend")
-    Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_SIGNATURE, "108fc7879a435f041ca807cd71708d204ddab89e")
+    Q_CLASSINFO(QCLASSINFO_REMOTEOBJECT_SIGNATURE, "8e55f9a1328c0af1d084e5a8d6f54c5daec1cb63")
     Q_PROPERTY(qint32 ActiveSceneIndex READ ActiveSceneIndex WRITE setActiveSceneIndex NOTIFY ActiveSceneIndexChanged)
     Q_PROPERTY(QList<SceneInfo> Scenes READ Scenes WRITE setScenes NOTIFY ScenesChanged)
     Q_PROPERTY(QList<DeviceInfo> Devices READ Devices WRITE setDevices NOTIFY DevicesChanged)
@@ -215,12 +203,12 @@ public:
     {
         qRegisterMetaType<QList<SceneInfo>>();
         qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
-        qRegisterMetaType<QList<DeviceInfo>>();
-        qRegisterMetaTypeStreamOperators<QList<DeviceInfo>>();
-        qRegisterMetaType<RazerInfo>();
-        qRegisterMetaTypeStreamOperators<RazerInfo>();
         qRegisterMetaType<QList<BridgeInfo>>();
         qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
+        qRegisterMetaType<RazerInfo>();
+        qRegisterMetaTypeStreamOperators<RazerInfo>();
+        qRegisterMetaType<QList<DeviceInfo>>();
+        qRegisterMetaTypeStreamOperators<QList<DeviceInfo>>();
 
     }
 
@@ -273,8 +261,6 @@ public Q_SLOTS:
     {
         setIsRunning(IsRunning);
     }
-    virtual void StartUpdateLoop() = 0;
-    virtual void StopUpdateLoop() = 0;
 
 private:
     friend class QT_PREPEND_NAMESPACE(QRemoteObjectNode);
@@ -389,15 +375,13 @@ struct FrontendSourceAPI : public SourceApiMap
         m_signals[4] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::BridgesChanged, static_cast<void (QObject::*)(QList<BridgeInfo>)>(0),m_signalArgCount+3,&m_signalArgTypes[3]);
         m_signals[5] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::RazerChanged, static_cast<void (QObject::*)(RazerInfo)>(0),m_signalArgCount+4,&m_signalArgTypes[4]);
         m_signals[6] = QtPrivate::qtro_signal_index<ObjectType>(&ObjectType::IsRunningChanged, static_cast<void (QObject::*)(bool)>(0),m_signalArgCount+5,&m_signalArgTypes[5]);
-        m_methods[0] = 8;
+        m_methods[0] = 6;
         m_methods[1] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushActiveSceneIndex, static_cast<void (QObject::*)(qint32)>(0),"pushActiveSceneIndex(qint32)",m_methodArgCount+0,&m_methodArgTypes[0]);
         m_methods[2] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushScenes, static_cast<void (QObject::*)(QList<SceneInfo>)>(0),"pushScenes(QList<SceneInfo>)",m_methodArgCount+1,&m_methodArgTypes[1]);
         m_methods[3] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushDevices, static_cast<void (QObject::*)(QList<DeviceInfo>)>(0),"pushDevices(QList<DeviceInfo>)",m_methodArgCount+2,&m_methodArgTypes[2]);
         m_methods[4] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushBridges, static_cast<void (QObject::*)(QList<BridgeInfo>)>(0),"pushBridges(QList<BridgeInfo>)",m_methodArgCount+3,&m_methodArgTypes[3]);
         m_methods[5] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushRazer, static_cast<void (QObject::*)(RazerInfo)>(0),"pushRazer(RazerInfo)",m_methodArgCount+4,&m_methodArgTypes[4]);
         m_methods[6] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::pushIsRunning, static_cast<void (QObject::*)(bool)>(0),"pushIsRunning(bool)",m_methodArgCount+5,&m_methodArgTypes[5]);
-        m_methods[7] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::StartUpdateLoop, static_cast<void (QObject::*)()>(0),"StartUpdateLoop()",m_methodArgCount+6,&m_methodArgTypes[6]);
-        m_methods[8] = QtPrivate::qtro_method_index<ObjectType>(&ObjectType::StopUpdateLoop, static_cast<void (QObject::*)()>(0),"StopUpdateLoop()",m_methodArgCount+7,&m_methodArgTypes[7]);
     }
 
     QString name() const override { return m_name; }
@@ -505,8 +489,6 @@ struct FrontendSourceAPI : public SourceApiMap
         case 3: return QByteArrayLiteral("pushBridges(QList<BridgeInfo>)");
         case 4: return QByteArrayLiteral("pushRazer(RazerInfo)");
         case 5: return QByteArrayLiteral("pushIsRunning(bool)");
-        case 6: return QByteArrayLiteral("StartUpdateLoop()");
-        case 7: return QByteArrayLiteral("StopUpdateLoop()");
         }
         return QByteArrayLiteral("");
     }
@@ -529,22 +511,20 @@ struct FrontendSourceAPI : public SourceApiMap
         case 3: return QByteArrayLiteral("void");
         case 4: return QByteArrayLiteral("void");
         case 5: return QByteArrayLiteral("void");
-        case 6: return QByteArrayLiteral("void");
-        case 7: return QByteArrayLiteral("void");
         }
         return QByteArrayLiteral("");
     }
-    QByteArray objectSignature() const override { return QByteArray{"108fc7879a435f041ca807cd71708d204ddab89e"}; }
+    QByteArray objectSignature() const override { return QByteArray{"8e55f9a1328c0af1d084e5a8d6f54c5daec1cb63"}; }
 
     int m_enums[1];
     int m_properties[7];
     int m_signals[7];
-    int m_methods[9];
+    int m_methods[7];
     const QString m_name;
     int m_signalArgCount[6];
     const int* m_signalArgTypes[6];
-    int m_methodArgCount[8];
-    const int* m_methodArgTypes[8];
+    int m_methodArgCount[6];
+    const int* m_methodArgTypes[6];
 };
 
 QT_BEGIN_NAMESPACE

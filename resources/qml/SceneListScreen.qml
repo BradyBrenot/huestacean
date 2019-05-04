@@ -15,8 +15,6 @@ Page {
 
 	id: homeView
 	header: ToolBar {
-		visible: inMobileView
-
 		RowLayout {
 			anchors.fill: parent
 
@@ -58,7 +56,7 @@ Page {
 				ToolTip.text: qsTr("New scene")
 
 				onClicked: {
-					Common.stack.push({item:SceneEditor.createObject(), destroyOnPop:true})
+					sceneList.newScene();
 				}
 			}
 		}
@@ -75,7 +73,7 @@ Page {
 		rowSpacing: inMobileView ? 0 : 30
 
 		SceneList {
-			
+			id: sceneList
 		}
 	}
 }

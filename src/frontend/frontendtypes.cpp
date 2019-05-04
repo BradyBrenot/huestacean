@@ -362,12 +362,14 @@ QDataStream& operator>>(QDataStream& ds, DeviceInSceneInfo& out)
 
 QDataStream& operator<<(QDataStream& ds, const SceneInfo& in)
 {
+	ds << in.name;
 	ds << in.devicesInScene;
 	ds << in.effects;
 	return ds;
 }
 QDataStream& operator>>(QDataStream& ds, SceneInfo& out)
 {
+	ds >> out.name;
 	ds >> out.devicesInScene;
 	ds >> out.effects;
 	return ds;
@@ -486,5 +488,32 @@ BridgeInfo Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b)
 	}
 
 	return frontendBridge;
+}
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// Type Factory
+TypeFactory::TypeFactory(QObject* parent)
+	: QObject(parent)
+{
+
+}
+
+TypeFactory::~TypeFactory()
+{
+
+}
+
+QVariant TypeFactory::NewScene() const
+{
+	return QVariant::fromValue(SceneInfo{});
+}
+QVariant TypeFactory::NewSinePulseEffect() const
+{
+	return QVariant::fromValue(EffectInfo{ SinePulseEffectInfo{} });
+}
+QVariant TypeFactory::NewConstantEffect() const
+{
+	return QVariant::fromValue(EffectInfo{ ConstantEffectInfo{} });
 }
 ///////////////////////////////////////////////////////////////////////////

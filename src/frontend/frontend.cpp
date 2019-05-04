@@ -73,15 +73,6 @@ Frontend::Frontend(std::shared_ptr<Backend> inBackend)
 	BackendDevicesChanged();
 }
 
-void Frontend::StartUpdateLoop()
-{
-	m_Backend->Start();
-}
-void Frontend::StopUpdateLoop()
-{
-	m_Backend->Stop();
-}
-
 void Frontend::BackendActiveSceneChanged()
 {
 	QSignalBlocker Bl(this);
@@ -199,4 +190,19 @@ void Frontend::RemoteRazerChanged(QList<RazerInfo> Razer)
 	//@TODO: make this impossible?
 	ScopedIgnoreChanges Ig(this);
 	BackendRazerChanged();
+}
+
+///////////////////////////////////////////////////////
+// FrontendQmlReplica
+
+void FrontendQmlReplica::pushScenesList(QVariantList in)
+{
+	qDebug() << "PUSHING " << in;
+	auto newScenes = fromVariantList<SceneInfo>(in);
+
+	for (const auto& a : newScenes) {
+		qDebug() << "name: " << a.name;
+	}
+
+	pushScenes(newScenes);
 }

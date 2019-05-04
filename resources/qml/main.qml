@@ -6,11 +6,13 @@ import Huestacean.GuiHelper 1.0 as GuiHelper
 import QtGraphicalEffects 1.12
 
 import "."
-
 import "MaterialDesign.js" as MD
 
 ApplicationWindow {
     id: window
+
+	Component.onCompleted: Common.window = window
+
     width: 1000
     height: 800
     visible: true
@@ -20,14 +22,7 @@ ApplicationWindow {
 	font.family: "Roboto Regular"; 
 	font.pointSize: 12;
 
-    readonly property bool inMobileView: (isMobile != undefined && isMobile) || window.width < window.height
-
 	onActiveFocusItemChanged: print("activeFocusItem", activeFocusItem)
-	onInMobileView: {
-		if(!inMobileView) {
-			drawer.close()
-		}
-	}
 
 	Shortcut {
         sequences: ["Escape", "Menu"]
@@ -47,12 +42,14 @@ ApplicationWindow {
     Drawer {
         id: drawer
 
+		Component.onCompleted: Common.drawer = drawer
+
         width: 200
         height: window.height
 
-        modal: inMobileView
-        interactive: inMobileView
-        position: inMobileView ? 0 : 1
+        modal: Common.inMobileView
+        interactive: Common.inMobileView
+        position: Common.inMobileView ? 0 : 1
 
         ListView {
             id: listView
@@ -85,7 +82,7 @@ ApplicationWindow {
 					if("" != model.source) {
 						Common.stack.push(model.source)
 					}
-                    if (inMobileView) {
+                    if (Common.inMobileView) {
                         drawer.close()
                     }
                 }
@@ -106,7 +103,7 @@ ApplicationWindow {
 	Page {
 		id: homeView
 		header: ToolBar {
-			visible: inMobileView
+			visible: Common.inMobileView
 
 			RowLayout {
 				anchors.fill: parent
@@ -138,16 +135,16 @@ ApplicationWindow {
 
 		GridLayout {
 			id: grid
-			columns: inMobileView ? 1 : 2
+			columns: Common.inMobileView ? 1 : 2
 			anchors.fill: parent
-			anchors.margins: inMobileView ? 0 : 60
-			anchors.leftMargin: inMobileView ? 0 : 80
-			anchors.rightMargin: inMobileView ? 0 : 80
-			columnSpacing: inMobileView ? 0 : 40
-			rowSpacing: inMobileView ? 0 : 30
+			anchors.margins: Common.inMobileView ? 0 : 60
+			anchors.leftMargin: Common.inMobileView ? 0 : 80
+			anchors.rightMargin: Common.inMobileView ? 0 : 80
+			columnSpacing: Common.inMobileView ? 0 : 40
+			rowSpacing: Common.inMobileView ? 0 : 30
 
 			SceneList {
-			
+				visible: !Common.inMobileView
 			}
 
 			Pane {

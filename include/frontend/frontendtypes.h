@@ -247,6 +247,17 @@ public:
 
 	}
 
+	EffectInfo(EffectVariant& inData)
+		: data(inData)
+	{
+
+	}
+	EffectInfo(EffectVariant&& inData)
+		: data(inData)
+	{
+
+	}
+
 	bool operator==(const EffectInfo& b) const
 	{
 		return data == b.data;
@@ -357,4 +368,21 @@ SceneInfo				Scene_BackendToFrontend(const Scene& s);
 Scene					Scene_FrontendToBackend(SceneInfo s, const Backend& b);
 
 BridgeInfo				Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b);
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// Make C++ types from within QML without making all of the above QObjects
+class TypeFactory : public QObject
+{
+	Q_OBJECT;
+
+public:
+	TypeFactory(QObject* parent = nullptr);
+	virtual ~TypeFactory();
+
+	Q_INVOKABLE QVariant NewScene() const;
+	Q_INVOKABLE QVariant NewSinePulseEffect() const;
+	Q_INVOKABLE QVariant NewConstantEffect() const;
+};
+
 ///////////////////////////////////////////////////////////////////////////

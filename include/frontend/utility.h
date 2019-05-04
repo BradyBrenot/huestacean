@@ -19,9 +19,7 @@ QVariantList makeVariantList(const QList<T>& list)
 	auto vl = QVariantList();
 	for (const auto& item : list)
 	{
-		QVariant v;
-		v.setValue(item);
-		vl.push_back(v);
+		vl.push_back(QVariant::fromValue(item));
 	}
 	return vl;
 }
