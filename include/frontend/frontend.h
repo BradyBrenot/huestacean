@@ -82,15 +82,28 @@ class FrontendQmlReplica : public FrontendReplica
 {
 	Q_OBJECT
 
-		Q_PROPERTY(QVariantList ScenesList READ ScenesList NOTIFY ScenesListChanged)
-		Q_PROPERTY(QVariantList DevicesList READ DevicesList NOTIFY DevicesListChanged)
-		Q_PROPERTY(QVariantList BridgesList READ BridgesList NOTIFY BridgesListChanged)
+	Q_PROPERTY(QList<QObject*> ScenesList READ ScenesList NOTIFY ScenesListChanged)
+	Q_PROPERTY(QVariantList DevicesList READ DevicesList NOTIFY DevicesListChanged)
+	Q_PROPERTY(QVariantList BridgesList READ BridgesList NOTIFY BridgesListChanged)
+
+	template<typename T>
+	static void doDeleteLater(T* obj)
+	{
+		obj->deleteLater();
+	}
 
 public:
 
-	QVariantList ScenesList() const
+	QList<QObject*> ScenesList() const
 	{
-		return makeVariantList(Scenes());
+		//"ownership will be set to JavaScriptOwnership... [this does not apply] to property getter invocations"
+		
+		QList<QObject*> out;
+		for(auto& s : m_ScenesList)
+		{ 
+			out.push_back(s.get());
+		}
+		return out;
 	}
 	QVariantList DevicesList() const
 	{
@@ -133,8 +146,15 @@ public slots:
 		emit ActiveSceneIndexChanged(ActiveSceneIndex());
 		emit IsRunningChanged(IsRunning());
 	}
-	void OnScenesChanged(QList<SceneInfo> Scenes)
+	void OnScenesChanged(QList<SceneInfo> InScenes)
 	{
+		m_ScenesList.clear();
+
+		for (auto& s : InScenes)
+		{
+			m_ScenesList.push_back(QSharedPointer<SceneInfo>(new SceneInfo(s), doDeleteLater<SceneInfo>));
+		}
+
 		emit ScenesListChanged();
 	}
 	void OnDevicesChanged(QList<DeviceInfo> Devices)
@@ -146,5 +166,9 @@ public slots:
 		emit BridgesListChanged();
 	}
 
-	void pushScenesList(QVariantList in);
+	void PushScene(SceneInfo* in, int index);
+	void AddScene();
+
+private:
+	QList< QSharedPointer<SceneInfo> > m_ScenesList;
 };

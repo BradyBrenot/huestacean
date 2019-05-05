@@ -195,14 +195,21 @@ void Frontend::RemoteRazerChanged(QList<RazerInfo> Razer)
 ///////////////////////////////////////////////////////
 // FrontendQmlReplica
 
-void FrontendQmlReplica::pushScenesList(QVariantList in)
+void FrontendQmlReplica::PushScene(SceneInfo* in, int index)
 {
-	qDebug() << "PUSHING " << in;
-	auto newScenes = fromVariantList<SceneInfo>(in);
-
-	for (const auto& a : newScenes) {
-		qDebug() << "name: " << a.name;
+	auto newScenes = Scenes();
+	if (index >= 0 && index < newScenes.size()) {
+		newScenes[index] = *in;
 	}
 
+	pushScenes(newScenes);
+}
+
+
+void FrontendQmlReplica::AddScene()
+{
+	auto newScenes = Scenes();
+	newScenes.push_back(SceneInfo{});
+	newScenes[newScenes.size() - 1].name = "New Scene";
 	pushScenes(newScenes);
 }

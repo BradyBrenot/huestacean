@@ -504,10 +504,6 @@ TypeFactory::~TypeFactory()
 
 }
 
-QVariant TypeFactory::NewScene() const
-{
-	return QVariant::fromValue(SceneInfo{});
-}
 QVariant TypeFactory::NewSinePulseEffect() const
 {
 	return QVariant::fromValue(EffectInfo{ SinePulseEffectInfo{} });

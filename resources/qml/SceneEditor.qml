@@ -4,7 +4,7 @@ import QtQuick.Controls.Material 2.12
 import QtQuick.Layouts 1.12
 import Huestacean.GuiHelper 1.0 as GuiHelper
 import QtGraphicalEffects 1.12
-
+import Huestacean.Types 1.0
 import "."
 import "MaterialDesign.js" as MD
 
@@ -14,14 +14,7 @@ Page {
 	property var myName: myScene.name
 
 	function apply() {
-		var newSceneList = Array.from(Frontend.ScenesList);
-		newSceneList[index] = myScene;
-		Frontend.pushScenesList(newSceneList);
-	}
-
-	onMySceneChanged : {
-		console.log("HELLO WORLD")
-		apply()
+		Frontend.PushScene(myScene, index);
 	}
 
 	Dialog {
@@ -36,10 +29,7 @@ Page {
 
 		onAccepted: {
 			myScene.name = renameText.text
-
-			console.log("HELLO NAME IS NOW" + renameText.text)
-			console.log(Frontend.ScenesList[index].name)
-			console.log(myScene.name)
+			apply()
 		}
 	}
 
@@ -50,7 +40,10 @@ Page {
 			anchors.fill: parent
 
 			ToolButton {
-				onClicked: Common.stack.pop()
+				onClicked: {
+					apply()
+					Common.stack.pop()
+				}
 
 				font.pointSize: 18
 				font.family: "Material Icons"
@@ -99,9 +92,82 @@ Page {
 				ToolTip.text: qsTr("Add object to scene")
 
 				onClicked: {
-					Common.stack.push({item:SceneEditor.createObject(), destroyOnPop:true})
+					var newList = myScene.effects;
+					newList.push(TypeFactory.NewConstantEffect());
+					myScene.effects = newList;
+					apply();
 				}
 			}
 		}
 	}
+
+	GridLayout {
+		anchors.fill: parent
+		columns: 3
+
+		Column {
+			Layout.columnSpan: 1
+			Layout.rowSpan: 3
+
+			Column {
+				Label {
+					text: "In Scene"
+				}
+
+				Repeater {
+					model: myScene.effects
+					Label {
+						text: "" + modelData
+					}
+				}
+
+				Repeater {
+					model: myScene.devicesInScene
+					Label {
+						text: "" + modelData
+					}
+				}
+
+				Label {
+					text: "Available"
+				}
+
+				Label {
+					text: "Sine Pulse"
+				}
+
+				Label {
+					text: "Constant Pulse"
+				}
+
+				Repeater {
+					model: Frontend.DevicesList
+					Label {
+						text: "" + modelData
+					}
+				}
+			}
+			
+		}
+
+		Rectangle {
+			Layout.columnSpan: 2
+			Layout.rowSpan: 2
+
+			Layout.fillWidth: true
+			Layout.fillHeight: true
+		}
+
+		Row {
+			Layout.columnSpan: 2
+			Layout.rowSpan: 1
+
+			Layout.fillWidth: true
+
+			Label {
+				text: "Props will go here"
+			}
+		}
+	}
+	
 }

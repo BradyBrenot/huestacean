@@ -288,15 +288,24 @@ public:
 	}
 };
 
-struct SceneInfo
+class SceneInfo : public QObject
 {
-	Q_GADGET
+	Q_OBJECT
 
-	Q_PROPERTY(QString name MEMBER name)
-	Q_PROPERTY(QList<QVariant> devicesInScene READ GetDevicesInScene WRITE SetDevicesInScene)
-	Q_PROPERTY(QList<QVariant> effects READ GetEffects WRITE SetEffects)
+	Q_PROPERTY(QString name MEMBER name NOTIFY nameChanged)
+	Q_PROPERTY(QList<QVariant> devicesInScene READ GetDevicesInScene WRITE SetDevicesInScene NOTIFY devicesInSceneChanged)
+	Q_PROPERTY(QList<QVariant> effects READ GetEffects WRITE SetEffects NOTIFY effectsChanged)
 
 public:
+
+	SceneInfo(QObject* parent = nullptr) : QObject(parent) {};
+	SceneInfo(const SceneInfo& b) 
+		: name(b.name),
+		devicesInScene(b.devicesInScene), 
+		effects(b.effects)
+	{
+	};
+	virtual ~SceneInfo() {};
 
 	QString name;
 	QList<DeviceInSceneInfo> devicesInScene;
@@ -307,15 +316,30 @@ public:
 		return name == b.name && devicesInScene == b.devicesInScene && effects == b.effects;
 	}
 
+	SceneInfo& operator=(const SceneInfo& b)
+	{
+		name = b.name;
+		devicesInScene = b.devicesInScene;
+		effects = b.effects;
+		return *this;
+	}
+
+signals:
+	void devicesInSceneChanged();
+	void effectsChanged();
+	void nameChanged();
+
 private:
 	QList<QVariant> GetDevicesInScene() { return makeVariantList(devicesInScene); }
-	void SetDevicesInScene(QVariantList& in) { devicesInScene = fromVariantList<DeviceInSceneInfo>(in); }
+	void SetDevicesInScene(QVariantList& in) { devicesInScene = fromVariantList<DeviceInSceneInfo>(in); emit devicesInSceneChanged(); }
 	QList<QVariant> GetEffects() { return makeVariantList(effects); }
-	void SetEffects(QVariantList& in) { effects = fromVariantList<EffectInfo>(in); }
+	void SetEffects(QVariantList& in) { effects = fromVariantList<EffectInfo>(in); emit effectsChanged(); }
 };
 ///////////////////////////////////////////////////////////////////////////
 
 Q_DECLARE_METATYPE(QList<DeviceInfo>)
+Q_DECLARE_METATYPE(SceneInfo)
+Q_DECLARE_METATYPE(QList<SceneInfo>)
 
 ///////////////////////////////////////////////////////////////////////////
 //Serialization
@@ -380,7 +404,6 @@ public:
 	TypeFactory(QObject* parent = nullptr);
 	virtual ~TypeFactory();
 
-	Q_INVOKABLE QVariant NewScene() const;
 	Q_INVOKABLE QVariant NewSinePulseEffect() const;
 	Q_INVOKABLE QVariant NewConstantEffect() const;
 };

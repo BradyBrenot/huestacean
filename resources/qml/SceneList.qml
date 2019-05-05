@@ -34,12 +34,8 @@ Pane {
 	}
 
 	function newScene() {
-		var newScene = TypeFactory.NewScene();
-		newScene.name = "New Scene";
-		var newSceneList = Array.from(Frontend.ScenesList);
-		newSceneList.push(newScene);
 		isPendingNewScene = true;
-		Frontend.pushScenesList(newSceneList);
+		Frontend.AddScene();
 	}
 
 	ColumnLayout {
@@ -144,7 +140,7 @@ Pane {
 
 								Label {
 									color: "black"
-									text: "" + modelData
+									text: "" + modelData.name
 									x: label.x + 1
 									y: label.y + 1
 									opacity: 0.6
@@ -153,7 +149,7 @@ Pane {
 								Label {
 									anchors.verticalCenter: parent.verticalCenter
 									id: label
-									text: "" + modelData 
+									text: "" + modelData.name
 								}
 							}
 										

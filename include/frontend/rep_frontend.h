@@ -36,10 +36,10 @@ public:
         if (initialized)
             return;
         initialized = true;
-        qRegisterMetaType<QList<SceneInfo>>();
-        qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
         qRegisterMetaType<QList<BridgeInfo>>();
         qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
+        qRegisterMetaType<QList<SceneInfo>>();
+        qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
         qRegisterMetaType<RazerInfo>();
         qRegisterMetaTypeStreamOperators<RazerInfo>();
         qRegisterMetaType<QList<DeviceInfo>>();
@@ -201,10 +201,10 @@ class FrontendSource : public QObject
 public:
     explicit FrontendSource(QObject *parent = nullptr) : QObject(parent)
     {
-        qRegisterMetaType<QList<SceneInfo>>();
-        qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
         qRegisterMetaType<QList<BridgeInfo>>();
         qRegisterMetaTypeStreamOperators<QList<BridgeInfo>>();
+        qRegisterMetaType<QList<SceneInfo>>();
+        qRegisterMetaTypeStreamOperators<QList<SceneInfo>>();
         qRegisterMetaType<RazerInfo>();
         qRegisterMetaTypeStreamOperators<RazerInfo>();
         qRegisterMetaType<QList<DeviceInfo>>();
