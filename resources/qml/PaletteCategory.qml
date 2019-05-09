@@ -43,7 +43,7 @@ ColumnLayout {
 		Label {
 			font.pointSize: 18
 			font.family: "Material Icons"
-			text: isExpanded ? MD.icons.expand_less : MD.icons.expand_more
+			text: repeater.count > 0 ? (isExpanded ? MD.icons.expand_less : MD.icons.expand_more) : ""
 
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.right: parent.right

@@ -296,6 +296,8 @@ class SceneInfo : public QObject
 	Q_PROPERTY(QList<QVariant> devicesInScene READ GetDevicesInScene WRITE SetDevicesInScene NOTIFY devicesInSceneChanged)
 	Q_PROPERTY(QList<QVariant> effects READ GetEffects WRITE SetEffects NOTIFY effectsChanged)
 
+	Q_PROPERTY(QList<QVariant> devices READ GetDevices NOTIFY devicesInSceneChanged)
+
 public:
 
 	SceneInfo(QObject* parent = nullptr) : QObject(parent) {};
@@ -324,6 +326,9 @@ public:
 		return *this;
 	}
 
+	Q_INVOKABLE void AddDevice(QVariant Device);
+	Q_INVOKABLE void RemoveDevice(QVariant Device);
+
 signals:
 	void devicesInSceneChanged();
 	void effectsChanged();
@@ -334,6 +339,8 @@ private:
 	void SetDevicesInScene(QVariantList& in) { devicesInScene = fromVariantList<DeviceInSceneInfo>(in); emit devicesInSceneChanged(); }
 	QList<QVariant> GetEffects() { return makeVariantList(effects); }
 	void SetEffects(QVariantList& in) { effects = fromVariantList<EffectInfo>(in); emit effectsChanged(); }
+
+	QList<QVariant> GetDevices();
 };
 ///////////////////////////////////////////////////////////////////////////
 

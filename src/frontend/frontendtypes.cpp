@@ -491,6 +491,40 @@ BridgeInfo Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b)
 }
 ///////////////////////////////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////////////////
+// SceneInfo
+
+void SceneInfo::AddDevice(QVariant Device)
+{
+	RemoveDevice(Device);
+	devicesInScene.push_back(DeviceInSceneInfo{ Transform{}, Device.value<DeviceInfo>() });
+}
+
+void SceneInfo::RemoveDevice(QVariant Device)
+{
+	QMutableListIterator i(devicesInScene);
+	while (i.hasNext()) 
+	{
+		if (i.next().device == Device.value<DeviceInfo>())
+		{
+			i.remove();
+		}
+			
+	}
+}
+
+QList<QVariant> SceneInfo::GetDevices()
+{
+	QList<QVariant> out;
+	for (const auto& deviceInScene : devicesInScene)
+	{
+		out.push_back(QVariant::fromValue(deviceInScene.device));
+	}
+	return out;
+}
+///////////////////////////////////////////////////////////////////////////
+
 ///////////////////////////////////////////////////////////////////////////
 // Type Factory
 TypeFactory::TypeFactory(QObject* parent)

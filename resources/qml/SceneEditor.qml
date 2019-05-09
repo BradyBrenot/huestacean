@@ -127,17 +127,36 @@ Page {
 
 					model: Frontend.DevicesList
 					delegate: PaletteItem {
+						property var isInScene: {
+							var isFound = false;
+
+							for (var i = 0; i < myScene.devices.length; i++) 
+							{
+								if(myScene.devices[i].uniqueid == modelData.uniqueid) {
+									return true;
+								}
+							}
+
+							return false;
+						}
+
+						visible: !isInScene
+
 						width: paletteColumn.width
-						text: "" + modelData.data
+						text: "" + modelData.uniqueid
 						innerButtonText: "Add"
 						innerButtonTooltip: "Add device to scene"
 						isOddNumbered: index % 2 != 0
+						onInnerButtonClicked: {
+							myScene.AddDevice(modelData)
+							apply();
+						}
 					}
 				}
 
 				PaletteCategory {
 					width: paletteColumn.width
-					headerText: "Effects In Scene"
+					headerText: "Effects in scene"
 
 					model: myScene.effects
 					delegate: Label {
@@ -147,11 +166,20 @@ Page {
 
 				PaletteCategory {
 					width: paletteColumn.width
-					headerText: "Effects In Scene"
+					headerText: "Devices in scene"
 
 					model: myScene.devicesInScene
-					delegate: Label {
-						text: "" + modelData
+					delegate: PaletteItem {
+						width: paletteColumn.width
+						text: "" + modelData.device.uniqueid
+						innerButtonText: "Remove"
+						innerButtonTooltip: "Remove device from scene"
+						isOddNumbered: index % 2 != 0
+						onInnerButtonClicked: {
+							myScene.RemoveDevice(modelData.device)
+
+							apply();
+						}
 					}
 				}
 
