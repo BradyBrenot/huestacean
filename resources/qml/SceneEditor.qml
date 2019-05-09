@@ -105,49 +105,60 @@ Page {
 		anchors.fill: parent
 		columns: 3
 
-		Column {
+		ScrollView {
+			id: paletteFlickable
+
 			Layout.columnSpan: 1
 			Layout.rowSpan: 3
+			Layout.preferredWidth: 300
+			Layout.fillHeight: true
+			contentHeight: paletteColumn.height
+			
+			ColumnLayout {
+				id: paletteColumn
 
-			Column {
-				Label {
-					text: "In Scene"
-				}
+				width: 300
 
-				Repeater {
-					model: myScene.effects
-					Label {
-						text: "" + modelData
-					}
-				}
+				spacing: 0
 
-				Repeater {
-					model: myScene.devicesInScene
-					Label {
-						text: "" + modelData
-					}
-				}
+				PaletteCategory {
+					width: paletteColumn.width
+					headerText: "Available Devices"
 
-				Label {
-					text: "Available"
-				}
-
-				Label {
-					text: "Sine Pulse"
-				}
-
-				Label {
-					text: "Constant Pulse"
-				}
-
-				Repeater {
 					model: Frontend.DevicesList
-					Label {
+					delegate: PaletteItem {
+						width: paletteColumn.width
+						text: "" + modelData.data
+						innerButtonText: "Add"
+						innerButtonTooltip: "Add device to scene"
+						isOddNumbered: index % 2 != 0
+					}
+				}
+
+				PaletteCategory {
+					width: paletteColumn.width
+					headerText: "Effects In Scene"
+
+					model: myScene.effects
+					delegate: Label {
+						text: "" + modelData.data
+					}
+				}
+
+				PaletteCategory {
+					width: paletteColumn.width
+					headerText: "Effects In Scene"
+
+					model: myScene.devicesInScene
+					delegate: Label {
 						text: "" + modelData
 					}
+				}
+
+				Item {
+					Layout.fillHeight: true
 				}
 			}
-			
 		}
 
 		Rectangle {

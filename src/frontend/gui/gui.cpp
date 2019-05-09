@@ -69,7 +69,9 @@ int Gui::Main(int argc, char* argv[])
 
 	//app.setFont(QFont(QFontDatabase::applicationFontFamilies(QFontDatabase::addApplicationFont(":/fonts/roboto/Roboto-Medium.ttf")).at(0)));
 
-	QFontDatabase::addApplicationFont(":/fonts/roboto/Roboto-Black.ttf");
+	auto id = QFontDatabase::addApplicationFont(":/fonts/roboto/Roboto-Black.ttf");
+	qDebug() << "--FONT: " << id << QFontDatabase::applicationFontFamilies(id);
+
     QFontDatabase::addApplicationFont(":/fonts/roboto/Roboto-BlackItalic.ttf");
     QFontDatabase::addApplicationFont(":/fonts/roboto/Roboto-Bold.ttf");
     QFontDatabase::addApplicationFont(":/fonts/roboto/Roboto-BoldItalic.ttf");

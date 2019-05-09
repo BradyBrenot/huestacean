@@ -68,7 +68,7 @@ Pane {
 		}
 					
 
-		Flickable {
+		ScrollView {
 			id: scenesFlick
 			clip: true
 
@@ -163,14 +163,6 @@ Pane {
 
 			contentHeight: scenesColumn.height
 			contentWidth: width
-
-			ScrollBar.vertical: ScrollBar { 
-				contentItem.opacity: scenesFlick.contentHeight > scenesFlick.height ? 1 : 0;
-			} 
-
-			ScrollBar.horizontal: ScrollBar { 
-				contentItem.opacity: scenesFlick.contentWidth > scenesFlick.width ? 1 : 0;
-			} 
 		}
 	}
 }

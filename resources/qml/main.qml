@@ -19,7 +19,8 @@ ApplicationWindow {
     title: qsTr("Huestacean")
 
 	//This doesn't want to work in qtquickcontrols2.conf
-	font.family: "Roboto Regular"; 
+	font.family: "Roboto"; 
+	font.styleName: "Regular";
 	font.pointSize: 12;
 
 	onActiveFocusItemChanged: print("activeFocusItem", activeFocusItem)

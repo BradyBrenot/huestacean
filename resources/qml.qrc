@@ -7,6 +7,9 @@
     <file>qml/SceneListScreen.qml</file>
     <file>qml/SceneEditor.qml</file>
 
+    <file>qml/PaletteCategory.qml</file>
+    <file>qml/PaletteItem.qml</file>
+
     <file>qml/common.qml</file>
     <file>qml/frontend.qml</file>
     <file>qml/qmldir</file>
