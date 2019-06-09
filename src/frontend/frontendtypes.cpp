@@ -2,6 +2,8 @@
 #include "effects/effects.h"
 #include "hue/bridge.h"
 
+#include <algorithm>
+
 #include <QDataStream>
 #include <QQuaternion>
 
@@ -157,6 +159,7 @@ QDataStream& operator<<(QDataStream& ds, const std::monostate& in)
 QDataStream& operator<<(QDataStream& ds, const DeviceInfo& in)
 {
 	ds << in.uniqueid;
+	ds << in.size;
 
 	std::visit(
 		overloaded{
@@ -175,6 +178,7 @@ QDataStream& operator<<(QDataStream& ds, const DeviceInfo& in)
 QDataStream& operator>>(QDataStream& ds, DeviceInfo& out)
 {
 	ds >> out.uniqueid;
+	ds >> out.size;
 
 	quint8 iType;
 	ds >> iType;
@@ -393,6 +397,26 @@ DeviceInfo Device_BackendToFrontend(DevicePtr d)
 		std::get<HueDeviceInfo>(out.data).bridgeId = hue->bridgeid.c_str();
 	}
 
+	out.size = [&]() {
+		auto boundingBoxes = d->GetLightBoundingBoxes();
+
+		Math::Vector3d boundsMin, boundsMax;
+		for (const auto& box : boundingBoxes) {
+			boundsMin.x = std::min(boundsMin.x, box.center.x - box.halfSize.x);
+			boundsMax.x = std::max(boundsMin.x, box.center.x + box.halfSize.x);
+
+			boundsMin.y = std::min(boundsMin.y, box.center.y - box.halfSize.y);
+			boundsMax.y = std::max(boundsMin.y, box.center.y + box.halfSize.y);
+
+			boundsMin.z = std::min(boundsMin.z, box.center.z - box.halfSize.z);
+			boundsMax.z = std::max(boundsMin.z, box.center.z + box.halfSize.z);
+		}
+
+		return QVector3D{static_cast<float>(boundsMax.x - boundsMin.x),
+			static_cast<float>(boundsMax.y - boundsMin.y),
+			static_cast<float>(boundsMax.z - boundsMin.z)};
+	}();
+
 	return out;
 }
 
@@ -498,7 +522,7 @@ BridgeInfo Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b)
 void SceneInfo::AddDevice(QVariant Device)
 {
 	RemoveDevice(Device);
-	devicesInScene.push_back(DeviceInSceneInfo{ Transform{}, Device.value<DeviceInfo>() });
+	devicesInScene.push_back(DeviceInSceneInfo{ Transform{Math::Transform{{0, 0, 0}, {1.0, 1.0, 1.0}, {0, 0, 0}}}, Device.value<DeviceInfo>() });
 }
 
 void SceneInfo::RemoveDevice(QVariant Device)

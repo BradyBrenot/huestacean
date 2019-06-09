@@ -143,7 +143,7 @@ Page {
 						visible: !isInScene
 
 						width: paletteColumn.width
-						text: "" + modelData.uniqueid
+						text: modelData.size + " " + modelData.uniqueid
 						innerButtonText: "Add"
 						innerButtonTooltip: "Add device to scene"
 						isOddNumbered: index % 2 != 0
@@ -195,6 +195,14 @@ Page {
 
 			Layout.fillWidth: true
 			Layout.fillHeight: true
+
+			Repeater {
+				model: myScene.devices
+				delegate: SceneItem {
+					deviceIndex: index
+					scene: myScene
+				}
+			}
 		}
 
 		Row {
@@ -208,5 +216,4 @@ Page {
 			}
 		}
 	}
-	
 }

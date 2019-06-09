@@ -70,9 +70,9 @@ namespace Razer
 					constexpr distance xStart = -1.0 * (xSize / 2.0) + cellXSize / 2.0;
 					constexpr distance yStart = -1.0 * (ySize / 2.0) + cellYSize / 2.0;
 
-					boxes.push_back(Math::Box{ 
+					boxes[x * COLUMNS + y] = Math::Box{ 
 						Vector3d{xStart + cellXSize * x, yStart + cellYSize * y, 0.0},
-						Vector3d{cellXSize / 2.0, cellYSize / 2.0, cellZSize / 2.0}});
+						Vector3d{cellXSize / 2.0, cellYSize / 2.0, cellZSize / 2.0}};
 				}
 			}
 

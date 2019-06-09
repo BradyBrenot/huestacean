@@ -12,7 +12,6 @@
 struct DeviceInScene
 {
 	DevicePtr device;
-
 	Math::Transform transform;
 
 	DeviceInScene(DevicePtr& d, Math::Transform& t) :
@@ -24,7 +23,7 @@ struct DeviceInScene
 
 	DeviceInScene() :
 		device(), 
-		transform()
+		transform{ {0, 0, 0}, {1.0, 1.0, 1.0}, {0, 0, 0} }
 	{
 
 	}

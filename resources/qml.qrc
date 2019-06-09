@@ -6,6 +6,7 @@
     <file>qml/SceneList.qml</file>
     <file>qml/SceneListScreen.qml</file>
     <file>qml/SceneEditor.qml</file>
+    <file>qml/SceneItem.qml</file>
 
     <file>qml/PaletteCategory.qml</file>
     <file>qml/PaletteItem.qml</file>

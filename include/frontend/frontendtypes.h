@@ -51,6 +51,38 @@ public:
 		return !(*this == b);
 	}
 };
+
+//AABB
+struct Box
+{
+	Q_GADGET
+
+	Q_PROPERTY(QVector3D center MEMBER center)
+	Q_PROPERTY(QVector3D halfSize MEMBER halfSize)
+public:
+
+	QVector3D center;
+	QVector3D halfSize;
+
+	Box()
+		: center(), halfSize()
+	{
+	}
+
+	Box(QVector3D inCenter, QVector3D inHalfSize)
+		: center(inCenter), halfSize(inHalfSize)
+	{
+	}
+
+	bool operator==(const Box& b) const
+	{
+		return center == b.center && halfSize == b.halfSize;
+	}
+	bool operator!=(const Box& b) const
+	{
+		return !(*this == b);
+	}
+};
 ///////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
@@ -88,10 +120,12 @@ struct DeviceInfo
 	Q_GADGET
 	Q_PROPERTY(QString uniqueid MEMBER uniqueid)
 	Q_PROPERTY(QVariant data READ GetData WRITE SetData)
+	Q_PROPERTY(QVector3D size MEMBER size) //TODO: do more with this / display individual lights?
 
 public:
 
 	QString uniqueid;
+	QVector3D size;
 
 	DeviceVariant data;
 
@@ -103,6 +137,7 @@ public:
 	DeviceInfo(const DeviceInfo& b) {
 		uniqueid = b.uniqueid;
 		data = b.data;
+		size = b.size;
 	}
 
 	~DeviceInfo() {
@@ -295,16 +330,20 @@ class SceneInfo : public QObject
 	Q_PROPERTY(QString name MEMBER name NOTIFY nameChanged)
 	Q_PROPERTY(QList<QVariant> devicesInScene READ GetDevicesInScene WRITE SetDevicesInScene NOTIFY devicesInSceneChanged)
 	Q_PROPERTY(QList<QVariant> effects READ GetEffects WRITE SetEffects NOTIFY effectsChanged)
-
 	Q_PROPERTY(QList<QVariant> devices READ GetDevices NOTIFY devicesInSceneChanged)
+	Q_PROPERTY(QVector3D size MEMBER size NOTIFY sizeChanged)
 
 public:
 
-	SceneInfo(QObject* parent = nullptr) : QObject(parent) {};
+	SceneInfo(QObject* parent = nullptr) : QObject(parent),
+		size(3,3,3)
+	{
+	};
 	SceneInfo(const SceneInfo& b) 
 		: name(b.name),
 		devicesInScene(b.devicesInScene), 
-		effects(b.effects)
+		effects(b.effects),
+		size(b.size)
 	{
 	};
 	virtual ~SceneInfo() {};
@@ -312,6 +351,7 @@ public:
 	QString name;
 	QList<DeviceInSceneInfo> devicesInScene;
 	QList<EffectInfo> effects;
+	QVector3D size;
 
 	bool operator==(const SceneInfo& b) const
 	{
@@ -333,6 +373,7 @@ signals:
 	void devicesInSceneChanged();
 	void effectsChanged();
 	void nameChanged();
+	void sizeChanged();
 
 private:
 	QList<QVariant> GetDevicesInScene() { return makeVariantList(devicesInScene); }
@@ -344,6 +385,7 @@ private:
 };
 ///////////////////////////////////////////////////////////////////////////
 
+Q_DECLARE_METATYPE(Transform)
 Q_DECLARE_METATYPE(QList<DeviceInfo>)
 Q_DECLARE_METATYPE(SceneInfo)
 Q_DECLARE_METATYPE(QList<SceneInfo>)
