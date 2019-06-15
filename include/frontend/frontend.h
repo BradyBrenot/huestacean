@@ -3,6 +3,7 @@
 #include "rep_frontend.h"
 #include "backend/backend.h"
 #include "frontend/utility.h"
+#include "frontend/frontendtypes.h"
 
 #include <memory>
 
@@ -96,14 +97,7 @@ public:
 
 	QList<QObject*> ScenesList() const
 	{
-		//"ownership will be set to JavaScriptOwnership... [this does not apply] to property getter invocations"
-		
-		QList<QObject*> out;
-		for(auto& s : m_ScenesList)
-		{ 
-			out.push_back(s.get());
-		}
-		return out;
+		return makeQObjectList(m_ScenesList);
 	}
 	QVariantList DevicesList() const
 	{

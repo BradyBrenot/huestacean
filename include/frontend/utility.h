@@ -34,4 +34,16 @@ QList<T> fromVariantList(const QVariantList& in)
 	}
 	return out;
 }
+
+//"ownership will be set to JavaScriptOwnership... [this does not apply] to property getter invocations"
+template<typename T>
+QList<QObject*> makeQObjectList(const QList<QSharedPointer<T>>& list)
+{
+	QList<QObject*> out;
+	for (auto& s : list)
+	{
+		out.push_back(s.get());
+	}
+	return out;
+}
 //////////////////////////////////////////////////////////

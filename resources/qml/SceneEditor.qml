@@ -29,6 +29,8 @@ Page {
 
 		onAccepted: {
 			myScene.name = renameText.text
+			myScene.size.x = 2;
+			console.log(myScene.size)
 			apply()
 		}
 	}

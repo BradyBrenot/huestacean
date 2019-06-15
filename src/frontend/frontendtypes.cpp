@@ -392,15 +392,42 @@ QDataStream& operator>>(QDataStream& ds, DeviceInSceneInfo& out)
 QDataStream& operator<<(QDataStream& ds, const SceneInfo& in)
 {
 	ds << in.name;
-	ds << in.devicesInScene;
-	ds << in.effects;
+
+	ds << static_cast<uint32_t>(in.m_DevicesInScene.size());
+	for (const auto& d : in.m_DevicesInScene) {
+		ds << *(d.get());
+	}
+
+	ds << static_cast<uint32_t>(in.m_EffectsList.size());
+	for (const auto& e : in.m_EffectsList) {
+		ds << *(e.get());
+	}
+
 	return ds;
 }
 QDataStream& operator>>(QDataStream& ds, SceneInfo& out)
 {
 	ds >> out.name;
-	ds >> out.devicesInScene;
-	ds >> out.effects;
+
+	uint32_t numDevices;
+	uint32_t numEffects;
+
+	ds >> numDevices;
+	for (uint32_t i = 0; i < numDevices; ++i)
+	{
+		DeviceInSceneInfo d;
+		ds >> d;
+		out.m_DevicesInScene.push_back(QSharedPointer< DeviceInSceneInfo>::create(d));
+	}
+
+	ds >> numEffects;
+	for (uint32_t i = 0; i < numEffects; ++i)
+	{
+		EffectInfo e;
+		ds >> e;
+		out.m_EffectsList.push_back(QSharedPointer<EffectInfo>::create(e));
+	}
+
 	return ds;
 }
 ///////////////////////////////////////////////////////////////////////////
@@ -450,25 +477,25 @@ DevicePtr Device_FrontendToBackend(DeviceInfo d, const Backend& b)
 	return b.GetDeviceFromUniqueId(d.uniqueid.toStdString());
 }
 
-EffectInfo Effect_BackendToFrontend(const std::unique_ptr<Effect>& e)
+QSharedPointer<EffectInfo> Effect_BackendToFrontend(const std::unique_ptr<Effect>& e)
 {
-	auto out = EffectInfo();
+	auto out = QSharedPointer<EffectInfo>::create();
 
 	if (auto * sine = dynamic_cast<SinePulseEffect*>(e.get()))
 	{
-		out.data = SinePulseEffectInfo{};
-		std::get<SinePulseEffectInfo>(out.data).transform = sine->transform;
+		out->data = SinePulseEffectInfo{};
+		std::get<SinePulseEffectInfo>(out->data).transform = sine->transform;
 	}
 	else if (auto * constant = dynamic_cast<ConstantEffect*>(e.get()))
 	{
-		out.data = ConstantEffectInfo{};
-		std::get<ConstantEffectInfo>(out.data).transform = constant->transform;
+		out->data = ConstantEffectInfo{};
+		std::get<ConstantEffectInfo>(out->data).transform = constant->transform;
 	}
 
 	return out;
 }
 
-std::unique_ptr<Effect> Effect_FrontendToBackend(EffectInfo e)
+std::unique_ptr<Effect> Effect_FrontendToBackend(EffectInfo& e)
 {
 	if (auto sinePtr = std::get_if<SinePulseEffectInfo>(&e.data))
 	{
@@ -490,15 +517,15 @@ SceneInfo Scene_BackendToFrontend(const Scene& s)
 
 	for (const auto& dis : s.devices)
 	{
-		DeviceInSceneInfo frontendDis;
-		frontendDis.device = Device_BackendToFrontend(dis.device);
-		frontendDis.transform = dis.transform;
-		frontendScene.devicesInScene.push_back(frontendDis);
+		auto frontendDis = QSharedPointer<DeviceInSceneInfo>::create();
+		frontendDis->device = Device_BackendToFrontend(dis.device);
+		frontendDis->transform = dis.transform;
+		frontendScene.m_DevicesInScene.push_back(frontendDis);
 	}
 
 	for (const auto& e : s.effects)
 	{
-		frontendScene.effects.push_back(Effect_BackendToFrontend(e));
+		frontendScene.m_EffectsList.push_back(Effect_BackendToFrontend(e));
 	}
 
 	return frontendScene;
@@ -509,17 +536,17 @@ Scene Scene_FrontendToBackend(SceneInfo s, const Backend& b)
 	Scene backendScene;
 	backendScene.name = s.name.toStdString();
 
-	for (const auto& dis : s.devicesInScene)
+	for (const auto& dis : s.m_DevicesInScene)
 	{
 		DeviceInScene backendDis;
-		backendDis.device = b.GetDeviceFromUniqueId(dis.device.uniqueid.toStdString());
-		backendDis.transform = dis.transform.ToMathTransform();
+		backendDis.device = b.GetDeviceFromUniqueId(dis->device.uniqueid.toStdString());
+		backendDis.transform = dis->transform.ToMathTransform();
 		backendScene.devices.push_back(backendDis);
 	}
 
-	for (const auto& e : s.effects)
+	for (const auto& e : s.m_EffectsList)
 	{
-		backendScene.effects.push_back(Effect_FrontendToBackend(e));
+		backendScene.effects.push_back(Effect_FrontendToBackend(*e));
 	}
 
 	return backendScene;
@@ -548,20 +575,21 @@ void SceneInfo::AddDevice(QVariant Device)
 {
 	RemoveDevice(Device);
 	
-	devicesInScene.push_back(DeviceInSceneInfo{ 
+	m_DevicesInScene.push_back(QSharedPointer<DeviceInSceneInfo>::create(
 		Transform{
 			Math::Transform{
 				{size.x() / 2.0, size.y() / 2.0, size.z() / 2.0}, {1.0, 1.0, 1.0}, {0, 0, 0}}},
-				Device.value<DeviceInfo>() });
+		Device.value<DeviceInfo>()));
 }
 
 void SceneInfo::RemoveDevice(QVariant Device)
 {
-	QMutableListIterator i(devicesInScene);
+	QMutableListIterator i(m_DevicesInScene);
 	while (i.hasNext()) 
 	{
-		if (i.next().device == Device.value<DeviceInfo>())
+		if (i.next()->device == Device.value<DeviceInfo>())
 		{
+			i.value()->deleteLater();
 			i.remove();
 		}
 			
@@ -571,9 +599,9 @@ void SceneInfo::RemoveDevice(QVariant Device)
 QList<QVariant> SceneInfo::GetDevices()
 {
 	QList<QVariant> out;
-	for (const auto& deviceInScene : devicesInScene)
+	for (const auto& deviceInScene : m_DevicesInScene)
 	{
-		out.push_back(QVariant::fromValue(deviceInScene.device));
+		out.push_back(QVariant::fromValue(deviceInScene->device));
 	}
 	return out;
 }

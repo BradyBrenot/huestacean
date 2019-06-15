@@ -105,6 +105,7 @@ int Gui::Main(int argc, char* argv[])
 	/////////////////////////////////
 	qmlRegisterType<FrontendQmlReplica>("Huestacean.Frontend", 1, 0, "FrontendQmlReplica");
 	qmlRegisterType<SceneInfo>("Huestacean.Types", 1, 0, "SceneInfo");
+	qmlRegisterType<DeviceInSceneInfo>("Huestacean.Types", 1, 0, "DeviceInSceneInfo");
 	//qmlRegisterType<Transform>("Huestacean.Types", 1, 0, "Transform");
 
 	/////////////////////////////////

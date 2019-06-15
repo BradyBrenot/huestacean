@@ -41,7 +41,7 @@ Rectangle {
 			return myScene.devicesInScene[deviceIndex].transform.location;
 		}
 		else if(effectIndex > 0 && myScene.effects[effectIndex].data != undefined) {
-			return myScene.effects[effectIndex].data.transform().location;
+			return myScene.effects[effectIndex].data.transform.location;
 		}
 	}
 
@@ -50,7 +50,7 @@ Rectangle {
 			return myScene.devicesInScene[deviceIndex].transform.scale.times(myScene.devicesInScene[deviceIndex].device.size);
 		}
 		else if(effectIndex > 0 && myScene.effects[effectIndex].data != undefined) {
-			return myScene.effects[effectIndex].data.transform().location.scale; //* (1.0, 1.0, 1.0)
+			return myScene.effects[effectIndex].data.transform.location.scale; //* (1.0, 1.0, 1.0)
 		}
 	}
 
@@ -131,7 +131,33 @@ Rectangle {
 	}
 
 	function updateSceneFromMe() {
+		/*
+		console.log("HI")
+		var bean = Frontend.ttest.location;
+		bean.x = 2;
+		Frontend.ttest.location = bean;
+		console.log(Frontend.ttest.location.x)
+		console.log(bean.x)
 		
+
+		var tmp = scene.devicesInScene[deviceIndex];
+		var trns = tmp.transform;
+		var loc = trns.location;
+		loc.x = 2;
+		trns.location = loc;
+		tmp.transform = trns;
+		scene.devicesInScene[deviceIndex] = undefined;
+		scene.devicesInScene[deviceIndex].transform = trns;
+		console.log(scene.devicesInScene[deviceIndex].transform.location)
+		console.log(tmp.transform.location)
+		console.log(loc)
+		*/
+
+		var tmp = scene.devicesInScene[deviceIndex]
+		tmp.test = "fuu"
+		scene.devicesInScene[deviceIndex]= tmp
+		console.log(tmp.test)
+		console.log(scene.devicesInScene[deviceIndex].test)
 	}
 
     border {

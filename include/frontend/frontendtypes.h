@@ -274,7 +274,7 @@ public:
 
 typedef std::variant<std::monostate, SinePulseEffectInfo, ConstantEffectInfo> EffectVariant;
 
-struct EffectInfo
+class EffectInfo : public QObject
 {
 	Q_GADGET
 	Q_PROPERTY(QVariant data READ GetData WRITE SetData)
@@ -283,18 +283,25 @@ public:
 
 	EffectVariant data;
 
-	EffectInfo()
+	EffectInfo() : QObject()
 	{
 
 	}
 
+
+	EffectInfo(const EffectInfo& b)
+		: QObject(),
+		data(b.data)
+	{
+	};
+
 	EffectInfo(EffectVariant& inData)
-		: data(inData)
+		: QObject(), data(inData)
 	{
 
 	}
 	EffectInfo(EffectVariant&& inData)
-		: data(inData)
+		: QObject(), data(inData)
 	{
 
 	}
@@ -312,7 +319,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////
 // Scenes
-struct DeviceInSceneInfo
+class DeviceInSceneInfo : public QObject
 {
 	Q_GADGET
 
@@ -322,6 +329,23 @@ struct DeviceInSceneInfo
 public:
 	Transform transform;
 	DeviceInfo device;
+	QString test;
+
+	DeviceInSceneInfo(QObject* parent = nullptr) : QObject(parent)
+	{
+	};
+
+	DeviceInSceneInfo(Transform inTransform, DeviceInfo inDevice)
+		: QObject(), transform(inTransform), device(inDevice)
+	{
+	};
+
+	DeviceInSceneInfo(const DeviceInSceneInfo& b)
+		: QObject(),
+		transform(b.transform),
+		device(b.device)
+	{
+	};
 
 	bool operator==(const DeviceInSceneInfo& b) const
 	{
@@ -334,8 +358,8 @@ class SceneInfo : public QObject
 	Q_OBJECT
 
 	Q_PROPERTY(QString name MEMBER name NOTIFY nameChanged)
-	Q_PROPERTY(QList<QVariant> devicesInScene READ GetDevicesInScene WRITE SetDevicesInScene NOTIFY devicesInSceneChanged)
-	Q_PROPERTY(QList<QVariant> effects READ GetEffects WRITE SetEffects NOTIFY effectsChanged)
+	Q_PROPERTY(QList<QObject*> devicesInScene READ GetDevicesInScene NOTIFY devicesInSceneChanged)
+	Q_PROPERTY(QList<QObject*> effects READ GetEffects NOTIFY effectsChanged)
 	Q_PROPERTY(QList<QVariant> devices READ GetDevices NOTIFY devicesInSceneChanged)
 	Q_PROPERTY(QVector3D size MEMBER size NOTIFY sizeChanged)
 
@@ -347,28 +371,26 @@ public:
 	};
 	SceneInfo(const SceneInfo& b) 
 		: name(b.name),
-		devicesInScene(b.devicesInScene), 
-		effects(b.effects),
+		m_DevicesInScene(b.m_DevicesInScene),
+		m_EffectsList(b.m_EffectsList),
 		size(b.size)
 	{
 	};
 	virtual ~SceneInfo() {};
 
 	QString name;
-	QList<DeviceInSceneInfo> devicesInScene;
-	QList<EffectInfo> effects;
 	QVector3D size;
 
 	bool operator==(const SceneInfo& b) const
 	{
-		return name == b.name && devicesInScene == b.devicesInScene && effects == b.effects;
+		return name == b.name && m_DevicesInScene == b.m_DevicesInScene && m_EffectsList == b.m_EffectsList;
 	}
 
 	SceneInfo& operator=(const SceneInfo& b)
 	{
 		name = b.name;
-		devicesInScene = b.devicesInScene;
-		effects = b.effects;
+		m_DevicesInScene = b.m_DevicesInScene;
+		m_EffectsList = b.m_EffectsList;
 		return *this;
 	}
 
@@ -381,13 +403,13 @@ signals:
 	void nameChanged();
 	void sizeChanged();
 
-private:
-	QList<QVariant> GetDevicesInScene() { return makeVariantList(devicesInScene); }
-	void SetDevicesInScene(QVariantList& in) { devicesInScene = fromVariantList<DeviceInSceneInfo>(in); emit devicesInSceneChanged(); }
-	QList<QVariant> GetEffects() { return makeVariantList(effects); }
-	void SetEffects(QVariantList& in) { effects = fromVariantList<EffectInfo>(in); emit effectsChanged(); }
-
+public:
 	QList<QVariant> GetDevices();
+	QList< QSharedPointer<DeviceInSceneInfo> > m_DevicesInScene;
+	QList< QSharedPointer<EffectInfo> > m_EffectsList;
+
+	QList<QObject*> GetDevicesInScene() { return makeQObjectList(m_DevicesInScene); }
+	QList<QObject*> GetEffects() { return makeQObjectList(m_EffectsList); }
 };
 ///////////////////////////////////////////////////////////////////////////
 
@@ -440,8 +462,8 @@ QDataStream& operator>>(QDataStream&, SceneInfo&);
 DeviceInfo				Device_BackendToFrontend(DevicePtr d);
 DevicePtr				Device_FrontendToBackend(DeviceInfo d, const Backend& b);
 
-EffectInfo				Effect_BackendToFrontend(const std::unique_ptr<Effect>& e);
-std::unique_ptr<Effect> Effect_FrontendToBackend(EffectInfo e);
+QSharedPointer<EffectInfo>	Effect_BackendToFrontend(const std::unique_ptr<Effect>& e);
+std::unique_ptr<Effect>		Effect_FrontendToBackend(EffectInfo& e);
 
 SceneInfo				Scene_BackendToFrontend(const Scene& s);
 Scene					Scene_FrontendToBackend(SceneInfo s, const Backend& b);
