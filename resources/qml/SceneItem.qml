@@ -18,7 +18,7 @@ Rectangle {
 	property var scene
 	property var deviceIndex: -1
 	property var effectIndex: -1
-	property int rulersSize: 18
+	property int rulersSize: 9
 
 	// get x, width
 	// get y, height
@@ -52,7 +52,7 @@ Rectangle {
 
 	function getWorldSize() {
 		if(deviceIndex >= 0) {
-			return myScene.devicesInScene[deviceIndex].transform.scale * myScene.devicesInScene[deviceIndex].device.size;
+			return myScene.devicesInScene[deviceIndex].transform.scale.times(myScene.devicesInScene[deviceIndex].device.size);
 		}
 		else if(effectIndex > 0 && myScene.effects[effectIndex].data != undefined) {
 			return myScene.effects[effectIndex].data.transform().location.scale; //* (1.0, 1.0, 1.0)
@@ -61,11 +61,17 @@ Rectangle {
 
 	function xWorldToScreen() {
 		if(view == SceneItem.SceneView.Top) {
-			console.log("parent.width --- " + parent.width)
-			console.log("myScene.size.x --- " + myScene.size.x)
 			return parent.width / myScene.size.x;
 		} else {
 			return parent.width / myScene.size.z;
+		}
+	}
+
+	function yWorldToScreen() {
+		if(view == SceneItem.SceneView.Side) {
+			return parent.height / myScene.size.x;
+		} else {
+			return parent.height / myScene.size.y;
 		}
 	}
 
@@ -77,23 +83,30 @@ Rectangle {
 		}
 	}
 
-	function setX(screenX) {
-	
+	y : {
+		if(view == SceneItem.SceneView.Side) {
+			return yWorldToScreen() * getWorldLocation().x;
+		} else {
+			return yWorldToScreen() * getWorldLocation().y;
+		}
 	}
+
 
 	width : {
 		if(view == SceneItem.SceneView.Top) {
-
-			console.log("xWorldToScreen --- " + xWorldToScreen())
-			console.log("getWorldSize --- " + getWorldSize().x)
-			console.log("width --- " + xWorldToScreen() * getWorldSize().x)
-
 			return xWorldToScreen() * getWorldSize().x;
 		} else {
 			return xWorldToScreen() * getWorldSize().z;
 		}
 	}
 
+	height : {
+		if(view == SceneItem.SceneView.Side) {
+			return xWorldToScreen() * getWorldSize().x;
+		} else {
+			return xWorldToScreen() * getWorldSize().y;
+		}
+	}
 
 	function getName() {
 		if(deviceIndex > 0) {
@@ -102,6 +115,10 @@ Rectangle {
 		else if(effectIndex > 0 && myScene.effects[effectIndex].data != undefined) {
 			return myScene.effects[effectIndex].data + " - " + effectIndex;
 		}
+	}
+
+	function updateSceneFromMe() {
+		
 	}
 
     border {
@@ -120,6 +137,18 @@ Rectangle {
             maximumY: parent.parent.height - parent.height
             smoothed: true
         }
+
+		onMouseXChanged: {
+			if(drag.active){
+				updateSceneFromMe();
+			}
+		}
+
+		onMouseYChanged: {
+			if(drag.active){
+				updateSceneFromMe();
+			}
+		}
     }
 
     Rectangle {
@@ -140,6 +169,8 @@ Rectangle {
                     if(sceneItem.width < 30)
                         sceneItem.width = 30
                 }
+
+				updateSceneFromMe();
             }
         }
     }
@@ -161,6 +192,8 @@ Rectangle {
                     if(sceneItem.width < 50)
                         sceneItem.width = 50
                 }
+
+				updateSceneFromMe();
             }
         }
     }
@@ -185,6 +218,8 @@ Rectangle {
                     if(sceneItem.height < 50)
                         sceneItem.height = 50
                 }
+
+				updateSceneFromMe();
             }
         }
     }
@@ -209,6 +244,8 @@ Rectangle {
                     if(sceneItem.height < 50)
                         sceneItem.height = 50
                 }
+
+				updateSceneFromMe();
             }
         }
     }

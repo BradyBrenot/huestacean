@@ -522,7 +522,12 @@ BridgeInfo Bridge_BackendToFrontend(std::shared_ptr<Hue::Bridge> b)
 void SceneInfo::AddDevice(QVariant Device)
 {
 	RemoveDevice(Device);
-	devicesInScene.push_back(DeviceInSceneInfo{ Transform{Math::Transform{{0, 0, 0}, {1.0, 1.0, 1.0}, {0, 0, 0}}}, Device.value<DeviceInfo>() });
+	
+	devicesInScene.push_back(DeviceInSceneInfo{ 
+		Transform{
+			Math::Transform{
+				{size.x() / 2.0, size.y() / 2.0, size.z() / 2.0}, {1.0, 1.0, 1.0}, {0, 0, 0}}},
+				Device.value<DeviceInfo>() });
 }
 
 void SceneInfo::RemoveDevice(QVariant Device)
