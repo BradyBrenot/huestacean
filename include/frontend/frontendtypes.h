@@ -122,6 +122,9 @@ struct DeviceInfo
 	Q_PROPERTY(QVariant data READ GetData WRITE SetData)
 	Q_PROPERTY(QVector3D size MEMBER size) //TODO: do more with this / display individual lights?
 
+	Q_PROPERTY(bool canRotate READ CanRotate)
+	Q_PROPERTY(bool canScale READ CanScale)
+
 public:
 
 	QString uniqueid;
@@ -152,6 +155,9 @@ public:
 	{
 		return !(*this == b);
 	}
+
+	bool CanRotate();
+	bool CanScale();
 
 private:
 	QVariant GetData();

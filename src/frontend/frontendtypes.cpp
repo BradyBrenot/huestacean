@@ -43,6 +43,31 @@ Math::Transform Transform::ToMathTransform() const
 
 ///////////////////////////////////////////////////////////////////////////
 // Devices
+
+//okay, any of these *can* rotate/scale, but should the UI _let them_?
+bool DeviceInfo::CanRotate()
+{
+	// @TODO: I think, ideally, check check if there's > 1 Light in this Device or not
+	// (if not, rotation has almost no meaning, so hide it)
+	if (std::holds_alternative<HueDeviceInfo>(data))
+	{
+		return false;
+	}
+
+	return true;
+}
+bool DeviceInfo::CanScale()
+{
+	// @TODO: Razer devices _almost_ always use direct lighting, so resizing is nonsense.
+	// *Almost* always. Assuming always for now though.
+	if (std::holds_alternative<RazerDeviceInfo>(data))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 QVariant DeviceInfo::GetData()
 {
 	QVariant out;

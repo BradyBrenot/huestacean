@@ -37,12 +37,7 @@ Rectangle {
 	*/
 
 	function getWorldLocation() {
-		console.log("getWorldLocation -- deviceIndex: " + deviceIndex + " -- effectIndex: " + effectIndex);
 		if(deviceIndex >= 0) {
-			console.log("Location --- " + myScene.devicesInScene[deviceIndex] + " -- " + myScene.devicesInScene[deviceIndex].transform.location)
-			console.log("scale --- " + myScene.devicesInScene[deviceIndex] + " -- " + myScene.devicesInScene[deviceIndex].transform.scale)
-			console.log("device --- " + myScene.devicesInScene[deviceIndex].device)
-			console.log("size --- " + myScene.devicesInScene[deviceIndex].device.size)
 			return myScene.devicesInScene[deviceIndex].transform.location;
 		}
 		else if(effectIndex > 0 && myScene.effects[effectIndex].data != undefined) {
@@ -117,6 +112,24 @@ Rectangle {
 		}
 	}
 
+	function canScale() {
+		if(deviceIndex >= 0) {
+			return myScene.devicesInScene[deviceIndex].device.canScale;
+		}
+		else if(effectIndex > 0 && myScene.effects[effectIndex].data != undefined) {
+			return true;
+		}
+	}
+
+	function canRotate() {
+		if(deviceIndex >= 0) {
+			return myScene.devicesInScene[deviceIndex].device.canRotate;
+		}
+		else if(effectIndex > 0 && myScene.effects[effectIndex].data != undefined) {
+			return true;
+		}
+	}
+
 	function updateSceneFromMe() {
 		
 	}
@@ -152,6 +165,7 @@ Rectangle {
     }
 
     Rectangle {
+		visible: canScale()
         width: rulersSize
         height: rulersSize
         radius: rulersSize
@@ -176,6 +190,7 @@ Rectangle {
     }
 
     Rectangle {
+		visible: canScale()
         width: rulersSize
         height: rulersSize
         radius: rulersSize
@@ -199,6 +214,7 @@ Rectangle {
     }
 
     Rectangle {
+		visible: canScale()
         width: rulersSize
         height: rulersSize
         radius: rulersSize
@@ -226,6 +242,7 @@ Rectangle {
 
 
     Rectangle {
+		visible: canScale()
         width: rulersSize
         height: rulersSize
         radius: rulersSize
