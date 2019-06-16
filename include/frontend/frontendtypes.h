@@ -321,7 +321,7 @@ private:
 // Scenes
 class DeviceInSceneInfo : public QObject
 {
-	Q_GADGET
+	Q_OBJECT
 
 	Q_PROPERTY(Transform transform MEMBER transform)
 	Q_PROPERTY(DeviceInfo device MEMBER device)
