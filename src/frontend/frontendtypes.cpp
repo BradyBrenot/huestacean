@@ -129,6 +129,8 @@ void EffectInfo::SetData(QVariant& in)
 	{
 		data = std::monostate{};
 	}
+
+	emit DataChanged();
 }
 ///////////////////////////////////////////////////////////////////////////
 
@@ -392,6 +394,7 @@ QDataStream& operator>>(QDataStream& ds, DeviceInSceneInfo& out)
 QDataStream& operator<<(QDataStream& ds, const SceneInfo& in)
 {
 	ds << in.name;
+	ds << in.size;
 
 	ds << static_cast<uint32_t>(in.m_DevicesInScene.size());
 	for (const auto& d : in.m_DevicesInScene) {
@@ -408,6 +411,7 @@ QDataStream& operator<<(QDataStream& ds, const SceneInfo& in)
 QDataStream& operator>>(QDataStream& ds, SceneInfo& out)
 {
 	ds >> out.name;
+	ds >> out.size;
 
 	uint32_t numDevices;
 	uint32_t numEffects;
@@ -620,12 +624,12 @@ TypeFactory::~TypeFactory()
 
 }
 
-QVariant TypeFactory::NewSinePulseEffect() const
+void TypeFactory::AddSinePulseEffect(QObject* OwnerSceneInfo) const
 {
-	return QVariant::fromValue(EffectInfo{ SinePulseEffectInfo{} });
+	qobject_cast<SceneInfo*>(OwnerSceneInfo)->m_EffectsList.push_back(QSharedPointer<EffectInfo>::create( SinePulseEffectInfo{} ) );
 }
-QVariant TypeFactory::NewConstantEffect() const
+void TypeFactory::AddConstantEffect(QObject* OwnerSceneInfo) const
 {
-	return QVariant::fromValue(EffectInfo{ ConstantEffectInfo{} });
+	qobject_cast<SceneInfo*>(OwnerSceneInfo)->m_EffectsList.push_back(QSharedPointer<EffectInfo>::create(ConstantEffectInfo{}));
 }
 ///////////////////////////////////////////////////////////////////////////

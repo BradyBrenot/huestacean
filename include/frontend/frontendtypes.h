@@ -276,8 +276,9 @@ typedef std::variant<std::monostate, SinePulseEffectInfo, ConstantEffectInfo> Ef
 
 class EffectInfo : public QObject
 {
-	Q_GADGET
-	Q_PROPERTY(QVariant data READ GetData WRITE SetData)
+	Q_OBJECT
+
+	Q_PROPERTY(QVariant data READ GetData WRITE SetData NOTIFY DataChanged)
 
 public:
 
@@ -310,6 +311,9 @@ public:
 	{
 		return data == b.data;
 	}
+
+signals:
+	void DataChanged();
 
 private:
 	QVariant GetData();
@@ -371,9 +375,9 @@ public:
 	};
 	SceneInfo(const SceneInfo& b) 
 		: name(b.name),
+		size(b.size),
 		m_DevicesInScene(b.m_DevicesInScene),
-		m_EffectsList(b.m_EffectsList),
-		size(b.size)
+		m_EffectsList(b.m_EffectsList)
 	{
 	};
 	virtual ~SceneInfo() {};
@@ -383,12 +387,16 @@ public:
 
 	bool operator==(const SceneInfo& b) const
 	{
-		return name == b.name && m_DevicesInScene == b.m_DevicesInScene && m_EffectsList == b.m_EffectsList;
+		return name == b.name 
+			&& size == b.size
+			&& m_DevicesInScene == b.m_DevicesInScene 
+			&& m_EffectsList == b.m_EffectsList;
 	}
 
 	SceneInfo& operator=(const SceneInfo& b)
 	{
 		name = b.name;
+		size = b.size;
 		m_DevicesInScene = b.m_DevicesInScene;
 		m_EffectsList = b.m_EffectsList;
 		return *this;
@@ -481,8 +489,8 @@ public:
 	TypeFactory(QObject* parent = nullptr);
 	virtual ~TypeFactory();
 
-	Q_INVOKABLE QVariant NewSinePulseEffect() const;
-	Q_INVOKABLE QVariant NewConstantEffect() const;
+	Q_INVOKABLE void AddSinePulseEffect(QObject* OwnerSceneInfo) const;
+	Q_INVOKABLE void AddConstantEffect(QObject* OwnerSceneInfo) const;
 };
 
 ///////////////////////////////////////////////////////////////////////////

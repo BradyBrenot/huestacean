@@ -155,6 +155,15 @@ Pane {
 										
 							Switch {
 								Layout.alignment: Qt.AlignRight
+								checked: Frontend.ActiveSceneIndex == index
+								onToggled: {
+									if(!checked && Frontend.ActiveSceneIndex == index) {
+										Frontend.pushActiveSceneIndex(-1)
+									}
+									else if(checked) {
+										Frontend.pushActiveSceneIndex(index)
+									}
+								}
 							}
 						}
 					}

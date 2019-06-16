@@ -16,7 +16,7 @@ Backend::Backend() :
 	thread(),
 	scenesMutex(),
 	scenes(),
-	activeSceneIndex(0),
+	activeSceneIndex(-1),
 	scenesAreDirty(false),
 	hue(),
 	razer()

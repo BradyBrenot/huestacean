@@ -22,14 +22,81 @@ Page {
 		modal: true
 		standardButtons: Dialog.Ok
 
-		TextField {
-			id: renameText
-			placeholderText: myScene.name
+		onOpened: {
+			renameText.text = myScene.name
+			sizeX.value = myScene.size.x
+			sizeY.value = myScene.size.y
+			sizeZ.value = myScene.size.z
 		}
+
+		ColumnLayout {
+			GroupBox {
+				title: "Name"
+
+				TextField {
+					id: renameText
+				}
+			}
+
+			GroupBox {
+				title: "Size"
+				ColumnLayout {
+					anchors.fill: parent
+
+					RowLayout {
+						Label { 
+							text: "x = "
+							Layout.alignment: Qt.AlignVCenter
+						}
+						SpinBox {
+							id: sizeX
+							from: 1
+							to: 30
+						}
+						Label { text: " m "}
+					}
+					
+
+					RowLayout {
+						Label { 
+							text: "y = "
+							Layout.alignment: Qt.AlignVCenter
+						}
+						SpinBox {
+							id: sizeY
+							from: 1
+							to: 30
+						}
+						Label { text: " m "}
+					}
+
+					RowLayout {
+						Label { 
+							text: "z = "
+							Layout.alignment: Qt.AlignVCenter
+						}
+						SpinBox {
+							id: sizeZ
+							from: 1
+							to: 30
+						}
+						Label { text: " m "}
+					}
+				}
+			}
+		}
+		
 
 		onAccepted: {
 			myScene.name = renameText.text
-			myScene.size.x = 2;
+			console.log("BRADY")
+			console.log(myScene.size)
+			myScene.size.x = sizeX.value;
+			console.log(myScene.size.x + " = " + sizeX.value)
+			myScene.size.y = sizeY.value;
+			console.log(myScene.size.y + " = " + sizeY.value)
+			myScene.size.z = sizeZ.value;
+			console.log(myScene.size.z + " = " + sizeZ.value)
 			console.log(myScene.size)
 			apply()
 		}
@@ -57,7 +124,9 @@ Page {
 			}
 
 			ToolButton {
-				onClicked: renameDialog.open()
+				onClicked: {
+					renameDialog.open()
+				}
 
 				font.pointSize: 18
 				font.family: "Material Icons"
@@ -94,9 +163,7 @@ Page {
 				ToolTip.text: qsTr("Add object to scene")
 
 				onClicked: {
-					var newList = myScene.effects;
-					newList.push(TypeFactory.NewConstantEffect());
-					myScene.effects = newList;
+					TypeFactory.AddSinePulseEffect(myScene);
 					apply();
 				}
 			}
