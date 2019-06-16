@@ -593,7 +593,6 @@ void SceneInfo::RemoveDevice(QVariant Device)
 	{
 		if (i.next()->device == Device.value<DeviceInfo>())
 		{
-			i.value()->deleteLater();
 			i.remove();
 		}
 			
