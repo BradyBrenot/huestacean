@@ -4,6 +4,7 @@ import QtQuick.Controls 2.12
 // a lot of this started off as
 // https://stackoverflow.com/questions/29087710/how-to-make-a-resizable-rectangle-in-qml
 // and then a lot of things happened and this is the result
+// (this is no paragon of GUI code, it's pretty ugh)
 
 Rectangle { 
 	id: sceneItem
@@ -45,9 +46,17 @@ Rectangle {
 		}
 	}
 
+	function getBaseSize() {
+		if(deviceIndex >= 0) {
+			return myScene.devicesInScene[deviceIndex].device.size;
+		}
+		
+		return Qt.vector3d(1,1,1)
+	}
+
 	function getWorldSize() {
 		if(deviceIndex >= 0) {
-			return myScene.devicesInScene[deviceIndex].transform.scale.times(myScene.devicesInScene[deviceIndex].device.size);
+			return myScene.devicesInScene[deviceIndex].transform.scale.times(getBaseSize());
 		}
 		else if(effectIndex > 0 && myScene.effects[effectIndex].data != undefined) {
 			return myScene.effects[effectIndex].data.transform.location.scale; //* (1.0, 1.0, 1.0)
@@ -97,9 +106,9 @@ Rectangle {
 
 	height : {
 		if(view == SceneItem.SceneView.Side) {
-			return xWorldToScreen() * getWorldSize().x;
+			return yWorldToScreen() * getWorldSize().x;
 		} else {
-			return xWorldToScreen() * getWorldSize().y;
+			return yWorldToScreen() * getWorldSize().y;
 		}
 	}
 
@@ -131,33 +140,39 @@ Rectangle {
 	}
 
 	function updateSceneFromMe() {
-		/*
-		console.log("HI")
-		var bean = Frontend.ttest.location;
-		bean.x = 2;
-		Frontend.ttest.location = bean;
-		console.log(Frontend.ttest.location.x)
-		console.log(bean.x)
+		var loc = scene.devicesInScene[deviceIndex].transform.location;
+		var scale = scene.devicesInScene[deviceIndex].transform.scale;
+
+		//x
+		if(view == SceneItem.SceneView.Top) {
+			loc.x = x / xWorldToScreen();
+		} else {
+			loc.z = x / xWorldToScreen();
+		}
+
+		//y
+		if(view == SceneItem.SceneView.Side) {
+			loc.x = y / yWorldToScreen()
+		} else {
+			loc.y = y / yWorldToScreen()
+		}
+
+		//width
+		if(view == SceneItem.SceneView.Top) {
+			scale.x = width / (xWorldToScreen() * getBaseSize().x);
+		} else {
+			scale.z = width / (xWorldToScreen() * getBaseSize().z);
+		}
 		
+		//height
+		if(view == SceneItem.SceneView.Side) {
+			scale.x = height / (yWorldToScreen() * getBaseSize().x);
+		} else {
+			scale.y = height / (yWorldToScreen() * getBaseSize().y);
+		}
 
-		var tmp = scene.devicesInScene[deviceIndex];
-		var trns = tmp.transform;
-		var loc = trns.location;
-		loc.x = 2;
-		trns.location = loc;
-		tmp.transform = trns;
-		scene.devicesInScene[deviceIndex] = undefined;
-		scene.devicesInScene[deviceIndex].transform = trns;
-		console.log(scene.devicesInScene[deviceIndex].transform.location)
-		console.log(tmp.transform.location)
-		console.log(loc)
-		*/
-
-		var tmp = scene.devicesInScene[deviceIndex]
-		tmp.test = "fuu"
-		scene.devicesInScene[deviceIndex]= tmp
-		console.log(tmp.test)
-		console.log(scene.devicesInScene[deviceIndex].test)
+		scene.devicesInScene[deviceIndex].transform.location = loc;
+		scene.devicesInScene[deviceIndex].transform.scale = scale;
 	}
 
     border {
