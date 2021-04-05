@@ -158,7 +158,7 @@ git submodule update --init --recursive
 ```
 mkdir build
 cd build
-cmake ..
+cmake -Wno-dev ..
 make huestacean
 ```
 Run Huestacean and enjoy!  (`.../huestacean/build/huestacean`)
