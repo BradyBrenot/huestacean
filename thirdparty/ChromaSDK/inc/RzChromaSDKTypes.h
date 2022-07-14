@@ -1,38 +1,42 @@
 ﻿//! \file RzChromaSDKTypes.h
 //! \brief Data types.
 
+#include <cstdint>
+
 #ifndef _RZCHROMASDKTYPES_H_
 #define _RZCHROMASDKTYPES_H_
 
 #pragma once
 
-typedef LONG            RZRESULT;           //!< Return result.
+typedef long            RZRESULT;           //!< Return result.
 typedef GUID            RZEFFECTID;         //!< Effect Id.
 typedef GUID            RZDEVICEID;         //!< Device Id.
 typedef unsigned int    RZDURATION;         //!< Milliseconds.
 typedef size_t          RZSIZE;             //!< Size.
 typedef void*           PRZPARAM;           //!< Context sensitive pointer.
-typedef DWORD           RZID;               //!< Generic data type for Identifier.
-typedef DWORD           RZCOLOR;            //!< Color data. 1st byte = Red; 2nd byte = Green; 3rd byte = Blue; 4th byte = Alpha (if applicable)
+typedef uint32_t        RZID;               //!< Generic data type for Identifier.
+typedef uint32_t        RZCOLOR;            //!< Color data. 1st byte = Red; 2nd byte = Green; 3rd byte = Blue; 4th byte = Alpha (if applicable)
 
 namespace ChromaSDK
 {
+    #ifdef _WIN32
     //! Event notification Window message
-    const UINT WM_CHROMA_EVENT = WM_APP+0x2000;
+    const uint WM_CHROMA_EVENT = WM_APP+0x2000;
+    #endif
 
     //! Application information.
     typedef struct APPINFOTYPE
     {
-        TCHAR Title[256];           //!< Title of the application.
-        TCHAR Description[1024];    //!< A short description of the application.
+        wchar_t Title[256];           //!< Title of the application.
+        wchar_t Description[1024];    //!< A short description of the application.
         //! Author information
         struct Author
         {
-            TCHAR Name[256];        //!< Name of the developer/company.
-            TCHAR Contact[256];     //!< Contact info.
+            wchar_t Name[256];        //!< Name of the developer/company.
+            wchar_t Contact[256];     //!< Contact info.
         } Author;
-        DWORD SupportedDevice;
-        DWORD Category;             //!< 0 = Utility; 1 = Game; 2 = Chroma Link Broadcast
+        uint32_t SupportedDevice;
+        uint32_t Category;             //!< 0 = Utility; 1 = Game; 2 = Chroma Link Broadcast
     } APPINFOTYPE;
 
     //! Chroma generic effects. Note: Not all devices supported the listed effects.
@@ -65,7 +69,7 @@ namespace ChromaSDK
             DEVICE_INVALID          //!< Invalid device.
         } DeviceType;
 
-        DWORD Connected;            //!< Number of devices connected.
+        uint32_t Connected;            //!< Number of devices connected.
     } DEVICE_INFO_TYPE;
 
     const RZSIZE MAX_ROW = 30;      //!< Maximum rows for custom effects.
@@ -75,16 +79,16 @@ namespace ChromaSDK
     typedef struct BLINKING_EFFECT_TYPE
     {
         RZSIZE Size;        //!< Size of the structure. Size = sizeof(BLINKING_EFFECT_TYPE)
-        DWORD Param;        //!< Extra parameters.
+        uint32_t Param;        //!< Extra parameters.
 
-        COLORREF Color;     //!< Blinking color
+        uint32_t Color;     //!< Blinking color
     } BLINKING_EFFECT_TYPE;
 
     //! Breathing effect (Deprecated and should not be used).
     typedef struct BREATHING_EFFECT_TYPE
     {
         RZSIZE Size;        //!< Size of ths structure. Size = sizeof(BREATHING_EFFECT_TYPE)
-        DWORD Param;        //!< Extra parameters.
+        uint32_t Param;        //!< Extra parameters.
 
         //! Breathing effect types.
         enum _Type
@@ -94,15 +98,15 @@ namespace ChromaSDK
             RANDOM_COLORS   //!< Random colors
         } Type;
 
-        COLORREF Color1;    //!< First color.
-        COLORREF Color2;    //!< Second color.
+        uint32_t Color1;    //!< First color.
+        uint32_t Color2;    //!< Second color.
     } BREATHING_EFFECT_TYPE;
 
     //! Custom effect (Deprecated and should not be used).
     typedef struct CUSTOM_EFFECT_TYPE
     {
         RZSIZE Size;        //!< Size of the structure. Size = sizeof(CUSTOM_EFFECT_TYPE)
-        DWORD Param;        //!< Extra parameters.
+        uint32_t Param;        //!< Extra parameters.
 
         RZCOLOR Color[MAX_ROW][MAX_COLUMN];
     } CUSTOM_EFFECT_TYPE;
@@ -111,14 +115,14 @@ namespace ChromaSDK
     typedef struct NO_EFFECT_TYPE
     {
         RZSIZE Size;        //!< Size of the structure. Size = sizeof(NO_EFFECT_TYPE)
-        DWORD Param;        //!< Extra parameters.
+        uint32_t Param;        //!< Extra parameters.
     } NO_EFFECT_TYPE;
 
     //! Reactive effect (Deprecated and should not be used).
     typedef struct REACTIVE_EFFECT_TYPE
     {
         RZSIZE Size;        //!< Size of the structure. Size = sizeof(REACTIVE_EFFECT_TYPE)
-        DWORD Param;        //!< Extra parameters.
+        uint32_t Param;        //!< Extra parameters.
 
         //! Duration of the effect.
         enum _Duration
@@ -128,21 +132,21 @@ namespace ChromaSDK
             DURATION_LONG       //!< Long duration.
         } Duration;             //!< The time taken for the effect to fade away.
 
-        COLORREF Color;         //!< Color of the effect.
+        uint32_t Color;         //!< Color of the effect.
     } REACTIVE_EFFECT_TYPE;
 
     //! Spectrum cycling effect (Deprecated and should not be used).
     typedef struct SPECTRUMCYCLING_EFFECT_TYPE
     {
         RZSIZE Size;        //!< Size of the structure. Size = sizeof(SPECTRUMCYCLING_EFFECT_TYPE)
-        DWORD Param;        //!< Extra parameters.
+        uint32_t Param;        //!< Extra parameters.
     } SPECTRUMCYCLING_EFFECT_TYPE;
 
     //! Starlight effect (Deprecated and should not be used).
     typedef struct STARLIGHT_EFFECT_TYPE
     {
         RZSIZE Size;        //!< Size of the structure. Size = sizeof(SPECTRUMCYCLING_EFFECT_TYPE)
-        DWORD Param;        //!< Extra parameters.
+        uint32_t Param;        //!< Extra parameters.
 
         //! Starlight effect types.
         enum _Type
@@ -151,8 +155,8 @@ namespace ChromaSDK
             RANDOM_COLORS   //!< Random colors
         } Type;
 
-        COLORREF Color1;    //!< First color.
-        COLORREF Color2;    //!< Second color.
+        uint32_t Color1;    //!< First color.
+        uint32_t Color2;    //!< Second color.
 
         //! Duration of the effect.
         enum _Duration
@@ -168,16 +172,16 @@ namespace ChromaSDK
     typedef struct STATIC_EFFECT_TYPE
     {
         RZSIZE Size;        //!< Size of the structure. Size = sizeof(STATIC_EFFECT_TYPE)
-        DWORD Param;        //!< Extra parameters.
+        uint32_t Param;        //!< Extra parameters.
 
-        COLORREF Color;     //!< Color of the effect.
+        uint32_t Color;     //!< Color of the effect.
     } STATIC_EFFECT_TYPE;
 
     //! Wave effect (Deprecated and should not be used).
     typedef struct WAVE_EFFECT_TYPE
     {
         RZSIZE Size;        //!< Size of the structure. Size = sizeof(WAVE_EFFECT_TYPE)
-        DWORD Param;        //!< Extra parameters.
+        uint32_t Param;        //!< Extra parameters.
 
         //! Direction of effect.
         enum _Direction
@@ -340,7 +344,7 @@ namespace ChromaSDK
         const RZSIZE MAX_CUSTOM_EFFECTS = MAX_KEYS;
 
         //! Keyboard LED layout.
-        const COLORREF RZKEY_LAYOUT[MAX_ROW][MAX_COLUMN] = {};
+        const uint32_t RZKEY_LAYOUT[MAX_ROW][MAX_COLUMN] = {};
 
         //! Chroma keyboard effect types
         typedef enum EFFECT_TYPE
@@ -368,21 +372,21 @@ namespace ChromaSDK
                 RANDOM_COLORS,      //!< Random colors
                 INVALID             //!< Invalid type
             } Type;
-            COLORREF Color1;        //!< First color.
-            COLORREF Color2;        //!< Second color.
+            uint32_t Color1;        //!< First color.
+            uint32_t Color2;        //!< Second color.
         } BREATHING_EFFECT_TYPE;
 
         //! Custom effect using a matrix type.
         typedef struct CUSTOM_EFFECT_TYPE
         {
-            COLORREF Color[MAX_ROW][MAX_COLUMN];      //!< Grid layout. 6 rows by 22 columns.
+            uint32_t Color[MAX_ROW][MAX_COLUMN];      //!< Grid layout. 6 rows by 22 columns.
         } CUSTOM_EFFECT_TYPE;
 
         //! Custom effect with keys.
         typedef struct CUSTOM_KEY_EFFECT_TYPE
         {
-            COLORREF Color[MAX_ROW][MAX_COLUMN];        //!< Grid layout. 6 rows by 22 columns.
-            COLORREF Key[MAX_ROW][MAX_COLUMN];          //!< Keys information. 6 rows by 22 columns. To indidate there is a key effect, OR with 0x01000000. i.e. Key[0][1] = 0x01000000 | Color;
+            uint32_t Color[MAX_ROW][MAX_COLUMN];        //!< Grid layout. 6 rows by 22 columns.
+            uint32_t Key[MAX_ROW][MAX_COLUMN];          //!< Keys information. 6 rows by 22 columns. To indidate there is a key effect, OR with 0x01000000. i.e. Key[0][1] = 0x01000000 | Color;
         } CUSTOM_KEY_EFFECT_TYPE;
 
         //! Reactive effect type (Deprecated and should not be used).
@@ -398,7 +402,7 @@ namespace ChromaSDK
                 DURATION_INVALID    //!< Invalid duration.
             } Duration;             //!< The time taken for the effect to fade away.
 
-            COLORREF Color;         //!< Color of the effect
+            uint32_t Color;         //!< Color of the effect
         } REACTIVE_EFFECT_TYPE;
 
         //! Starlight effect (Deprecated and should not be used).
@@ -411,8 +415,8 @@ namespace ChromaSDK
                 RANDOM_COLORS   //!< Random colors
             } Type;
 
-            COLORREF Color1;    //!< First color.
-            COLORREF Color2;    //!< Second color.
+            uint32_t Color1;    //!< First color.
+            uint32_t Color2;    //!< Second color.
 
             //! Duration of the effect.
             enum _Duration
@@ -427,7 +431,7 @@ namespace ChromaSDK
         //! Static effect type
         typedef struct STATIC_EFFECT_TYPE
         {
-            COLORREF Color;     //!< Color of the effect
+            uint32_t Color;     //!< Color of the effect
         } STATIC_EFFECT_TYPE;
 
         //! Wave effect type (Deprecated and should not be used).
@@ -535,14 +539,14 @@ namespace ChromaSDK
         typedef struct STATIC_EFFECT_TYPE
         {
             RZLED LEDId;        //!< LED Id
-            COLORREF Color;     //!< Color of the effect.
+            uint32_t Color;     //!< Color of the effect.
         } STATIC_EFFECT_TYPE;
 
         //! Blinking effect type (Deprecated and should not be used).
         typedef struct BLINKING_EFFECT_TYPE
         {
             RZLED LEDId;        //!< LED Id
-            COLORREF Color;     //!< Color.
+            uint32_t Color;     //!< Color.
         } BLINKING_EFFECT_TYPE;
 
         //! Breathing effect (Deprecated and should not be used).
@@ -559,8 +563,8 @@ namespace ChromaSDK
                 INVALID         //!< Invalid type
             } Type;
 
-            COLORREF Color1;    //!< First color.
-            COLORREF Color2;    //!< Second color.
+            uint32_t Color1;    //!< First color.
+            uint32_t Color2;    //!< Second color.
         } BREATHING_EFFECT_TYPE;
 
         //! Custom effect (Deprecated and should not be used).
@@ -637,13 +641,13 @@ namespace ChromaSDK
         //! Static effect type
         typedef struct STATIC_EFFECT_TYPE
         {
-            COLORREF Color;             //!< Color of the effect.
+            uint32_t Color;             //!< Color of the effect.
         } STATIC_EFFECT_TYPE;
 
         //! Breathing effect type (Deprecated and should not be used).
         typedef struct BREATHING_EFFECT_TYPE
         {
-            COLORREF Color;             //!< Color.
+            uint32_t Color;             //!< Color.
         } BREATHING_EFFECT_TYPE;
 
         //! Custom effect type.
@@ -682,8 +686,8 @@ namespace ChromaSDK
                 RANDOM_COLORS,      //!< Random colors
                 INVALID
             } Type;
-            COLORREF Color1;    //!< First color.
-            COLORREF Color2;    //!< Second color.
+            uint32_t Color1;    //!< First color.
+            uint32_t Color2;    //!< Second color.
         } BREATHING_EFFECT_TYPE;
 
         //! Custom effect type.
@@ -696,7 +700,7 @@ namespace ChromaSDK
         //! Static effect type
         typedef struct STATIC_EFFECT_TYPE
         {
-            COLORREF Color;     //!< Color of the effect
+            uint32_t Color;     //!< Color of the effect
         } STATIC_EFFECT_TYPE;
 
         //! Wave effect type
@@ -749,8 +753,8 @@ namespace ChromaSDK
                 RANDOM_COLORS,      //!< Random colors
                 INVALID             //!< Invalid type
             } Type;
-            COLORREF Color1;    //!< First color.
-            COLORREF Color2;    //!< Second color.
+            uint32_t Color1;    //!< First color.
+            uint32_t Color2;    //!< Second color.
         } BREATHING_EFFECT_TYPE;
 
         //! Custom effect type
@@ -773,7 +777,7 @@ namespace ChromaSDK
                 DURATION_INVALID    //!< Invalid duration.
             } Duration;             //!< The time taken for the effect to fade away.
 
-            COLORREF Color;         //!< Color of the effect
+            uint32_t Color;         //!< Color of the effect
         } REACTIVE_EFFECT_TYPE;
 
         //! Static effect type

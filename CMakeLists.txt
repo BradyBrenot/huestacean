@@ -23,27 +23,18 @@ if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-find_package(Qt5Core REQUIRED) 
-find_package(Qt5Network REQUIRED)
-find_package(Qt5Quick REQUIRED)
-find_package(Qt5RemoteObjects REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Quick RemoteObjects)
 
 set(MAIN_SOURCE 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
 )
 
-SET(THIRD_PARTY_SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/hsluv-c/src/hsluv.c
-)
-
 SET(THIRD_PARTY_HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/hsluv-c/src/hsluv.h
-
-	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaLinkAPI.h
-	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaSDK.h
-	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaSDKDefines.h
-	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaSDKTypes.h
-	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzErrors.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaLinkAPI.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaSDK.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaSDKDefines.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzChromaSDKTypes.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc/RzErrors.h
 )
 
 set(SOURCES
@@ -123,11 +114,12 @@ set(INCLUDE_PATHS
 	${CMAKE_CURRENT_SOURCE_DIR}/resources
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/mbedtls/include
-	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc
+   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ChromaSDK/inc
 )
 
 include_directories(${INCLUDE_PATHS})
 
+add_subdirectory(thirdparty/hsluv-c EXCLUDE_FROM_ALL)
 add_subdirectory(thirdparty/screen_capture_lite EXCLUDE_FROM_ALL)
 add_subdirectory(thirdparty/mbedtls EXCLUDE_FROM_ALL)
 
@@ -141,6 +133,7 @@ set(LIBRARIES
    mbedtls
    mbedx509
    mbedcrypto
+   hsluv-c
 )
 
 #screen_capture_lite additional requirements
@@ -163,7 +156,12 @@ elseif(LINUX)
    )
 endif()
 
-add_executable(huestacean WIN32 ${MAIN_SOURCE} ${SOURCES} ${HEADERS} ${HEADERS_MOC} resources/qml.qrc resources/resources.rc)
+if (WIN32)
+   add_executable(huestacean WIN32 ${MAIN_SOURCE} ${SOURCES} ${HEADERS} ${HEADERS_MOC} resources/qml.qrc resources/resources.rc)
+elseif(LINUX)
+   add_executable(huestacean ${MAIN_SOURCE} ${SOURCES} ${HEADERS} ${HEADERS_MOC} resources/qml.qrc)
+endif()
+
 target_link_libraries(huestacean ${LIBRARIES})
 
 add_custom_command(

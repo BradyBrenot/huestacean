@@ -32,7 +32,7 @@ namespace Hue
 		//////////////////////////////////////////////////////////////////////////
 
 		virtual void Update(const LightUpdateParams& Params) override; //called from worker thread!
-		virtual std::vector<DevicePtr> GetDevices() override;
+		virtual std::vector<DevicePtr> GetDevices() const override;
 		virtual bool compare(DeviceInScene a, DeviceInScene b) override;
 		virtual DevicePtr GetDeviceFromUniqueId(std::string id) const override;
 

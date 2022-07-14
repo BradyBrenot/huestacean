@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <mutex>
 
 #include "common/providertype.h"
 #include "deviceprovider.h"
@@ -85,7 +86,7 @@ public:
 	DevicePtr GetDeviceFromUniqueId(std::string id) const;
 
 	Hue::Provider hue;
-	Razer::Provider razer;
+	Razer::Provider *razer;
 
 private:
 

@@ -599,7 +599,7 @@ void SceneInfo::RemoveDevice(QVariant Device)
 	}
 }
 
-QList<QVariant> SceneInfo::GetDevices()
+QList<QVariant> SceneInfo::GetDevices() const
 {
 	QList<QVariant> out;
 	for (const auto& deviceInScene : m_DevicesInScene)

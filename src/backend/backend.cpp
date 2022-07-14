@@ -229,7 +229,7 @@ const DeviceProvider* Backend::GetDeviceProvider(ProviderType type) const
 		return &hue;
 		break;
 	case ProviderType::Razer:
-		return &razer;
+		return razer;
 		break;
 	default:
 		break;
@@ -244,7 +244,9 @@ DeviceProvider* Backend::GetDeviceProvider(ProviderType type)
 
 std::vector<std::reference_wrapper<DeviceProvider>> Backend::GetDeviceProviders()
 {
-	return { hue, razer };
+	#ifdef _WIN32
+	return {hue, razer};
+	#endif
 }
 
 DevicePtr Backend::GetDeviceFromUniqueId(std::string id) const
@@ -331,7 +333,7 @@ void Backend::Load()
 		settings.setArrayIndex(i);
 		Scene& scene = scenes.emplace_back();
 
-		scene.name = settings.value("name").toString().toUtf8();
+		scene.name = std::string(settings.value("name").toString().toUtf8());
 
 		int effectsSize = settings.beginReadArray("effects");
 		for (int j = 0; j < effectsSize; ++j)

@@ -37,8 +37,8 @@ Frontend::Frontend(std::shared_ptr<Backend> inBackend)
 		BackendHueChanged();
 	});
 
-	Razer::Provider& razer = m_Backend->razer;
-	razerListenerId = razer.RegisterListener([&]() {
+	Razer::Provider* razer = m_Backend->razer;
+	razerListenerId = razer->RegisterListener([&]() {
 		if (isIgnoringChanges()) {
 			return;
 		}
@@ -120,10 +120,10 @@ void Frontend::BackendRazerChanged()
 
 	RazerInfo newRazer;
 
-	auto& razer = m_Backend->razer;
-	auto& devices = razer.GetDevices();
+	const auto& razer = m_Backend->razer;
+	const auto& devices = razer->GetDevices();
 
-	for (auto& d : devices)
+	for (const auto& d : devices)
 	{
 		newRazer.devices.push_back(Device_BackendToFrontend(d));
 	}

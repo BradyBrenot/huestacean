@@ -1,7 +1,10 @@
 #pragma once
 
-//oh no
+#include <cstddef>
+
+#ifdef _WIN32
 #include "windows.h"
+#endif
 
 #include "RzChromaSDKDefines.h"
 #include "RzChromaSDKTypes.h"
@@ -28,8 +31,8 @@ namespace Razer
 		void QueryDevice(RZDEVICEID DeviceId, ChromaSDK::DEVICE_INFO_TYPE& DeviceInfo);
 
 	private:
-		HMODULE m_hModule;
-		HANDLE m_hEvent;
+		void* m_hModule;
+		void* m_hEvent;
 
 		typedef RZRESULT(*INIT)(void);
 		typedef RZRESULT(*UNINIT)(void);
@@ -42,7 +45,7 @@ namespace Razer
 		typedef RZRESULT(*CREATECHROMALINKEFFECT)(ChromaSDK::ChromaLink::EFFECT_TYPE Effect, PRZPARAM pParam, RZEFFECTID* pEffectId);
 		typedef RZRESULT(*SETEFFECT)(RZEFFECTID EffectId);
 		typedef RZRESULT(*DELETEEFFECT)(RZEFFECTID EffectId);
-		typedef RZRESULT(*REGISTEREVENTNOTIFICATION)(HWND hWnd);
+		typedef RZRESULT(*REGISTEREVENTNOTIFICATION)(void* hWnd);
 		typedef RZRESULT(*UNREGISTEREVENTNOTIFICATION)(void);
 		typedef RZRESULT(*QUERYDEVICE)(RZDEVICEID DeviceId, ChromaSDK::DEVICE_INFO_TYPE& DeviceInfo);
 

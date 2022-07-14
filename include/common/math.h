@@ -63,7 +63,7 @@ namespace Math
 	}
 
 	constexpr inline angle operator""_deg(unsigned long long a) {
-		return angle(long double(a) * PI / 180.0);
+		return angle(double(a) * PI / 180.0);
 	}
 
 	//////////////////////

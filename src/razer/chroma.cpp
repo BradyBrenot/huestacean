@@ -8,7 +8,7 @@
 
 #ifdef _WIN64
 #define CHROMASDKDLL        TEXT("RzChromaSDK64.dll")
-#else
+#elif _WIN32
 #define CHROMASDKDLL        TEXT("RzChromaSDK.dll")
 #endif
 
@@ -26,29 +26,30 @@ using namespace ChromaSDK::Headset;
 using namespace Razer;
 
 Chroma::Chroma() :
-	m_hModule(NULL),
-	m_hEvent(NULL)
+	m_hModule(0),
+	m_hEvent(0)
 {
-	_Init = NULL;
-	_UnInit = NULL;
-	_CreateEffect = NULL;
-	_CreateKeyboardEffect = NULL;
-	_CreateMouseEffect = NULL;
-	_CreateHeadsetEffect = NULL;
-	_CreateMousematEffect = NULL;
-	_CreateKeypadEffect = NULL;
-	_CreateChromaLinkEffect = NULL;
-	_SetEffect = NULL;
-	_DeleteEffect = NULL;
-	_QueryDevice = NULL;
+	_Init = 0;
+	_UnInit = 0;
+	_CreateEffect = 0;
+	_CreateKeyboardEffect = 0;
+	_CreateMouseEffect = 0;
+	_CreateHeadsetEffect = 0;
+	_CreateMousematEffect = 0;
+	_CreateKeypadEffect = 0;
+	_CreateChromaLinkEffect = 0;
+	_SetEffect = 0;
+	_DeleteEffect = 0;
+	_QueryDevice = 0;
 
-	if (m_hModule == NULL)
+	#ifdef _WIN32
+	if (m_hModule == 0)
 	{
 		m_hModule = ::LoadLibrary(CHROMASDKDLL);
-		if (m_hModule != NULL)
+		if (m_hModule != 0)
 		{
 			_Init = (INIT)::GetProcAddress(m_hModule, "Init");
-			if (_Init != NULL)
+			if (_Init != 0)
 			{
 				RZRESULT rzResult = _Init();
 				if (rzResult == RZRESULT_SUCCESS)
@@ -68,24 +69,26 @@ Chroma::Chroma() :
 		}
 	}
 
-	if (m_hEvent == NULL)
+	if (m_hEvent == 0)
 	{
-		m_hEvent = ::CreateEvent(NULL, TRUE, FALSE, EVENT_NAME);
+		m_hEvent = ::CreateEvent(0, TRUE, FALSE, EVENT_NAME);
 	}
+	#endif
 }
 
 Chroma::~Chroma()
 {
-	if (m_hEvent != NULL)
+	#ifdef _WIN32
+	if (m_hEvent != 0)
 	{
 		::CloseHandle(m_hEvent);
-		m_hEvent = NULL;
+		m_hEvent = 0;
 	}
 
-	if (m_hModule != NULL)
+	if (m_hModule != 0)
 	{
 		_UnInit = (UNINIT)::GetProcAddress(m_hModule, "UnInit");
-		if (_UnInit != NULL)
+		if (_UnInit != 0)
 		{
 			RZRESULT rzResult = _UnInit();
 			if (rzResult != RZRESULT_SUCCESS)
@@ -95,69 +98,70 @@ Chroma::~Chroma()
 		}
 
 		::FreeLibrary(m_hModule);
-		m_hModule = NULL;
+		m_hModule = 0;
 	}
+	#endif
 }
 
 void Chroma::CreateEffect(RZDEVICEID DeviceId, ChromaSDK::EFFECT_TYPE Effect, PRZPARAM pParam, RZEFFECTID* pEffectId)
 {
-	if (_CreateEffect == NULL) return;
+	if (_CreateEffect == 0) return;
 
 	_CreateEffect(DeviceId, Effect, pParam, pEffectId);
 }
 
 void Chroma::CreateKeyboardEffect(ChromaSDK::Keyboard::EFFECT_TYPE Effect, PRZPARAM pParam, RZEFFECTID * pEffectId)
 {
-	if (_CreateKeyboardEffect == NULL) return;
+	if (_CreateKeyboardEffect == 0) return;
 
 	_CreateKeyboardEffect(Effect, pParam, pEffectId);
 }
 
 void Chroma::CreateMouseEffect(ChromaSDK::Mouse::EFFECT_TYPE Effect, PRZPARAM pParam, RZEFFECTID * pEffectId)
 {
-	if (_CreateMouseEffect == NULL) return;
+	if (_CreateMouseEffect == 0) return;
 
 	_CreateMouseEffect(Effect, pParam, pEffectId);
 }
 
 void Chroma::CreateMousematEffect(ChromaSDK::Mousepad::EFFECT_TYPE Effect, PRZPARAM pParam, RZEFFECTID * pEffectId)
 {
-	if (_CreateMousematEffect == NULL) return;
+	if (_CreateMousematEffect == 0) return;
 
 	_CreateMousematEffect(Effect, pParam, pEffectId);
 }
 
 void Chroma::CreateKeypadEffect(ChromaSDK::Keypad::EFFECT_TYPE Effect, PRZPARAM pParam, RZEFFECTID * pEffectId)
 {
-	if (_CreateKeypadEffect == NULL) return;
+	if (_CreateKeypadEffect == 0) return;
 
 	_CreateKeypadEffect(Effect, pParam, pEffectId);
 }
 
 void Chroma::CreateHeadsetEffect(ChromaSDK::Headset::EFFECT_TYPE Effect, PRZPARAM pParam, RZEFFECTID * pEffectId)
 {
-	if (_CreateHeadsetEffect == NULL) return;
+	if (_CreateHeadsetEffect == 0) return;
 
 	_CreateHeadsetEffect(Effect, pParam, pEffectId);
 }
 
 void Chroma::CreateChromaLinkEffect(ChromaSDK::ChromaLink::EFFECT_TYPE Effect, PRZPARAM pParam, RZEFFECTID * pEffectId)
 {
-	if (_CreateChromaLinkEffect == NULL) return;
+	if (_CreateChromaLinkEffect == 0) return;
 
 	_CreateChromaLinkEffect(Effect, pParam, pEffectId);
 }
 
 void Chroma::SetEffect(RZEFFECTID EffectId)
 {
-	if (_SetEffect == NULL) return;
+	if (_SetEffect == 0) return;
 
 	_SetEffect(EffectId);
 }
 
 void Chroma::DeleteEffect(RZEFFECTID EffectId)
 {
-	if (_DeleteEffect == NULL) return;
+	if (_DeleteEffect == 0) return;
 
 	_DeleteEffect(EffectId);
 }

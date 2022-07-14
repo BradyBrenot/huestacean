@@ -11,6 +11,7 @@
 #include "hue/hue.h"
 #include "razer/razer.h"
 #include "razer/razerdevices.h"
+
 #include "backend/backend.h"
 #include "frontend/utility.h"
 
@@ -185,7 +186,7 @@ public:
 	}
 
 private:
-	QList<QVariant> GetDevices() { return makeVariantList(devices); }
+	QList<QVariant> GetDevices() const { return makeVariantList(devices); }
 	void SetDevices(QVariantList& in) { devices = fromVariantList<DeviceInfo>(in); }
 };
 
@@ -227,7 +228,7 @@ public:
 	}
 
 private:
-	QList<QVariant> GetDevices() { return makeVariantList(devices); }
+	QList<QVariant> GetDevices() const { return makeVariantList(devices); }
 	void SetDevices(QVariantList& in) { devices = fromVariantList<DeviceInfo>(in); }
 };
 ///////////////////////////////////////////////////////////////////////////
@@ -412,7 +413,7 @@ signals:
 	void sizeChanged();
 
 public:
-	QList<QVariant> GetDevices();
+	QList<QVariant> GetDevices() const;
 	QList< QSharedPointer<DeviceInSceneInfo> > m_DevicesInScene;
 	QList< QSharedPointer<EffectInfo> > m_EffectsList;
 

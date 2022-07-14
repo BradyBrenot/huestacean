@@ -15,7 +15,7 @@ namespace Razer
 		virtual ~Provider();
 
 		virtual void Update(const LightUpdateParams& Params) override; //called from worker thread!
-		virtual std::vector<DevicePtr> GetDevices() override;
+		virtual std::vector<DevicePtr> GetDevices() const override;
 		virtual DevicePtr GetDeviceFromUniqueId(std::string id) const override;
 
 		virtual void Start() override;

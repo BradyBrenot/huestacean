@@ -217,8 +217,8 @@ void Bridge::OnReplied(QNetworkReply* reply)
 		if (obj.contains(QString("success")))
 		{
 			//Connected!
-			username = obj["success"].toObject()["username"].toString().toUtf8();
-			clientkey = obj["success"].toObject()["clientkey"].toString().toUtf8();
+			username = std::string(obj["success"].toObject()["username"].toString().toUtf8());
+			clientkey = std::string(obj["success"].toObject()["clientkey"].toString().toUtf8());
 
 			qDebug() << "Registered with bridge. Username:" << obj["success"].toObject()["username"].toString() << "Clientkey:" << obj["success"].toObject()["clientkey"].toString();
 
@@ -254,7 +254,7 @@ void Bridge::OnReplied(QNetworkReply* reply)
 		else
 		{
 			qDebug() << "Connected and signed in!";
-			friendlyName = replyJson.object()["name"].toString().toUtf8();
+			friendlyName = std::string(replyJson.object()["name"].toString().toUtf8());
 			SetStatus(Status::Connected);
 		}
 	}

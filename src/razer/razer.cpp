@@ -32,7 +32,7 @@ void Provider::Update(const LightUpdateParams& Params)
 	}
 }
 
-std::vector<DevicePtr> Provider::GetDevices()
+std::vector<DevicePtr> Provider::GetDevices() const
 {
 	return devices;
 }

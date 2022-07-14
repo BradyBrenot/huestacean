@@ -1,13 +1,20 @@
+#ifdef _WIN32
 #include "windows.h"
+#endif
+
 #include "razer/razerdevices.h"
 #include "razer/chroma.h"
 
 using namespace Razer;
 using namespace Math;
 
-uint32_t Razer::RgbFrom(RgbColor& c)
+uint32_t Razer::RgbFrom(RgbColor c)
 {
+	#ifdef _WIN32
 	return RGB(c.r * 255.0, c.g * 255.0, c.b * 255.0);
+	#endif
+	// Shh
+	return 0;
 }
 
 /*

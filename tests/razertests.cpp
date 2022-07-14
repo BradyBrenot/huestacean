@@ -37,13 +37,13 @@ TEST_CASE("Razer can animate", "[.][razer]") {
 
 	{
 		auto& razer = b.razer;
-		REQUIRE(razer.GetDevices().size() > 0);
+		REQUIRE(razer->GetDevices().size() > 0);
 
 		auto sr = b.GetWriter();
 		auto& scenes = sr.GetScenesMutable();
 
 		Scene s;
-		auto devices = razer.GetDevices();
+		auto devices = razer->GetDevices();
 
 		int i = 0;
 		for (auto& d : devices)

@@ -8,7 +8,7 @@
 namespace Razer
 {
 	//Convert floating point color to 32-bit int
-	uint32_t RgbFrom(Math::RgbColor& c);
+	uint32_t RgbFrom(Math::RgbColor c);
 
 	class ChromaDeviceBase : public Device
 	{

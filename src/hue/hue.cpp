@@ -93,7 +93,7 @@ void Provider::Update(const LightUpdateParams& Params)
 	}
 }
 
-std::vector<DevicePtr> Provider::GetDevices()
+std::vector<DevicePtr> Provider::GetDevices() const
 {
 	return std::vector<DevicePtr>();
 }
@@ -316,13 +316,13 @@ void Provider::Load(QSettings& settings)
 			auto& l = b->devices.emplace_back();
 			l = std::make_shared<Light>();
 
-			l->uniqueid = settings.value("uniqueid").toString().toUtf8();
+			l->uniqueid = std::string(settings.value("uniqueid").toString().toUtf8());
 			l->id = settings.value("id").toUInt();
 
-			l->bridgeid = settings.value("bridgeid").toString().toUtf8();
-			l->name = settings.value("name").toString().toUtf8();
-			l->type = settings.value("type").toString().toUtf8();
-			l->productname = settings.value("productname").toString().toUtf8();
+			l->bridgeid = std::string(settings.value("bridgeid").toString().toUtf8());
+			l->name = std::string(settings.value("name").toString().toUtf8());
+			l->type = std::string(settings.value("type").toString().toUtf8());
+			l->productname = std::string(settings.value("productname").toString().toUtf8());
 		}
 		settings.endArray();
 	}
